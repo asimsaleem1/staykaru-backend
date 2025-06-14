@@ -5,6 +5,7 @@ import { RegisterDto } from '../dto/register.dto';
 import { LoginDto } from '../dto/login.dto';
 import { Enable2FADto } from '../dto/enable-2fa.dto';
 import { Verify2FADto } from '../dto/verify-2fa.dto';
+import { VerifyTokenDto } from '../dto/verify-token.dto';
 import { AuthGuard } from '../guards/auth.guard';
 
 @ApiTags('auth')
@@ -141,5 +142,82 @@ export class AuthController {
   @ApiResponse({ status: 401, description: 'Unauthorized' })
   async protected() {
     return { message: 'This is a protected route' };
+  }
+
+  @Post('verify-token')
+  @ApiOperation({ 
+    summary: 'Verify Firebase token and get user data',
+    description: 'Frontend sends Firebase ID token, backend verifies it and returns user data' 
+  })
+  @ApiResponse({
+    status: 200,
+    description: 'Token verified successfully',
+    schema: {
+      example: {
+        user: {
+          id: '507f1f77bcf86cd799439011',
+          firebaseUid: 'firebase-uid-123',
+          name: 'John Doe',
+          email: 'john@example.com',
+          role: 'student',
+          emailVerified: true,
+        },
+        firebaseData: {
+          uid: 'firebase-uid-123',
+          email: 'john@example.com',
+          emailVerified: true,
+          customClaims: { role: 'student' }
+        }
+      },
+    },
+  })
+  @ApiResponse({ status: 401, description: 'Invalid or expired token' })
+  async verifyToken(@Body() verifyTokenDto: VerifyTokenDto) {
+    return this.authService.verifyFirebaseToken(verifyTokenDto.token);
+  }
+
+  @Post('profile')
+  @ApiOperation({ 
+    summary: 'Get user profile using Firebase token',
+    description: 'Returns user profile data after token verification'
+  })
+  @ApiResponse({
+    status: 200,
+    description: 'User profile retrieved successfully',
+    schema: {
+      example: {
+        id: '507f1f77bcf86cd799439011',
+        firebaseUid: 'firebase-uid-123',
+        name: 'John Doe',
+        email: 'john@example.com',
+        role: 'student',
+        emailVerified: true,
+      },
+    },
+  })
+  @ApiResponse({ status: 401, description: 'Invalid or expired token' })
+  async getProfile(@Body() verifyTokenDto: VerifyTokenDto) {
+    return this.authService.getUserProfile(verifyTokenDto.token);
+  }
+
+  @Post('refresh')
+  @ApiOperation({ 
+    summary: 'Refresh user data from Firebase',
+    description: 'Updates local user data with latest Firebase information'
+  })
+  @ApiResponse({
+    status: 200,
+    description: 'User data refreshed successfully',
+  })
+  @ApiResponse({ status: 401, description: 'Invalid or expired token' })
+  async refreshUserData(@Body() verifyTokenDto: VerifyTokenDto) {
+    return this.authService.refreshUserData(verifyTokenDto.token);
+  }
+
+  @Post('sync-firebase-user')
+  @ApiOperation({ summary: 'Sync Firebase user with database' })
+  @ApiResponse({ status: 200, description: 'User synced successfully' })
+  async syncFirebaseUser(@Body() verifyTokenDto: VerifyTokenDto) {
+    return this.authService.syncFirebaseUser(verifyTokenDto.token);
   }
 }

@@ -119,6 +119,139 @@ export class AuthService {
     }
   }
 
+  /**
+   * Verify Firebase token and return user data
+   * This is the main method for authenticating frontend requests
+   */
+  async verifyFirebaseToken(firebaseToken: string) {
+    try {
+      // Verify the Firebase ID token
+      const decodedToken = await this.firebaseService.verifyToken(firebaseToken);
+      
+      // Get user from MongoDB using Firebase UID
+      const user = await this.userService.findByFirebaseUid(decodedToken.uid);
+      
+      if (!user) {
+        throw new UnauthorizedException('User not found in database');
+      }
+
+      return {
+        user: {
+          id: user._id,
+          firebaseUid: user.firebaseUid,
+          name: user.name,
+          email: user.email,
+          role: user.role,
+          emailVerified: decodedToken.email_verified,
+        },
+        firebaseData: {
+          uid: decodedToken.uid,
+          email: decodedToken.email,
+          emailVerified: decodedToken.email_verified,
+          customClaims: decodedToken.role ? { role: decodedToken.role } : null,
+        }
+      };
+    } catch (error) {
+      console.error('Firebase token verification failed:', error);
+      throw new UnauthorizedException('Invalid or expired token');
+    }
+  }
+
+  /**
+   * Get user profile using Firebase token
+   */
+  async getUserProfile(firebaseToken: string) {
+    const { user } = await this.verifyFirebaseToken(firebaseToken);
+    return user;
+  }
+
+  /**
+   * Refresh user data from Firebase
+   */
+  async refreshUserData(firebaseToken: string) {
+    try {
+      const decodedToken = await this.firebaseService.verifyToken(firebaseToken);
+      const firebaseUser = await this.firebaseService.getUserById(decodedToken.uid);
+      
+      // Update user in MongoDB if needed
+      const user = await this.userService.findByFirebaseUid(decodedToken.uid);
+      if (user && user.email !== firebaseUser.email) {
+        await this.userService.updateByFirebaseUid(decodedToken.uid, {
+          email: firebaseUser.email,
+          name: firebaseUser.displayName || user.name,
+        });
+      }
+
+      return await this.verifyFirebaseToken(firebaseToken);
+    } catch (error) {
+      throw new UnauthorizedException('Failed to refresh user data');
+    }
+  }
+
+  async getUserProfile(uid: string) {
+    try {
+      // Get Firebase user
+      const firebaseUser = await this.firebaseService.getUserById(uid);
+      
+      // Get database user
+      const dbUser = await this.userService.findByFirebaseUid(uid);
+      
+      return {
+        uid: firebaseUser.uid,
+        email: firebaseUser.email,
+        name: firebaseUser.displayName,
+        emailVerified: firebaseUser.emailVerified,
+        phoneNumber: firebaseUser.phoneNumber,
+        photoURL: firebaseUser.photoURL,
+        role: dbUser?.role || 'student',
+        createdAt: firebaseUser.metadata.creationTime,
+        lastSignInTime: firebaseUser.metadata.lastSignInTime,
+        customClaims: firebaseUser.customClaims || {},
+        ...dbUser?.toObject()
+      };
+    } catch (error) {
+      throw new BadRequestException('Failed to get user profile: ' + error.message);
+    }
+  }
+
+  async syncFirebaseUser(token: string) {
+    try {
+      const decodedToken = await this.firebaseService.verifyToken(token);
+      
+      // Check if user exists in database
+      let user = await this.userService.findByFirebaseUid(decodedToken.uid);
+      
+      if (!user) {
+        // Create user in database if not exists
+        const createUserDto: CreateUserDto = {
+          name: decodedToken.name || decodedToken.email.split('@')[0],
+          email: decodedToken.email,
+          role: (decodedToken.role as UserRole) || UserRole.STUDENT,
+        };
+        
+        user = await this.userService.create(createUserDto, decodedToken.uid);
+        
+        // Set custom claims in Firebase
+        await this.firebaseService.setCustomUserClaims(decodedToken.uid, {
+          role: user.role,
+        });
+      }
+      
+      return {
+        message: 'User synchronized successfully',
+        user: {
+          uid: decodedToken.uid,
+          email: decodedToken.email,
+          name: user.name,
+          role: user.role,
+          synced: true
+        }
+      };
+    } catch (error) {
+      throw new BadRequestException('Failed to sync user: ' + error.message);
+    }
+  }
+
   // Development only: Create test users with confirmed emails
   async createTestUser(role: string) {
     const testUsers = {

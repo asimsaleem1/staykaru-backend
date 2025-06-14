@@ -146,6 +146,40 @@ export class UserService {
     return null;
   }
 
+  async updateByFirebaseUid(firebaseUid: string, updateUserDto: Partial<CreateUserDto>): Promise<User> {
+    const encryptedData = {
+      name: updateUserDto.name,
+      email: updateUserDto.email,
+      phone: updateUserDto.phone ? this.encrypt(updateUserDto.phone) : undefined,
+      address: updateUserDto.address ? this.encrypt(updateUserDto.address) : undefined,
+      role: updateUserDto.role,
+    };
+
+    // Remove undefined values
+    Object.keys(encryptedData).forEach(key => {
+      if (encryptedData[key] === undefined) {
+        delete encryptedData[key];
+      }
+    });
+
+    const user = await this.userModel.findOneAndUpdate(
+      { firebaseUid },
+      { ...encryptedData, updatedAt: new Date() },
+      { new: true }
+    ).exec();
+    
+    if (!user) {
+      throw new NotFoundException(`User with Firebase UID ${firebaseUid} not found`);
+    }
+
+    // Clear relevant caches
+    await this.clearCache(user._id.toString());
+    const cacheKey = `user:firebase:${firebaseUid}`;
+    await this.cacheManager.del(cacheKey);
+    
+    return this.decryptUserData(user);
+  }
+
   private decryptUserData(user: User): User {
     const userObject = user.toObject();
     return {
