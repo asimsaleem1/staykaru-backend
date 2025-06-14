@@ -34,6 +34,11 @@ export class BookingService {
       ...createBookingDto,
       user: userId,
       status: BookingStatus.PENDING,
+      total_price: accommodation.price,
+      duration_days: Math.ceil(
+        (new Date(createBookingDto.end_date).getTime() - 
+         new Date(createBookingDto.start_date).getTime()) / (1000 * 60 * 60 * 24)
+      )
     });
 
     const savedBooking = await (await booking.save()).populate(['user', 'accommodation']);
@@ -51,19 +56,13 @@ export class BookingService {
         accommodationId: accommodation._id.toString(),
         status: savedBooking.status,
         createdAt: new Date(),
-        checkIn: savedBooking.checkIn,
-        checkOut: savedBooking.checkOut,
-        totalPrice: savedBooking.totalPrice,
+        startDate: savedBooking.start_date,
+        endDate: savedBooking.end_date,
+        totalPrice: accommodation.price,
       });
     } catch (error) {
       console.error('Error logging booking analytics:', error);
     }
-      total_price: accommodation.price,
-      duration_days: Math.ceil(
-        (new Date(createBookingDto.end_date).getTime() - 
-         new Date(createBookingDto.start_date).getTime()) / (1000 * 60 * 60 * 24)
-      ),
-    });
 
     return savedBooking;
   }

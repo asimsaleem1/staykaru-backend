@@ -64,10 +64,15 @@ export class OrderService {
     // Notify food provider about the new order using MongoDB
     try {
       await this.orderModel.db.collection('order_notifications').insertOne({
-      order_id: savedOrder._id.toString(),
-      user_id: savedOrder.food_provider.owner.toString(),
-      message: `New order received worth ${totalPrice}`,
-    });
+        order_id: savedOrder._id.toString(),
+        user_id: savedOrder.food_provider.owner.toString(),
+        message: `New order received worth ${totalPrice}`,
+        createdAt: new Date(),
+        read: false
+      });
+    } catch (error) {
+      console.error('Error creating order notification:', error);
+    }
 
     return savedOrder;
   }
