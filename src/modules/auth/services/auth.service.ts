@@ -1,6 +1,5 @@
-import { Injectable, UnauthorizedException } from '@nestjs/common';
+import { Injectable, UnauthorizedException, BadRequestException } from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
-import { createClient, SupabaseClient } from '@supabase/supabase-js';
 import { RegisterDto } from '../dto/register.dto';
 import { LoginDto } from '../dto/login.dto';
 import { Enable2FADto } from '../dto/enable-2fa.dto';
@@ -8,40 +7,32 @@ import { Verify2FADto } from '../dto/verify-2fa.dto';
 import { UserRole } from '../../user/schema/user.schema';
 import { UserService } from '../../user/services/user.service';
 import { CreateUserDto } from '../../user/dto/create-user.dto';
+import { FirebaseService } from './firebase.service';
+import * as admin from 'firebase-admin';
 
 @Injectable()
 export class AuthService {
-  private supabase: SupabaseClient;
-
   constructor(
     private configService: ConfigService,
     private userService: UserService,
-  ) {
-    this.supabase = createClient(
-      this.configService.get<string>('supabase.url'),
-      this.configService.get<string>('supabase.key'),
-    );
-  }
+    private firebaseService: FirebaseService,
+  ) {}
 
   async register(registerDto: RegisterDto) {
-    const { data, error } = await this.supabase.auth.signUp({
-      email: registerDto.email,
-      password: registerDto.password,
-      options: {
-        data: {
-          name: registerDto.name,
-          role: registerDto.role,
-        },
-        emailRedirectTo: undefined, // Disable email confirmation for development
-      },
-    });
+    try {
+      // Create user in Firebase
+      const userRecord = await this.firebaseService.createUser(
+        registerDto.email,
+        registerDto.password,
+        registerDto.name,
+      );
 
-    if (error) {
-      throw new UnauthorizedException(error.message);
-    }
+      // Set custom claims for user role
+      await this.firebaseService.setCustomUserClaims(userRecord.uid, {
+        role: registerDto.role,
+      });
 
-    // Create corresponding MongoDB record if Supabase registration is successful
-    if (data.user) {
+      // Create corresponding MongoDB record
       try {
         const createUserDto: CreateUserDto = {
           name: registerDto.name,
@@ -49,75 +40,83 @@ export class AuthService {
           role: registerDto.role as UserRole,
         };
 
-        await this.userService.create(createUserDto, data.user.id);
+        await this.userService.create(createUserDto, userRecord.uid);
       } catch (dbError) {
-        // If MongoDB user creation fails, we should ideally clean up Supabase user
-        // For now, we'll log the error and continue
+        // If MongoDB user creation fails, clean up Firebase user
+        await this.firebaseService.deleteUser(userRecord.uid);
         console.error('Failed to create MongoDB user record:', dbError);
+        throw new BadRequestException('Failed to create user in database');
       }
-    }
 
-    return {
-      message: 'Registration successful. Please check your email for confirmation.',
-      user: data.user,
-      confirmationRequired: !data.user?.email_confirmed_at,
-      session: data.session,
-    };
+      return {
+        message: 'Registration successful. Please verify your email.',
+        user: {
+          uid: userRecord.uid,
+          email: userRecord.email,
+          name: userRecord.displayName,
+          emailVerified: userRecord.emailVerified,
+        },
+      };
+    } catch (error) {
+      if (error instanceof BadRequestException) {
+        throw error;
+      }
+      throw new BadRequestException(error.message);
+    }
   }
 
   async login(loginDto: LoginDto) {
-    const { data, error } = await this.supabase.auth.signInWithPassword({
-      email: loginDto.email,
-      password: loginDto.password,
-    });
-
-    if (error) {
-      // Provide more specific error handling
-      if (error.message.includes('Email not confirmed')) {
-        throw new UnauthorizedException(
-          'Email not confirmed. Please check your email for confirmation link, or contact support for development testing.',
-        );
+    try {
+      // For login we need to use the Firebase client SDK in the frontend
+      // Here we'll simulate a login by checking if the user exists in Firebase
+      const userRecord = await this.firebaseService.getUserByEmail(loginDto.email);
+      
+      // Verify the user exists in our database
+      const user = await this.userService.findByFirebaseUid(userRecord.uid);
+      
+      if (!user) {
+        throw new UnauthorizedException('User not found in database');
       }
-      throw new UnauthorizedException(error.message);
+      
+      return {
+        message: 'User exists and can login via frontend Firebase SDK',
+        user: {
+          uid: userRecord.uid,
+          email: userRecord.email,
+          name: userRecord.displayName,
+          emailVerified: userRecord.emailVerified,
+        },
+        note: 'The actual authentication token should be obtained client-side using Firebase authentication SDK',
+      };
+    } catch (error) {
+      throw new UnauthorizedException('Invalid email or password');
     }
-
-    return {
-      message: 'Login successful',
-      session: data.session,
-      user: data.user,
-      access_token: data.session?.access_token,
-    };
   }
 
   async enable2FA(enable2FADto: Enable2FADto) {
-    const { error } = await this.supabase.auth.signInWithOtp({
-      email: enable2FADto.email,
-    });
-
-    if (error) {
+    try {
+      // We'll need to use Firebase Phone Auth in the frontend
+      // For now, we'll just return a mock response
+      return {
+        message: 'To enable 2FA, use Firebase Phone Authentication in the frontend',
+        success: true,
+      };
+    } catch (error) {
       throw new UnauthorizedException(error.message);
     }
-
-    return {
-      message: 'OTP sent successfully',
-    };
   }
 
   async verify2FA(verify2FADto: Verify2FADto) {
-    const { data, error } = await this.supabase.auth.verifyOtp({
-      email: verify2FADto.email,
-      token: verify2FADto.otp,
-      type: 'email',
-    });
-
-    if (error) {
+    try {
+      // Firebase handles 2FA verification on the client side
+      // For now, we'll just return a mock response
+      return {
+        message: '2FA verification should be handled by Firebase client SDK',
+        success: true,
+      };
+    } catch (error) {
       throw new UnauthorizedException(error.message);
     }
-
-    return {
-      message: '2FA verified successfully',
-      session: data.session,
-    };
   }
 
   // Development only: Create test users with confirmed emails
@@ -154,24 +153,37 @@ export class AuthService {
       throw new UnauthorizedException('Invalid test user role');
     }
 
-    // First try to sign up
-    const { data: signUpData, error: signUpError } = await this.supabase.auth.signUp({
-      email: testUser.email,
-      password: testUser.password,
-      options: {
-        data: {
-          name: testUser.name,
-          role: testUser.role,
-        },
-      },
-    });
+    try {
+      // Check if user already exists in Firebase
+      try {
+        const existingUser = await this.firebaseService.getUserByEmail(testUser.email);
+        
+        // User exists, return their credentials
+        return {
+          message: `Test ${role} user already exists`,
+          credentials: {
+            email: testUser.email,
+            password: testUser.password,
+          },
+          note: 'For testing: Use these credentials with Firebase client SDK',
+        };
+      } catch (notFoundError) {
+        // User doesn't exist, create a new one
+      }
 
-    if (signUpError && !signUpError.message.includes('User already registered')) {
-      throw new UnauthorizedException(signUpError.message);
-    }
+      // Create new user in Firebase
+      const userRecord = await this.firebaseService.createUser(
+        testUser.email,
+        testUser.password,
+        testUser.name,
+      );
 
-    // Create MongoDB record if Supabase user was created
-    if (signUpData.user) {
+      // Set custom claims for user role
+      await this.firebaseService.setCustomUserClaims(userRecord.uid, {
+        role: testUser.role,
+      });
+
+      // Create corresponding MongoDB record
       try {
         const createUserDto: CreateUserDto = {
           name: testUser.name,
@@ -179,51 +191,33 @@ export class AuthService {
           role: testUser.role as UserRole,
         };
 
-        await this.userService.create(createUserDto, signUpData.user.id);
+        await this.userService.create(createUserDto, userRecord.uid);
       } catch (dbError) {
         console.error('Failed to create MongoDB test user record:', dbError);
       }
-    }
 
-    // Try to sign in to get session
-    const { data: signInData, error: signInError } = await this.supabase.auth.signInWithPassword({
-      email: testUser.email,
-      password: testUser.password,
-    });
-
-    // If email not confirmed, return the user data anyway for testing
-    if (signInError && signInError.message.includes('Email not confirmed')) {
       return {
-        message: `Test ${role} user created but email needs confirmation`,
-        user: signUpData.user,
+        message: `Test ${role} user created successfully`,
+        user: {
+          uid: userRecord.uid,
+          email: userRecord.email,
+          name: userRecord.displayName,
+        },
         credentials: {
           email: testUser.email,
           password: testUser.password,
         },
-        note: 'For testing: Use these credentials after email confirmation',
+        note: 'For testing: Use these credentials with Firebase client SDK',
       };
+    } catch (error) {
+      throw new BadRequestException(`Failed to create test user: ${error.message}`);
     }
-
-    if (signInError) {
-      throw new UnauthorizedException(signInError.message);
-    }
-
-    return {
-      message: `Test ${role} user ready for testing`,
-      session: signInData.session,
-      user: signInData.user,
-      access_token: signInData.session?.access_token,
-      credentials: {
-        email: testUser.email,
-        password: testUser.password,
-      },
-    };
   }
 
-  // Helper method to sync existing Supabase users to MongoDB
-  async syncUserToDatabase(supabaseUserId: string, userEmail: string, userName: string, userRole: string) {
+  // Helper method to sync existing users to MongoDB
+  async syncUserToDatabase(firebaseUid: string, userEmail: string, userName: string, userRole: string) {
     try {
-      const existingUser = await this.userService.findBySupabaseUserId(supabaseUserId);
+      const existingUser = await this.userService.findByFirebaseUid(firebaseUid);
       
       if (!existingUser) {
         const createUserDto: CreateUserDto = {
@@ -232,7 +226,7 @@ export class AuthService {
           role: userRole as UserRole,
         };
 
-        const newUser = await this.userService.create(createUserDto, supabaseUserId);
+        const newUser = await this.userService.create(createUserDto, firebaseUid);
         return {
           message: 'User synced to database successfully',
           user: newUser,

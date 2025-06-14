@@ -2,7 +2,6 @@ import { Injectable, NotFoundException, BadRequestException } from '@nestjs/comm
 import { InjectModel } from '@nestjs/mongoose';
 import { Model } from 'mongoose';
 import { ConfigService } from '@nestjs/config';
-import { createClient } from '@supabase/supabase-js';
 import { Order, OrderStatus } from '../schema/order.schema';
 import { CreateOrderDto } from '../dto/create-order.dto';
 import { UpdateOrderStatusDto } from '../dto/update-order-status.dto';
@@ -10,18 +9,11 @@ import { MenuItem } from '../../food_service/schema/menu-item.schema';
 
 @Injectable()
 export class OrderService {
-  private supabase;
-
   constructor(
     @InjectModel(Order.name) private readonly orderModel: Model<Order>,
     @InjectModel(MenuItem.name) private readonly menuItemModel: Model<MenuItem>,
     private readonly configService: ConfigService,
-  ) {
-    this.supabase = createClient(
-      this.configService.get<string>('supabase.url'),
-      this.configService.get<string>('supabase.key'),
-    );
-  }
+  ) {}
 
   async create(createOrderDto: CreateOrderDto, userId: string): Promise<Order> {
     // Calculate total price and validate menu items

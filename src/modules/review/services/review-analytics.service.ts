@@ -1,28 +1,36 @@
 import { Injectable } from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
-import { createClient } from '@supabase/supabase-js';
+import { InjectModel } from '@nestjs/mongoose';
+import { Model } from 'mongoose';
 import { Review } from '../schema/review.schema';
+
+// Define a simple analytics schema
+interface ReviewAnalytics {
+  review_id: string;
+  user_id: string;
+  target_type: string;
+  target_id: string;
+  rating: number;
+  verified: boolean;
+  timestamp: Date;
+}
 
 @Injectable()
 export class ReviewAnalyticsService {
-  private supabase;
-
-  constructor(private configService: ConfigService) {
-    this.supabase = createClient(
-      this.configService.get<string>('supabase.url'),
-      this.configService.get<string>('supabase.key'),
-    );
-  }
+  constructor(
+    private configService: ConfigService,
+    @InjectModel('ReviewAnalytics') private readonly reviewAnalyticsModel: Model<ReviewAnalytics>
+  ) {}
 
   async logReviewEvent(review: Review): Promise<void> {
-    await this.supabase.from('review_analytics').insert({
+    await this.reviewAnalyticsModel.create({
       review_id: review._id.toString(),
       user_id: review.user.toString(),
       target_type: review.target_type,
       target_id: review.target_id.toString(),
       rating: review.rating,
       verified: review.verified,
-      timestamp: new Date().toISOString(),
+      timestamp: new Date(),
     });
   }
 }

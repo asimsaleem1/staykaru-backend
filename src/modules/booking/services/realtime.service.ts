@@ -1,33 +1,22 @@
 import { Injectable, OnModuleInit } from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
-import { createClient } from '@supabase/supabase-js';
+import { InjectModel } from '@nestjs/mongoose';
+import { Model } from 'mongoose';
+import { Booking } from '../schema/booking.schema';
 
 @Injectable()
 export class RealtimeService implements OnModuleInit {
-  private supabase;
-
-  constructor(private configService: ConfigService) {
-    this.supabase = createClient(
-      this.configService.get<string>('supabase.url'),
-      this.configService.get<string>('supabase.key'),
-    );
-  }
+  constructor(
+    private configService: ConfigService,
+    @InjectModel(Booking.name) private readonly bookingModel: Model<Booking>,
+  ) {}
 
   async onModuleInit() {
-    this.supabase
-      .channel('bookings')
-      .on('postgres_changes', { event: '*', schema: 'public', table: 'bookings' }, 
-        (payload) => {
-          console.log('Change received!', payload);
-        }
-      )
-      .subscribe();
+    console.log('Realtime service initialized with MongoDB');
+    // MongoDB change streams can be implemented here if needed
   }
 
   async broadcastBookingUpdate(bookingId: string, data: any) {
-    await this.supabase
-      .from('bookings')
-      .update(data)
-      .eq('id', bookingId);
+    await this.bookingModel.findByIdAndUpdate(bookingId, data);
   }
 }

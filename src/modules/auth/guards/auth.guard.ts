@@ -1,37 +1,32 @@
 import { Injectable, CanActivate, ExecutionContext, UnauthorizedException } from '@nestjs/common';
-import { ConfigService } from '@nestjs/config';
-import { createClient, SupabaseClient } from '@supabase/supabase-js';
+import { FirebaseService } from '../services/firebase.service';
 
 @Injectable()
 export class AuthGuard implements CanActivate {
-  private supabase: SupabaseClient;
-
-  constructor(private configService: ConfigService) {
-    this.supabase = createClient(
-      this.configService.get<string>('supabase.url'),
-      this.configService.get<string>('supabase.key'),
-    );
-  }
+  constructor(private firebaseService: FirebaseService) {}
 
   async canActivate(context: ExecutionContext): Promise<boolean> {
     const request = context.switchToHttp().getRequest();
     const token = this.extractTokenFromHeader(request);
 
     if (!token) {
-      throw new UnauthorizedException();
+      throw new UnauthorizedException('No token provided');
     }
 
     try {
-      const { data: { user }, error } = await this.supabase.auth.getUser(token);
+      const decodedToken = await this.firebaseService.verifyToken(token);
       
-      if (error) {
-        throw new UnauthorizedException();
-      }
-
-      request.user = user;
+      // Add the Firebase user details to the request
+      request.user = {
+        uid: decodedToken.uid,
+        email: decodedToken.email,
+        role: decodedToken.role || 'student', // Default to student if no role
+        ...decodedToken
+      };
+      
       return true;
-    } catch {
-      throw new UnauthorizedException();
+    } catch (error) {
+      throw new UnauthorizedException('Invalid token');
     }
   }
 

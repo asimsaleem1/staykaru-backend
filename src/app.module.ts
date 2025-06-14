@@ -17,13 +17,13 @@ import { ReviewModule } from './modules/review/review.module';
 import { NotificationModule } from './modules/notification/notification.module';
 import { AnalyticsModule } from './modules/analytics/analytics.module';
 import databaseConfig from './config/database.config';
-import supabaseConfig from './config/supabase.config';
+import firebaseConfig from './config/firebase.config';
 import cacheConfig from './config/cache.config';
 
 @Module({
   imports: [
     ConfigModule.forRoot({
-      load: [databaseConfig, supabaseConfig, cacheConfig],
+      load: [databaseConfig, firebaseConfig, cacheConfig],
       isGlobal: true,
     }),
     CacheModule.registerAsync({

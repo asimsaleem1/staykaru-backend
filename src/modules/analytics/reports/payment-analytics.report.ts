@@ -1,41 +1,42 @@
 import { ConfigService } from '@nestjs/config';
-import { createClient } from '@supabase/supabase-js';
+import { InjectModel } from '@nestjs/mongoose';
+import { Model } from 'mongoose';
 import { AnalyticsReport, AnalyticsTimeRange } from '../interfaces/analytics-report.interface';
 
 export class PaymentAnalyticsReport implements AnalyticsReport {
-  private supabase;
-
-  constructor(private configService: ConfigService) {
-    this.supabase = createClient(
-      this.configService.get<string>('supabase.url'),
-      this.configService.get<string>('supabase.key'),
-    );
-  }
+  constructor(
+    private configService: ConfigService,
+    @InjectModel('PaymentAnalytics') private readonly paymentAnalyticsModel: Model<any>
+  ) {}
 
   async generate(timeRange?: AnalyticsTimeRange) {
-    const query = this.supabase
-      .from('payment_analytics')
-      .select('*')
-      .order('created_at', { ascending: false });
+    let query = this.paymentAnalyticsModel.find()
+      .sort({ createdAt: -1 });
 
     if (timeRange) {
-      query.gte('created_at', timeRange.startDate.toISOString())
-        .lte('created_at', timeRange.endDate.toISOString());
+      query = query.where('createdAt').gte(new Date(timeRange.startDate))
+        .where('createdAt').lte(new Date(timeRange.endDate));
     }
 
-    const { data, error } = await query;
-
-    if (error) {
+    try {
+      const data = await query.exec();
+      
+      return {
+        summary: {
+          totalPayments: data.length,
+          totalAmount: data.reduce((sum, payment) => sum + (payment.amount || 0), 0),
+          paymentMethods: this.calculatePaymentMethodDistribution(data),
+          statusDistribution: this.calculateStatusDistribution(data),
+        },
+        transactions: data,
+        timeRange: timeRange || {
+          startDate: new Date(new Date().setDate(new Date().getDate() - 30)),
+          endDate: new Date(),
+        },
+      };
+    } catch (error) {
       throw error;
     }
-
-    return {
-      total_payments: data.length,
-      total_amount: data.reduce((sum, payment) => sum + payment.amount, 0),
-      payment_methods: this.calculatePaymentMethodDistribution(data),
-      status_distribution: this.calculateStatusDistribution(data),
-      data,
-    };
   }
 
   private calculatePaymentMethodDistribution(data: any[]) {

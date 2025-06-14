@@ -40,7 +40,7 @@ export class UserService {
     await this.cacheManager.del('users:all');
   }
 
-  async create(createUserDto: CreateUserDto, supabaseUserId: string): Promise<User> {
+  async create(createUserDto: CreateUserDto, firebaseUid: string): Promise<User> {
     const encryptedData = {
       ...createUserDto,
       phone: createUserDto.phone ? this.encrypt(createUserDto.phone) : undefined,
@@ -49,7 +49,7 @@ export class UserService {
 
     const user = new this.userModel({
       ...encryptedData,
-      supabaseUserId,
+      firebaseUid,
     });
 
     const savedUser = await user.save();
@@ -113,6 +113,23 @@ export class UserService {
     await this.clearCache(id);
   }
 
+  async findByFirebaseUid(firebaseUid: string): Promise<User | null> {
+    const cacheKey = `user:firebase:${firebaseUid}`;
+    const cached = await this.cacheManager.get<User>(cacheKey);
+    
+    if (cached) {
+      return this.decryptUserData(cached);
+    }
+
+    const user = await this.userModel.findOne({ firebaseUid }).exec();
+    if (user) {
+      await this.cacheManager.set(cacheKey, user);
+      return this.decryptUserData(user);
+    }
+    return null;
+  }
+
+  // Keep this method for backward compatibility during migration
   async findBySupabaseUserId(supabaseUserId: string): Promise<User | null> {
     const cacheKey = `user:supabase:${supabaseUserId}`;
     const cached = await this.cacheManager.get<User>(cacheKey);

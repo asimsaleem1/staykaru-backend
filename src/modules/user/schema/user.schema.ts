@@ -25,8 +25,11 @@ export class User extends Document {
   @Prop()
   address: string;
 
-  @Prop({ required: true })
-  supabaseUserId: string;
+  @Prop({ required: true, unique: true })
+  firebaseUid: string;
+
+  @Prop({ required: false })
+  supabaseUserId: string; // Legacy field - will be removed in future releases
 }
 
 export const UserSchema = SchemaFactory.createForClass(User);

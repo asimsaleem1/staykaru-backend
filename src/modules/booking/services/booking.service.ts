@@ -2,7 +2,6 @@ import { Injectable, NotFoundException, BadRequestException } from '@nestjs/comm
 import { InjectModel } from '@nestjs/mongoose';
 import { Model } from 'mongoose';
 import { ConfigService } from '@nestjs/config';
-import { createClient } from '@supabase/supabase-js';
 import { Booking, BookingStatus } from '../schema/booking.schema';
 import { CreateBookingDto } from '../dto/create-booking.dto';
 import { UpdateBookingStatusDto } from '../dto/update-booking-status.dto';
@@ -11,19 +10,12 @@ import { RealtimeService } from './realtime.service';
 
 @Injectable()
 export class BookingService {
-  private supabase;
-
   constructor(
     @InjectModel(Booking.name) private readonly bookingModel: Model<Booking>,
     private readonly accommodationService: AccommodationService,
     private readonly realtimeService: RealtimeService,
     private readonly configService: ConfigService,
-  ) {
-    this.supabase = createClient(
-      this.configService.get<string>('supabase.url'),
-      this.configService.get<string>('supabase.key'),
-    );
-  }
+  ) {}
 
   async create(createBookingDto: CreateBookingDto, userId: string): Promise<Booking> {
     const accommodation = await this.accommodationService.findOne(

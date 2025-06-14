@@ -1,4 +1,4 @@
-import { Controller, Post, Body, UseGuards, Get, Param } from '@nestjs/common';
+import { Controller, Post, Body, UseGuards, Get, Param, Request } from '@nestjs/common';
 import { ApiTags, ApiOperation, ApiResponse, ApiBearerAuth } from '@nestjs/swagger';
 import { AuthService } from '../services/auth.service';
 import { RegisterDto } from '../dto/register.dto';
@@ -108,18 +108,21 @@ export class AuthController {
         message: 'User synced to database successfully',
         user: {
           id: '507f1f77bcf86cd799439011',
-          firstName: 'John',
-          lastName: 'Doe',
+          name: 'John Doe',
           email: 'john@example.com',
           role: 'landlord',
         },
       },
     },
   })
-  async syncUser(@Body() body: { name: string; role: string }) {
-    // Note: We'll need to access the request user in the actual implementation
-    // For now, returning a placeholder message
-    return { message: 'Sync endpoint added - implementation pending' };
+  async syncUser(@Body() body: { name: string; role: string }, @Request() req) {
+    const firebaseUser = req.user;
+    return this.authService.syncUserToDatabase(
+      firebaseUser.uid,
+      firebaseUser.email,
+      body.name || firebaseUser.name,
+      body.role || firebaseUser.role,
+    );
   }
 
   @Get('protected')

@@ -210,7 +210,7 @@ export class AppService {
         </div>
         
         <div class="footer">
-          <p>Built with NestJS, MongoDB & Supabase</p>
+          <p>Built with NestJS, MongoDB & Firebase</p>
           <p>Ready for testing with Swagger UI</p>
         </div>
       </div>

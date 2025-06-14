@@ -6,7 +6,7 @@ import {
 } from '@nestjs/websockets';
 import { Server, Socket } from 'socket.io';
 import { ConfigService } from '@nestjs/config';
-import { createClient } from '@supabase/supabase-js';
+import { FirebaseService } from '../../auth/services/firebase.service';
 
 @WebSocketGateway({
   cors: {
@@ -18,14 +18,11 @@ export class NotificationGateway implements OnGatewayConnection, OnGatewayDiscon
   server: Server;
 
   private userSockets: Map<string, Set<string>> = new Map();
-  private supabase;
 
-  constructor(private configService: ConfigService) {
-    this.supabase = createClient(
-      this.configService.get<string>('supabase.url'),
-      this.configService.get<string>('supabase.key'),
-    );
-  }
+  constructor(
+    private configService: ConfigService,
+    private firebaseService: FirebaseService
+  ) {}
 
   async handleConnection(client: Socket) {
     const token = client.handshake.auth.token;
@@ -35,20 +32,23 @@ export class NotificationGateway implements OnGatewayConnection, OnGatewayDiscon
     }
 
     try {
-      const { data: { user }, error } = await this.supabase.auth.getUser(token);
-      if (error || !user) {
+      // Verify token with Firebase
+      const decodedToken = await this.firebaseService.verifyToken(token);
+      if (!decodedToken || !decodedToken.uid) {
         client.disconnect();
         return;
       }
 
+      const userId = decodedToken.uid;
+
       // Store socket connection
-      if (!this.userSockets.has(user.id)) {
-        this.userSockets.set(user.id, new Set());
+      if (!this.userSockets.has(userId)) {
+        this.userSockets.set(userId, new Set());
       }
-      this.userSockets.get(user.id).add(client.id);
+      this.userSockets.get(userId).add(client.id);
 
       // Join user-specific room
-      client.join(`user:${user.id}`);
+      client.join(`user:${userId}`);
     } catch (error) {
       console.error('WebSocket authentication error:', error);
       client.disconnect();

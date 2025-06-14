@@ -1,28 +1,36 @@
 import { Injectable } from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
-import { createClient } from '@supabase/supabase-js';
+import { InjectModel } from '@nestjs/mongoose';
+import { Model } from 'mongoose';
 import { Payment } from '../schema/payment.schema';
+
+// Define a simple analytics schema
+interface PaymentAnalytics {
+  payment_id: string;
+  user_id: string;
+  amount: number;
+  status: string;
+  method: string;
+  transaction_id: string;
+  timestamp: Date;
+}
 
 @Injectable()
 export class PaymentAnalyticsService {
-  private supabase;
-
-  constructor(private configService: ConfigService) {
-    this.supabase = createClient(
-      this.configService.get<string>('supabase.url'),
-      this.configService.get<string>('supabase.key'),
-    );
-  }
+  constructor(
+    private configService: ConfigService,
+    @InjectModel('PaymentAnalytics') private readonly paymentAnalyticsModel: Model<PaymentAnalytics>
+  ) {}
 
   async logPaymentEvent(payment: Payment): Promise<void> {
-    await this.supabase.from('payment_analytics').insert({
+    await this.paymentAnalyticsModel.create({
       payment_id: payment._id.toString(),
       user_id: payment.user.toString(),
       amount: payment.amount,
       status: payment.status,
       method: payment.method,
       transaction_id: payment.transaction_id,
-      timestamp: new Date().toISOString(),
+      timestamp: new Date(),
     });
   }
 }
