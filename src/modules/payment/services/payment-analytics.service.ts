@@ -3,23 +3,13 @@ import { ConfigService } from '@nestjs/config';
 import { InjectModel } from '@nestjs/mongoose';
 import { Model } from 'mongoose';
 import { Payment } from '../schema/payment.schema';
-
-// Define a simple analytics schema
-interface PaymentAnalytics {
-  payment_id: string;
-  user_id: string;
-  amount: number;
-  status: string;
-  method: string;
-  transaction_id: string;
-  timestamp: Date;
-}
+import { PaymentAnalytics } from '../schema/payment-analytics.schema';
 
 @Injectable()
 export class PaymentAnalyticsService {
   constructor(
     private configService: ConfigService,
-    @InjectModel('PaymentAnalytics') private readonly paymentAnalyticsModel: Model<PaymentAnalytics>
+    @InjectModel(PaymentAnalytics.name) private readonly paymentAnalyticsModel: Model<PaymentAnalytics>
   ) {}
 
   async logPaymentEvent(payment: Payment): Promise<void> {

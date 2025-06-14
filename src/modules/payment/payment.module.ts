@@ -6,10 +6,14 @@ import { Payment, PaymentSchema } from './schema/payment.schema';
 import { JazzcashPaymentAdapter } from './adapters/jazzcash.adapter';
 import { CreditCardPaymentAdapter } from './adapters/credit-card.adapter';
 import { PaymentAnalyticsService } from './services/payment-analytics.service';
+import { PaymentAnalytics, PaymentAnalyticsSchema } from './schema/payment-analytics.schema';
 
 @Module({
   imports: [
-    MongooseModule.forFeature([{ name: Payment.name, schema: PaymentSchema }]),
+    MongooseModule.forFeature([
+      { name: Payment.name, schema: PaymentSchema },
+      { name: PaymentAnalytics.name, schema: PaymentAnalyticsSchema },
+    ]),
   ],
   controllers: [PaymentController],
   providers: [

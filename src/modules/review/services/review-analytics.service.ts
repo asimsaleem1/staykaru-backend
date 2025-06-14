@@ -3,23 +3,13 @@ import { ConfigService } from '@nestjs/config';
 import { InjectModel } from '@nestjs/mongoose';
 import { Model } from 'mongoose';
 import { Review } from '../schema/review.schema';
-
-// Define a simple analytics schema
-interface ReviewAnalytics {
-  review_id: string;
-  user_id: string;
-  target_type: string;
-  target_id: string;
-  rating: number;
-  verified: boolean;
-  timestamp: Date;
-}
+import { ReviewAnalytics } from '../schema/review-analytics.schema';
 
 @Injectable()
 export class ReviewAnalyticsService {
   constructor(
     private configService: ConfigService,
-    @InjectModel('ReviewAnalytics') private readonly reviewAnalyticsModel: Model<ReviewAnalytics>
+    @InjectModel(ReviewAnalytics.name) private readonly reviewAnalyticsModel: Model<ReviewAnalytics>
   ) {}
 
   async logReviewEvent(review: Review): Promise<void> {
