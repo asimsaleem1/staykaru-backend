@@ -43,11 +43,21 @@ export class BookingService {
       user_id: userId,
     });
 
-    await this.supabase.from('booking_analytics').insert({
-      booking_id: savedBooking._id.toString(),
-      user_id: userId,
-      accommodation_id: accommodation._id.toString(),
-      status: savedBooking.status,
+    // Analytics tracking is now handled through MongoDB
+    try {
+      await this.bookingModel.db.collection('booking_analytics').insertOne({
+        bookingId: savedBooking._id.toString(),
+        userId: userId,
+        accommodationId: accommodation._id.toString(),
+        status: savedBooking.status,
+        createdAt: new Date(),
+        checkIn: savedBooking.checkIn,
+        checkOut: savedBooking.checkOut,
+        totalPrice: savedBooking.totalPrice,
+      });
+    } catch (error) {
+      console.error('Error logging booking analytics:', error);
+    }
       total_price: accommodation.price,
       duration_days: Math.ceil(
         (new Date(createBookingDto.end_date).getTime() - 
@@ -97,11 +107,18 @@ export class BookingService {
     const updatedBooking = await booking.save();
 
     // Notify the student about the booking status change
-    await this.supabase.from('booking_notifications').insert({
-      booking_id: booking._id.toString(),
-      user_id: booking.user.toString(),
-      message: `Your booking status has been updated to ${updateBookingStatusDto.status}`,
-    });
+    // Notification is now handled through MongoDB
+    try {
+      await this.bookingModel.db.collection('booking_notifications').insertOne({
+        bookingId: booking._id.toString(),
+        userId: booking.user.toString(),
+        message: `Your booking status has been updated to ${updateBookingStatusDto.status}`,
+        createdAt: new Date(),
+        read: false,
+      });
+    } catch (error) {
+      console.error('Error creating booking notification:', error);
+    }
 
     return updatedBooking;
   }

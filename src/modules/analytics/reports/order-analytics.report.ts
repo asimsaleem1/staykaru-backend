@@ -1,41 +1,47 @@
 import { ConfigService } from '@nestjs/config';
-import { createClient } from '@supabase/supabase-js';
+import { Model } from 'mongoose';
 import { AnalyticsReport, AnalyticsTimeRange } from '../interfaces/analytics-report.interface';
 
 export class OrderAnalyticsReport implements AnalyticsReport {
-  private supabase;
-
-  constructor(private configService: ConfigService) {
-    this.supabase = createClient(
-      this.configService.get<string>('supabase.url'),
-      this.configService.get<string>('supabase.key'),
-    );
-  }
+  constructor(
+    private configService: ConfigService,
+    private orderAnalyticsModel: Model<any>
+  ) {}
 
   async generate(timeRange?: AnalyticsTimeRange) {
-    const query = this.supabase
-      .from('order_analytics')
-      .select('*')
-      .order('created_at', { ascending: false });
+    let query = this.orderAnalyticsModel.find().sort({ createdAt: -1 });
 
     if (timeRange) {
-      query.gte('created_at', timeRange.startDate.toISOString())
-        .lte('created_at', timeRange.endDate.toISOString());
+      const filter = {
+        createdAt: {
+          $gte: timeRange.startDate,
+          $lte: timeRange.endDate
+        }
+      };
+      query = this.orderAnalyticsModel.find(filter).sort({ createdAt: -1 });
     }
 
-    const { data, error } = await query;
-
-    if (error) {
+    try {
+      const data = await query.exec();
+      
+      return {
+        summary: {
+          totalOrders: data.length,
+          totalRevenue: data.reduce((sum, order) => sum + (order.totalAmount || 0), 0),
+          averageItemsPerOrder: data.length > 0 ?
+            data.reduce((sum, order) => sum + (order.itemCount || 0), 0) / data.length : 0,
+          statusDistribution: this.calculateStatusDistribution(data),
+        },
+        orders: data,
+        timeRange: timeRange || {
+          startDate: new Date(new Date().setDate(new Date().getDate() - 30)),
+          endDate: new Date(),
+        },
+      };
+    } catch (error) {
+      console.error('Error generating order analytics:', error);
       throw error;
     }
-
-    return {
-      total_orders: data.length,
-      total_revenue: data.reduce((sum, order) => sum + order.total_amount, 0),
-      average_items_per_order: data.reduce((sum, order) => sum + order.item_count, 0) / data.length,
-      status_distribution: this.calculateStatusDistribution(data),
-      data,
-    };
   }
 
   private calculateStatusDistribution(data: any[]) {

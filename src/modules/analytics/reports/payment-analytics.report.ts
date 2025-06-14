@@ -1,21 +1,24 @@
 import { ConfigService } from '@nestjs/config';
-import { InjectModel } from '@nestjs/mongoose';
 import { Model } from 'mongoose';
 import { AnalyticsReport, AnalyticsTimeRange } from '../interfaces/analytics-report.interface';
 
 export class PaymentAnalyticsReport implements AnalyticsReport {
   constructor(
     private configService: ConfigService,
-    @InjectModel('PaymentAnalytics') private readonly paymentAnalyticsModel: Model<any>
+    private paymentAnalyticsModel: Model<any>
   ) {}
 
   async generate(timeRange?: AnalyticsTimeRange) {
-    let query = this.paymentAnalyticsModel.find()
-      .sort({ createdAt: -1 });
+    let query = this.paymentAnalyticsModel.find().sort({ createdAt: -1 });
 
     if (timeRange) {
-      query = query.where('createdAt').gte(new Date(timeRange.startDate))
-        .where('createdAt').lte(new Date(timeRange.endDate));
+      const filter = {
+        createdAt: {
+          $gte: timeRange.startDate,
+          $lte: timeRange.endDate
+        }
+      };
+      query = this.paymentAnalyticsModel.find(filter).sort({ createdAt: -1 });
     }
 
     try {
@@ -35,6 +38,7 @@ export class PaymentAnalyticsReport implements AnalyticsReport {
         },
       };
     } catch (error) {
+      console.error('Error generating payment analytics:', error);
       throw error;
     }
   }

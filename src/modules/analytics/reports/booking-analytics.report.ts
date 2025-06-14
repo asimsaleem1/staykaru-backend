@@ -1,41 +1,60 @@
 import { ConfigService } from '@nestjs/config';
-import { createClient } from '@supabase/supabase-js';
+import { Model } from 'mongoose';
 import { AnalyticsReport, AnalyticsTimeRange } from '../interfaces/analytics-report.interface';
 
 export class BookingAnalyticsReport implements AnalyticsReport {
-  private supabase;
-
-  constructor(private configService: ConfigService) {
-    this.supabase = createClient(
-      this.configService.get<string>('supabase.url'),
-      this.configService.get<string>('supabase.key'),
-    );
-  }
+  constructor(
+    private configService: ConfigService,
+    private bookingAnalyticsModel: Model<any>
+  ) {}
 
   async generate(timeRange?: AnalyticsTimeRange) {
-    const query = this.supabase
-      .from('booking_analytics')
-      .select('*')
-      .order('created_at', { ascending: false });
+    let query = this.bookingAnalyticsModel.find().sort({ createdAt: -1 });
 
     if (timeRange) {
-      query.gte('created_at', timeRange.startDate.toISOString())
-        .lte('created_at', timeRange.endDate.toISOString());
+      const filter = {
+        createdAt: {
+          $gte: timeRange.startDate,
+          $lte: timeRange.endDate
+        }
+      };
+      query = this.bookingAnalyticsModel.find(filter).sort({ createdAt: -1 });
     }
 
-    const { data, error } = await query;
-
-    if (error) {
+    try {
+      const data = await query.exec();
+      
+      return {
+        summary: {
+          totalBookings: data.length,
+          avgDuration: this.calculateAverageDuration(data),
+          statusDistribution: this.calculateStatusDistribution(data),
+        },
+        bookings: data,
+        timeRange: timeRange || {
+          startDate: new Date(new Date().setDate(new Date().getDate() - 30)),
+          endDate: new Date(),
+        },
+      };
+    } catch (error) {
+      console.error('Error generating booking analytics:', error);
       throw error;
     }
+  }
 
-    return {
-      total_bookings: data.length,
-      total_revenue: data.reduce((sum, booking) => sum + booking.total_price, 0),
-      average_duration: data.reduce((sum, booking) => sum + booking.duration_days, 0) / data.length,
-      status_distribution: this.calculateStatusDistribution(data),
-      data,
-    };
+  private calculateAverageDuration(data: any[]) {
+    if (data.length === 0) return 0;
+    
+    const totalDuration = data.reduce((sum, booking) => {
+      if (!booking.checkIn || !booking.checkOut) return sum;
+      const checkIn = new Date(booking.checkIn);
+      const checkOut = new Date(booking.checkOut);
+      const durationMs = checkOut.getTime() - checkIn.getTime();
+      const durationDays = durationMs / (1000 * 60 * 60 * 24);
+      return sum + durationDays;
+    }, 0);
+    
+    return totalDuration / data.length;
   }
 
   private calculateStatusDistribution(data: any[]) {

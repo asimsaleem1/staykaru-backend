@@ -46,18 +46,24 @@ export class OrderService {
       'items.menu_item',
     ]);
 
-    // Log order analytics
-    await this.supabase.from('order_analytics').insert({
-      order_id: savedOrder._id.toString(),
-      user_id: userId,
-      provider_id: createOrderDto.food_provider,
-      status: savedOrder.status,
-      total_amount: totalPrice,
-      item_count: createOrderDto.items.length,
-    });
+    // Log order analytics using MongoDB
+    try {
+      await this.orderModel.db.collection('order_analytics').insertOne({
+        orderId: savedOrder._id.toString(),
+        userId: userId,
+        providerId: createOrderDto.food_provider,
+        status: savedOrder.status,
+        totalAmount: totalPrice,
+        itemCount: createOrderDto.items.length,
+        createdAt: new Date()
+      });
+    } catch (error) {
+      console.error('Error logging order analytics:', error);
+    }
 
-    // Notify food provider about the new order
-    await this.supabase.from('order_notifications').insert({
+    // Notify food provider about the new order using MongoDB
+    try {
+      await this.orderModel.db.collection('order_notifications').insertOne({
       order_id: savedOrder._id.toString(),
       user_id: savedOrder.food_provider.owner.toString(),
       message: `New order received worth ${totalPrice}`,
@@ -121,12 +127,18 @@ export class OrderService {
     order.status = updateOrderStatusDto.status;
     const updatedOrder = await order.save();
 
-    // Notify the student about the order status change
-    await this.supabase.from('order_notifications').insert({
-      order_id: order._id.toString(),
-      user_id: order.user.toString(),
-      message: `Your order status has been updated to ${updateOrderStatusDto.status}`,
-    });
+    // Notify the student about the order status change using MongoDB
+    try {
+      await this.orderModel.db.collection('order_notifications').insertOne({
+        orderId: order._id.toString(),
+        userId: order.user.toString(),
+        message: `Your order status has been updated to ${updateOrderStatusDto.status}`,
+        createdAt: new Date(),
+        read: false
+      });
+    } catch (error) {
+      console.error('Error creating order notification:', error);
+    }
 
     return updatedOrder;
   }
