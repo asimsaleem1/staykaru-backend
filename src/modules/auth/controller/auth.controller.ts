@@ -1,4 +1,4 @@
-import { Controller, Post, Body, UseGuards, Get, Param, Request } from '@nestjs/common';
+import { Controller, Post, Body, UseGuards, Get, Param, Request, Headers, Query } from '@nestjs/common';
 import { ApiTags, ApiOperation, ApiResponse, ApiBearerAuth } from '@nestjs/swagger';
 import { AuthService } from '../services/auth.service';
 import { RegisterDto } from '../dto/register.dto';
@@ -6,51 +6,74 @@ import { LoginDto } from '../dto/login.dto';
 import { Enable2FADto } from '../dto/enable-2fa.dto';
 import { Verify2FADto } from '../dto/verify-2fa.dto';
 import { AuthGuard } from '../guards/auth.guard';
+import { FirebaseService } from '../services/firebase.service';
 
 @ApiTags('auth')
 @Controller('auth')
 export class AuthController {
-  constructor(private readonly authService: AuthService) {}
+  constructor(
+    private readonly authService: AuthService,
+    private readonly firebaseService: FirebaseService,
+  ) {}
 
   @Post('register')
-  @ApiOperation({ summary: 'Register a new user' })
+  @UseGuards(AuthGuard)
+  @ApiBearerAuth('JWT-auth')
+  @ApiOperation({ summary: 'Register a new user (requires Firebase token)' })
   @ApiResponse({
     status: 201,
     description: 'User successfully registered',
     schema: {
       example: {
+        success: true,
         message: 'Registration successful',
         user: {
           id: '123e4567-e89b-12d3-a456-426614174000',
+          firebaseUid: 'firebase_uid_string',
           email: 'john@example.com',
-          name: 'John Doe',
+          firstName: 'John',
+          lastName: 'Doe',
+          isVerified: false,
         },
       },
     },
   })
   @ApiResponse({ status: 400, description: 'Bad request' })
-  async register(@Body() registerDto: RegisterDto) {
-    return this.authService.register(registerDto);
+  @ApiResponse({ status: 401, description: 'Invalid Firebase token' })
+  async register(@Body() registerDto: RegisterDto, @Request() req) {
+    // The AuthGuard will decode the Firebase token and add user info to req.user
+    const firebaseUser = req.user;
+    return this.authService.register(registerDto, firebaseUser.uid);
   }
 
   @Post('login')
-  @ApiOperation({ summary: 'Login user' })
+  @UseGuards(AuthGuard)
+  @ApiBearerAuth('JWT-auth')
+  @ApiOperation({ summary: 'Login user with Firebase token' })
   @ApiResponse({
     status: 200,
     description: 'User successfully logged in',
     schema: {
       example: {
+        success: true,
         message: 'Login successful',
-        session: {
-          access_token: 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9...',
-          expires_at: '2024-03-21T12:00:00.000Z',
+        user: {
+          id: 'mongodb_user_id',
+          firebaseUid: 'firebase_uid',
+          email: 'user@example.com',
+          firstName: 'John',
+          lastName: 'Doe',
+          isVerified: true,
         },
+        accessToken: 'firebase_jwt_token',
       },
     },
   })
   @ApiResponse({ status: 401, description: 'Unauthorized' })
-  async login(@Body() loginDto: LoginDto) {
-    return this.authService.login(loginDto);
+  async login(@Request() req, @Headers('authorization') authHeader: string) {
+    const firebaseUser = req.user;
+    const token = authHeader?.replace('Bearer ', '');
+    return this.authService.loginWithFirebase(firebaseUser, token);
   }
 
   @Post('2fa/enable')
@@ -141,5 +164,35 @@ export class AuthController {
   @ApiResponse({ status: 401, description: 'Unauthorized' })
   async protected() {
     return { message: 'This is a protected route' };
+  }
+
+  @Get('me')
+  @UseGuards(AuthGuard)
+  @ApiBearerAuth('JWT-auth')
+  @ApiOperation({ summary: 'Get current user profile' })
+  @ApiResponse({
+    status: 200,
+    description: 'User profile retrieved successfully',
+  })
+  async getCurrentUser(@Request() req) {
+    const firebaseUser = req.user;
+    const user = await this.authService.getCurrentUser(firebaseUser.uid);
+    return user;
+  }
+
+  @Get('check-email')
+  @ApiOperation({ summary: 'Check if email is available' })
+  @ApiResponse({
+    status: 200,
+    description: 'Email availability status',
+    schema: {
+      example: {
+        available: true,
+        message: 'Email is available'
+      }
+    }
+  })
+  async checkEmail(@Query('email') email: string) {
+    return this.authService.checkEmailAvailability(email);
   }
 }

@@ -13,6 +13,12 @@ export class User extends Document {
   @Prop({ required: true })
   name: string;
 
+  @Prop()
+  firstName: string;
+
+  @Prop()
+  lastName: string;
+
   @Prop({ required: true, unique: true })
   email: string;
 
@@ -23,13 +29,31 @@ export class User extends Document {
   phone: string;
 
   @Prop()
+  phoneNumber: string;
+
+  @Prop()
   address: string;
+
+  @Prop()
+  dateOfBirth: Date;
+
+  @Prop()
+  gender: string;
+
+  @Prop({ default: false })
+  isVerified: boolean;
+
+  @Prop()
+  profilePicture: string;
 
   @Prop({ required: true, unique: true })
   firebaseUid: string;
 
   @Prop({ required: false })
   supabaseUserId: string; // Legacy field - will be removed in future releases
+
+  createdAt: Date;
+  updatedAt: Date;
 }
 
 export const UserSchema = SchemaFactory.createForClass(User);
