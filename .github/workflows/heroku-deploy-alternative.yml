@@ -1,4 +1,4 @@
-name: Deploy to Heroku
+name: Deploy to Heroku (Alternative)
 
 on:
   push:
@@ -11,9 +11,7 @@ jobs:
     steps:
       - name: Checkout code
         uses: actions/checkout@v4
-        with:
-          fetch-depth: 0
-      
+        
       - name: Set up Node.js
         uses: actions/setup-node@v4
         with:
@@ -26,16 +24,15 @@ jobs:
       - name: Build application
         run: npm run build
         
-      - name: Setup Heroku CLI
-        uses: extractions/setup-heroku@v1
-        with:
-          api-key: ${{ secrets.HEROKU_API_KEY }}
-          
-      - name: Create Heroku app (if not exists)
+      - name: Install Heroku CLI
         run: |
-          heroku apps:info ${{ secrets.HEROKU_APP_NAME }} || heroku create ${{ secrets.HEROKU_APP_NAME }} --buildpack heroku/nodejs
+          curl https://cli-assets.heroku.com/install.sh | sh
+          
+      - name: Login to Heroku
+        run: |
+          echo "${{ secrets.HEROKU_API_KEY }}" | heroku auth:token
           
       - name: Deploy to Heroku
         run: |
-          heroku git:remote -a ${{ secrets.HEROKU_APP_NAME }}
+          git remote add heroku https://heroku:${{ secrets.HEROKU_API_KEY }}@git.heroku.com/${{ secrets.HEROKU_APP_NAME }}.git
           git push heroku main:main --force
