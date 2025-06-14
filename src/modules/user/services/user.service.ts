@@ -128,7 +128,7 @@ export class UserService {
     }
     return null;
   }
-
+  
   // Keep this method for backward compatibility during migration
   async findBySupabaseUserId(supabaseUserId: string): Promise<User | null> {
     const cacheKey = `user:supabase:${supabaseUserId}`;

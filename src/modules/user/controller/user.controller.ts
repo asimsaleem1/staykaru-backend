@@ -45,7 +45,8 @@ export class UserController {
   @ApiResponse({ status: 403, description: 'Forbidden - Admin access required' })
   @Roles(UserRole.ADMIN)
   async create(@Body() createUserDto: CreateUserDto) {
-    return this.userService.create(createUserDto, 'supabase-user-id');
+    // Use a random Firebase UID for testing if no authentication is present
+    return this.userService.create(createUserDto, 'firebase-uid-' + Date.now());
   }
 
   @Get()
