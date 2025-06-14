@@ -188,7 +188,7 @@ export class AuthService {
     }
   }
 
-  async getUserProfile(uid: string) {
+  async getUserProfileByUid(uid: string) {
     try {
       // Get Firebase user
       const firebaseUser = await this.firebaseService.getUserById(uid);
