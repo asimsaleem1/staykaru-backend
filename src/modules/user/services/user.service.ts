@@ -146,10 +146,6 @@ export class UserService {
     return null;
   }
 
-  async findByEmail(email: string): Promise<User | null> {
-    return this.userModel.findOne({ email }).exec();
-  }
-
   private decryptUserData(user: User): User {
     const userObject = user.toObject();
     return {

@@ -18,22 +18,14 @@ export class AuthService {
     private firebaseService: FirebaseService,
   ) {}
 
-  async register(registerDto: RegisterDto, firebaseUid?: string) {
+  async register(registerDto: RegisterDto) {
     try {
-      // If firebaseUid is provided, it means the user was already created via client-side Firebase
-      let userRecord;
-      
-      if (firebaseUid) {
-        // Get the existing Firebase user
-        userRecord = await this.firebaseService.getUserById(firebaseUid);
-      } else {
-        // Create user in Firebase (for cases where backend creates the user)
-        userRecord = await this.firebaseService.createUser(
-          registerDto.email,
-          registerDto.password,
-          `${registerDto.firstName} ${registerDto.lastName}`,
-        );
-      }
+      // Create user in Firebase
+      const userRecord = await this.firebaseService.createUser(
+        registerDto.email,
+        registerDto.password,
+        registerDto.name,
+      );
 
       // Set custom claims for user role
       await this.firebaseService.setCustomUserClaims(userRecord.uid, {
@@ -43,48 +35,33 @@ export class AuthService {
       // Create corresponding MongoDB record
       try {
         const createUserDto: CreateUserDto = {
-          name: `${registerDto.firstName} ${registerDto.lastName}`,
+          name: registerDto.name,
           email: registerDto.email,
           role: registerDto.role as UserRole,
-          firstName: registerDto.firstName,
-          lastName: registerDto.lastName,
-          phoneNumber: registerDto.phoneNumber,
-          dateOfBirth: registerDto.dateOfBirth ? new Date(registerDto.dateOfBirth) : undefined,
-          gender: registerDto.gender,
         };
 
-        const mongoUser = await this.userService.create(createUserDto, userRecord.uid);
-        
-        return {
-          success: true,
-          message: 'Registration successful. Please verify your email.',
-          user: {
-            id: mongoUser._id,
-            firebaseUid: userRecord.uid,
-            email: userRecord.email,
-            firstName: registerDto.firstName,
-            lastName: registerDto.lastName,
-            name: userRecord.displayName,
-            emailVerified: userRecord.emailVerified,
-            phoneNumber: registerDto.phoneNumber,
-            isVerified: userRecord.emailVerified,
-            createdAt: mongoUser.createdAt,
-          },
-        };
+        await this.userService.create(createUserDto, userRecord.uid);
       } catch (dbError) {
-        // If MongoDB user creation fails and we created a Firebase user, clean it up
-        if (!firebaseUid) {
-          await this.firebaseService.deleteUser(userRecord.uid);
-        }
+        // If MongoDB user creation fails, clean up Firebase user
+        await this.firebaseService.deleteUser(userRecord.uid);
         console.error('Failed to create MongoDB user record:', dbError);
         throw new BadRequestException('Failed to create user in database');
       }
+
+      return {
+        message: 'Registration successful. Please verify your email.',
+        user: {
+          uid: userRecord.uid,
+          email: userRecord.email,
+          name: userRecord.displayName,
+          emailVerified: userRecord.emailVerified,
+        },
+      };
     } catch (error) {
       if (error instanceof BadRequestException) {
         throw error;
       }
-      console.error('Registration error:', error);
-      throw new BadRequestException(error.message || 'Registration failed');
+      throw new BadRequestException(error.message);
     }
   }
 
@@ -113,42 +90,6 @@ export class AuthService {
       };
     } catch (error) {
       throw new UnauthorizedException('Invalid email or password');
-    }
-  }
-
-  async loginWithFirebase(firebaseUser: any, token: string) {
-    try {
-      // Verify the user exists in our database
-      const user = await this.userService.findByFirebaseUid(firebaseUser.uid);
-      
-      if (!user) {
-        throw new UnauthorizedException('User not found. Please register first.');
-      }
-      
-      return {
-        success: true,
-        message: 'Login successful',
-        user: {
-          id: user._id,
-          firebaseUid: user.firebaseUid,
-          email: user.email,
-          firstName: user.firstName,
-          lastName: user.lastName,
-          name: user.name,
-          phoneNumber: user.phoneNumber,
-          isVerified: firebaseUser.email_verified,
-          profilePicture: user.profilePicture,
-          role: user.role,
-          createdAt: user.createdAt,
-        },
-        accessToken: token,
-      };
-    } catch (error) {
-      if (error instanceof UnauthorizedException) {
-        throw error;
-      }
-      console.error('Login error:', error);
-      throw new UnauthorizedException('Login failed');
     }
   }
 
@@ -298,68 +239,6 @@ export class AuthService {
       };
     } catch (error) {
       throw new UnauthorizedException(`Failed to sync user to database: ${error.message}`);
-    }
-  }
-
-  async getCurrentUser(firebaseUid: string) {
-    try {
-      const user = await this.userService.findByFirebaseUid(firebaseUid);
-      
-      if (!user) {
-        throw new UnauthorizedException('User not found');
-      }
-      
-      return {
-        success: true,
-        user: {
-          id: user._id,
-          firebaseUid: user.firebaseUid,
-          email: user.email,
-          firstName: user.firstName,
-          lastName: user.lastName,
-          name: user.name,
-          phoneNumber: user.phoneNumber,
-          isVerified: user.isVerified,
-          profilePicture: user.profilePicture,
-          role: user.role,
-          createdAt: user.createdAt,
-        },
-      };
-    } catch (error) {
-      throw new UnauthorizedException('Failed to get user profile');
-    }
-  }
-
-  async checkEmailAvailability(email: string) {
-    try {
-      // Check if email exists in Firebase
-      try {
-        await this.firebaseService.getUserByEmail(email);
-        return {
-          available: false,
-          message: 'Email is already registered',
-        };
-      } catch (firebaseError) {
-        // If user not found in Firebase, check MongoDB as well
-        const mongoUser = await this.userService.findByEmail(email);
-        if (mongoUser) {
-          return {
-            available: false,
-            message: 'Email is already registered',
-          };
-        }
-        
-        return {
-          available: true,
-          message: 'Email is available',
-        };
-      }
-    } catch (error) {
-      console.error('Error checking email availability:', error);
-      return {
-        available: true,
-        message: 'Email availability check failed, assuming available',
-      };
     }
   }
 }

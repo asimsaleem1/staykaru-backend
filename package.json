@@ -19,7 +19,11 @@
     "test:watch": "jest --watch",
     "test:cov": "jest --coverage",
     "test:debug": "node --inspect-brk -r tsconfig-paths/register -r ts-node/register node_modules/jest/bin/jest --runInBand",
-    "test:e2e": "jest --config ./test/jest-e2e.json"
+    "test:e2e": "jest --config ./test/jest-e2e.json",
+    "test:firebase": "node test-firebase-complete.js",
+    "test:firebase:simple": "node test-firebase-simple.js",
+    "test:firebase:auth": "node test-firebase-auth.js",
+    "test:backend": "node test-backend-endpoints.js"
   },
   "dependencies": {
     "@googlemaps/google-maps-services-js": "^3.3.42",
@@ -35,7 +39,7 @@
     "@nestjs/platform-socket.io": "^10.0.0",
     "@nestjs/swagger": "^7.3.0",
     "@nestjs/websockets": "^10.0.0",
-    "axios": "^1.6.7",
+    "axios": "^1.9.0",
     "cache-manager": "^6.4.3",
     "cache-manager-redis-store": "^3.0.1",
     "class-transformer": "^0.5.1",

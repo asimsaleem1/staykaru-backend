@@ -1,4 +1,4 @@
-import { IsEmail, IsString, MinLength, IsEnum, IsOptional, IsDateString } from 'class-validator';
+import { IsEmail, IsString, MinLength, IsEnum } from 'class-validator';
 import { ApiProperty } from '@nestjs/swagger';
 import { UserRole } from '../../user/schema/user.schema';
 
@@ -12,53 +12,19 @@ export class RegisterDto {
 
   @ApiProperty({
     example: 'password123',
-    description: 'User password (minimum 6 characters)',
-    minLength: 6,
+    description: 'User password (minimum 8 characters)',
+    minLength: 8,
   })
   @IsString()
-  @MinLength(6)
+  @MinLength(8)
   password: string;
 
   @ApiProperty({
-    example: 'John',
-    description: 'User first name',
+    example: 'John Doe',
+    description: 'User full name',
   })
   @IsString()
-  firstName: string;
-
-  @ApiProperty({
-    example: 'Doe',
-    description: 'User last name',
-  })
-  @IsString()
-  lastName: string;
-
-  @ApiProperty({
-    example: '+1234567890',
-    description: 'User phone number',
-    required: false,
-  })
-  @IsString()
-  @IsOptional()
-  phoneNumber?: string;
-
-  @ApiProperty({
-    example: '1990-01-15',
-    description: 'User date of birth',
-    required: false,
-  })
-  @IsDateString()
-  @IsOptional()
-  dateOfBirth?: string;
-
-  @ApiProperty({
-    example: 'male',
-    description: 'User gender',
-    required: false,
-  })
-  @IsString()
-  @IsOptional()
-  gender?: string;
+  name: string;
 
   @ApiProperty({
     enum: UserRole,
