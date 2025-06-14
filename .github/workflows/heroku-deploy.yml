@@ -25,11 +25,13 @@ jobs:
         
       - name: Build application
         run: npm run build
-        
-      - name: Setup Heroku CLI
-        uses: extractions/setup-heroku@v1
-        with:
-          api-key: ${{ secrets.HEROKU_API_KEY }}
+          - name: Install Heroku CLI
+        run: |
+          curl https://cli-assets.heroku.com/install.sh | sh
+          
+      - name: Login to Heroku
+        run: |
+          echo "${{ secrets.HEROKU_API_KEY }}" | heroku auth:token
           
       - name: Create Heroku app (if not exists)
         run: |
