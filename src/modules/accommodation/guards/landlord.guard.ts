@@ -8,14 +8,14 @@ export class LandlordGuard implements CanActivate {
 
   async canActivate(context: ExecutionContext): Promise<boolean> {
     const request = context.switchToHttp().getRequest();
-    const supabaseUser = request.user;
+    const firebaseUser = request.user;
 
-    if (!supabaseUser || !supabaseUser.id) {
+    if (!firebaseUser || !firebaseUser.uid) {
       throw new ForbiddenException('Authentication required');
     }
 
-    // Fetch the user from the database using the Supabase user ID
-    const dbUser = await this.userService.findBySupabaseUserId(supabaseUser.id);
+    // Fetch the user from the database using the Firebase user ID
+    const dbUser = await this.userService.findByFirebaseUid(firebaseUser.uid);
 
     if (!dbUser) {
       throw new ForbiddenException('User not found in database');
