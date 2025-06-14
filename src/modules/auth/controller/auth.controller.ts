@@ -1,4 +1,4 @@
-import { Controller, Post, Body, UseGuards, Get, Param, Request, Headers, Query } from '@nestjs/common';
+import { Controller, Post, Body, UseGuards, Get, Param, Request, Headers, Query, UnauthorizedException } from '@nestjs/common';
 import { ApiTags, ApiOperation, ApiResponse, ApiBearerAuth } from '@nestjs/swagger';
 import { AuthService } from '../services/auth.service';
 import { RegisterDto } from '../dto/register.dto';
@@ -44,6 +44,32 @@ export class AuthController {
     // The AuthGuard will decode the Firebase token and add user info to req.user
     const firebaseUser = req.user;
     return this.authService.register(registerDto, firebaseUser.uid);
+  }
+
+  @Post('register-public')
+  @ApiOperation({ summary: 'Public registration endpoint (no auth required)' })
+  @ApiResponse({
+    status: 201,
+    description: 'User successfully registered',
+    schema: {
+      example: {
+        success: true,
+        message: 'Registration successful',
+        user: {
+          id: '123e4567-e89b-12d3-a456-426614174000',
+          firebaseUid: 'firebase_uid_string',
+          email: 'john@example.com',
+          firstName: 'John',
+          lastName: 'Doe',
+          isVerified: false,
+        },
+      },
+    },
+  })
+  @ApiResponse({ status: 400, description: 'Bad request' })
+  async registerPublic(@Body() registerDto: RegisterDto) {
+    // For public registration, we don't have a Firebase UID yet
+    return this.authService.register(registerDto);
   }
 
   @Post('login')
@@ -194,5 +220,32 @@ export class AuthController {
   })
   async checkEmail(@Query('email') email: string) {
     return this.authService.checkEmailAvailability(email);
+  }
+
+  @Post('verify-and-register')
+  @ApiOperation({ summary: 'Verify Firebase token and register user' })
+  @ApiResponse({
+    status: 201,
+    description: 'User successfully registered with Firebase token',
+  })
+  async verifyAndRegister(
+    @Body() registerDto: RegisterDto,
+    @Headers('authorization') authHeader: string,
+  ) {
+    if (!authHeader || !authHeader.startsWith('Bearer ')) {
+      throw new UnauthorizedException('Firebase token required');
+    }
+
+    const token = authHeader.replace('Bearer ', '');
+    
+    try {
+      // Verify the Firebase token
+      const decodedToken = await this.firebaseService.verifyToken(token);
+      
+      // Register the user with the Firebase UID
+      return this.authService.register(registerDto, decodedToken.uid);
+    } catch (error) {
+      throw new UnauthorizedException('Invalid Firebase token');
+    }
   }
 }
