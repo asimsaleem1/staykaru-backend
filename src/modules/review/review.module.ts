@@ -4,7 +4,10 @@ import { ReviewController } from './controller/review.controller';
 import { ReviewService } from './services/review.service';
 import { Review, ReviewSchema } from './schema/review.schema';
 import { ReviewAnalyticsService } from './services/review-analytics.service';
-import { ReviewAnalytics, ReviewAnalyticsSchema } from './schema/review-analytics.schema';
+import {
+  ReviewAnalytics,
+  ReviewAnalyticsSchema,
+} from './schema/review-analytics.schema';
 
 @Module({
   imports: [

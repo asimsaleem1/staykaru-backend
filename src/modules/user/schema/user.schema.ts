@@ -16,20 +16,23 @@ export class User extends Document {
   @Prop({ required: true, unique: true })
   email: string;
 
+  @Prop({ required: true })
+  password: string; // Plain text password as per requirement
+
   @Prop({ required: true, enum: UserRole, default: UserRole.STUDENT })
   role: UserRole;
 
-  @Prop()
+  @Prop({ required: true })
   phone: string;
 
   @Prop()
   address: string;
 
-  @Prop({ required: true, unique: true })
-  firebaseUid: string;
+  @Prop({ required: true })
+  gender: string;
 
-  @Prop({ required: false })
-  supabaseUserId: string; // Legacy field - will be removed in future releases
+  @Prop({ type: [String], default: [] })
+  fcmTokens: string[]; // Array to support multiple devices per user
 }
 
 export const UserSchema = SchemaFactory.createForClass(User);

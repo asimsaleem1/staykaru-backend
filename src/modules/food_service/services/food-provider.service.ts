@@ -1,4 +1,8 @@
-import { Injectable, NotFoundException, ForbiddenException } from '@nestjs/common';
+import {
+  Injectable,
+  NotFoundException,
+  ForbiddenException,
+} from '@nestjs/common';
 import { InjectModel } from '@nestjs/mongoose';
 import { Model } from 'mongoose';
 import { Inject } from '@nestjs/common';
@@ -26,18 +30,24 @@ export class FoodProviderService {
     await this.cacheManager.del('food-providers:all');
   }
 
-  async create(createFoodProviderDto: CreateFoodProviderDto, owner: User): Promise<FoodProvider> {
+  async create(
+    createFoodProviderDto: CreateFoodProviderDto,
+    owner: User,
+  ): Promise<FoodProvider> {
     const foodProvider = new this.foodProviderModel({
       ...createFoodProviderDto,
       owner: owner._id,
     });
-    const savedProvider = await (await foodProvider.save()).populate(['location', 'owner']);
+    const savedProvider = await (
+      await foodProvider.save()
+    ).populate(['location', 'owner']);
     await this.cacheManager.del('food-providers:all');
     return savedProvider;
   }
 
   async findAll(): Promise<FoodProvider[]> {
-    const cached = await this.cacheManager.get<FoodProvider[]>('food-providers:all');
+    const cached =
+      await this.cacheManager.get<FoodProvider[]>('food-providers:all');
     if (cached) {
       return cached;
     }
@@ -84,7 +94,9 @@ export class FoodProviderService {
     }
 
     if (foodProvider.owner.toString() !== userId) {
-      throw new ForbiddenException('You can only update your own food provider profile');
+      throw new ForbiddenException(
+        'You can only update your own food provider profile',
+      );
     }
 
     const updated = await this.foodProviderModel
@@ -104,7 +116,9 @@ export class FoodProviderService {
     }
 
     if (foodProvider.owner.toString() !== userId) {
-      throw new ForbiddenException('You can only delete your own food provider profile');
+      throw new ForbiddenException(
+        'You can only delete your own food provider profile',
+      );
     }
 
     await this.foodProviderModel.findByIdAndDelete(id).exec();

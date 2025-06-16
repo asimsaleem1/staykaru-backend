@@ -1,4 +1,8 @@
-import { Injectable, NotFoundException, ForbiddenException } from '@nestjs/common';
+import {
+  Injectable,
+  NotFoundException,
+  ForbiddenException,
+} from '@nestjs/common';
 import { InjectModel } from '@nestjs/mongoose';
 import { Model } from 'mongoose';
 import { Inject } from '@nestjs/common';
@@ -29,12 +33,17 @@ export class AccommodationService {
     await this.cacheManager.del('accommodations:all');
   }
 
-  async create(createAccommodationDto: CreateAccommodationDto, landlord: User): Promise<Accommodation> {
-    const city = await this.locationService.getCityById(createAccommodationDto.city);
-    
+  async create(
+    createAccommodationDto: CreateAccommodationDto,
+    landlord: User,
+  ): Promise<Accommodation> {
+    const city = await this.locationService.getCityById(
+      createAccommodationDto.city,
+    );
+
     // For testing without authentication, use a default landlord ID if landlord is undefined
     const landlordId = landlord?._id || '68371305d8af1d5cc606fdf0'; // Test landlord ID created above
-    
+
     const accommodation = new this.accommodationModel({
       ...createAccommodationDto,
       landlord: landlordId,
@@ -44,7 +53,9 @@ export class AccommodationService {
       },
     });
 
-    const savedAccommodation = await (await accommodation.save()).populate(['city', 'landlord']);
+    const savedAccommodation = await (
+      await accommodation.save()
+    ).populate(['city', 'landlord']);
     await this.cacheManager.del('accommodations:all');
     return savedAccommodation;
   }
@@ -52,7 +63,7 @@ export class AccommodationService {
   async findAll(searchDto: SearchAccommodationDto): Promise<Accommodation[]> {
     const cacheKey = 'accommodations:all';
     const cached = await this.cacheManager.get<Accommodation[]>(cacheKey);
-    
+
     if (cached) {
       return cached;
     }
@@ -82,7 +93,11 @@ export class AccommodationService {
     return accommodations;
   }
 
-  async findNearby(lat: number, lng: number, radius: number = 5000): Promise<Accommodation[]> {
+  async findNearby(
+    lat: number,
+    lng: number,
+    radius: number = 5000,
+  ): Promise<Accommodation[]> {
     return this.accommodationModel
       .find({
         coordinates: {
@@ -132,11 +147,15 @@ export class AccommodationService {
     }
 
     if (accommodation.landlord.toString() !== userId) {
-      throw new ForbiddenException('You can only update your own accommodations');
+      throw new ForbiddenException(
+        'You can only update your own accommodations',
+      );
     }
 
     if (updateAccommodationDto.city) {
-      const city = await this.locationService.getCityById(updateAccommodationDto.city);
+      const city = await this.locationService.getCityById(
+        updateAccommodationDto.city,
+      );
       updateAccommodationDto['coordinates'] = {
         type: 'Point',
         coordinates: city.location.coordinates,
@@ -160,7 +179,9 @@ export class AccommodationService {
     }
 
     if (accommodation.landlord.toString() !== userId) {
-      throw new ForbiddenException('You can only delete your own accommodations');
+      throw new ForbiddenException(
+        'You can only delete your own accommodations',
+      );
     }
 
     await this.accommodationModel.findByIdAndDelete(id).exec();

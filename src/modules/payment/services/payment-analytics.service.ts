@@ -9,7 +9,8 @@ import { PaymentAnalytics } from '../schema/payment-analytics.schema';
 export class PaymentAnalyticsService {
   constructor(
     private configService: ConfigService,
-    @InjectModel(PaymentAnalytics.name) private readonly paymentAnalyticsModel: Model<PaymentAnalytics>
+    @InjectModel(PaymentAnalytics.name)
+    private readonly paymentAnalyticsModel: Model<PaymentAnalytics>,
   ) {}
 
   async logPaymentEvent(payment: Payment): Promise<void> {

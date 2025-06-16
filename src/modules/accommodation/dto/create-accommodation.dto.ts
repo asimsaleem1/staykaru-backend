@@ -1,4 +1,11 @@
-import { IsString, IsNumber, IsArray, IsMongoId, Min, IsDateString } from 'class-validator';
+import {
+  IsString,
+  IsNumber,
+  IsArray,
+  IsMongoId,
+  Min,
+  IsDateString,
+} from 'class-validator';
 import { ApiProperty } from '@nestjs/swagger';
 
 export class CreateAccommodationDto {
@@ -6,13 +13,16 @@ export class CreateAccommodationDto {
   @IsString()
   title: string;
 
-  @ApiProperty({ example: 'A beautiful studio apartment in the heart of the city' })
+  @ApiProperty({
+    example: 'A beautiful studio apartment in the heart of the city',
+  })
   @IsString()
   description: string;
 
-  @ApiProperty({ 
+  @ApiProperty({
     example: '507f1f77bcf86cd799439011',
-    description: 'MongoDB ObjectId of the city where this accommodation is located'
+    description:
+      'MongoDB ObjectId of the city where this accommodation is located',
   })
   @IsMongoId()
   city: string;

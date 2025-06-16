@@ -19,7 +19,8 @@ export class UserService {
     @Inject(CACHE_MANAGER) private cacheManager: Cache,
     private configService: ConfigService,
   ) {
-    this.encryptionKey = this.configService.get<string>('ENCRYPTION_KEY') || 'default-key-12345';
+    this.encryptionKey =
+      this.configService.get<string>('ENCRYPTION_KEY') || 'default-key-12345';
   }
 
   private encrypt(text: string): string {
@@ -40,39 +41,41 @@ export class UserService {
     await this.cacheManager.del('users:all');
   }
 
-  async create(createUserDto: CreateUserDto, firebaseUid: string): Promise<User> {
+  async create(createUserDto: CreateUserDto): Promise<User> {
     const encryptedData = {
       ...createUserDto,
-      phone: createUserDto.phone ? this.encrypt(createUserDto.phone) : undefined,
-      address: createUserDto.address ? this.encrypt(createUserDto.address) : undefined,
+      phone: createUserDto.phone
+        ? this.encrypt(createUserDto.phone)
+        : undefined,
+      address: createUserDto.address
+        ? this.encrypt(createUserDto.address)
+        : undefined,
     };
 
-    const user = new this.userModel({
-      ...encryptedData,
-      firebaseUid,
-    });
-
-    const savedUser = await user.save();
-    await this.cacheManager.del('users:all');
-    return this.decryptUserData(savedUser);
+    const user = new this.userModel(encryptedData);
+    await user.save();
+    await this.clearCache(user._id.toString());
+    return user;
   }
 
   async findAll(): Promise<User[]> {
-    const cached = await this.cacheManager.get<User[]>('users:all');
+    const cacheKey = 'users:all';
+    const cached = await this.cacheManager.get<User[]>(cacheKey);
+
     if (cached) {
-      return cached.map(user => this.decryptUserData(user));
+      return cached.map((user) => this.decryptUserData(user));
     }
 
     const users = await this.userModel.find().exec();
-    const decryptedUsers = users.map(user => this.decryptUserData(user));
-    await this.cacheManager.set('users:all', users);
+    const decryptedUsers = users.map((user) => this.decryptUserData(user));
+    await this.cacheManager.set(cacheKey, users);
     return decryptedUsers;
   }
 
   async findOne(id: string): Promise<User> {
     const cacheKey = this.getCacheKey(id);
     const cached = await this.cacheManager.get<User>(cacheKey);
-    
+
     if (cached) {
       return this.decryptUserData(cached);
     }
@@ -89,14 +92,29 @@ export class UserService {
   async update(id: string, updateUserDto: UpdateUserDto): Promise<User> {
     const encryptedData = {
       ...updateUserDto,
-      phone: updateUserDto.phone ? this.encrypt(updateUserDto.phone) : undefined,
-      address: updateUserDto.address ? this.encrypt(updateUserDto.address) : undefined,
+      phone: updateUserDto.phone
+        ? this.encrypt(updateUserDto.phone)
+        : undefined,
+      address: updateUserDto.address
+        ? this.encrypt(updateUserDto.address)
+        : undefined,
     };
 
+    // Remove undefined values
+    Object.keys(encryptedData).forEach((key) => {
+      if (encryptedData[key] === undefined) {
+        delete encryptedData[key];
+      }
+    });
+
     const user = await this.userModel
-      .findByIdAndUpdate(id, encryptedData, { new: true })
+      .findByIdAndUpdate(
+        id,
+        { ...encryptedData, updatedAt: new Date() },
+        { new: true },
+      )
       .exec();
-    
+
     if (!user) {
       throw new NotFoundException(`User with ID ${id} not found`);
     }
@@ -105,7 +123,7 @@ export class UserService {
     return this.decryptUserData(user);
   }
 
-  async remove(id: string): Promise<void> {
+  async delete(id: string): Promise<void> {
     const result = await this.userModel.deleteOne({ _id: id }).exec();
     if (result.deletedCount === 0) {
       throw new NotFoundException(`User with ID ${id} not found`);
@@ -113,79 +131,72 @@ export class UserService {
     await this.clearCache(id);
   }
 
-  async findByFirebaseUid(firebaseUid: string): Promise<User | null> {
-    const cacheKey = `user:firebase:${firebaseUid}`;
+  async findByEmail(email: string): Promise<User | null> {
+    const cacheKey = `user:email:${email}`;
     const cached = await this.cacheManager.get<User>(cacheKey);
-    
+
     if (cached) {
       return this.decryptUserData(cached);
     }
 
-    const user = await this.userModel.findOne({ firebaseUid }).exec();
+    const user = await this.userModel.findOne({ email }).exec();
     if (user) {
       await this.cacheManager.set(cacheKey, user);
       return this.decryptUserData(user);
     }
     return null;
-  }
-  
-  // Keep this method for backward compatibility during migration
-  async findBySupabaseUserId(supabaseUserId: string): Promise<User | null> {
-    const cacheKey = `user:supabase:${supabaseUserId}`;
-    const cached = await this.cacheManager.get<User>(cacheKey);
-    
-    if (cached) {
-      return this.decryptUserData(cached);
-    }
-
-    const user = await this.userModel.findOne({ supabaseUserId }).exec();
-    if (user) {
-      await this.cacheManager.set(cacheKey, user);
-      return this.decryptUserData(user);
-    }
-    return null;
-  }
-
-  async updateByFirebaseUid(firebaseUid: string, updateUserDto: Partial<CreateUserDto>): Promise<User> {
-    const encryptedData = {
-      name: updateUserDto.name,
-      email: updateUserDto.email,
-      phone: updateUserDto.phone ? this.encrypt(updateUserDto.phone) : undefined,
-      address: updateUserDto.address ? this.encrypt(updateUserDto.address) : undefined,
-      role: updateUserDto.role,
-    };
-
-    // Remove undefined values
-    Object.keys(encryptedData).forEach(key => {
-      if (encryptedData[key] === undefined) {
-        delete encryptedData[key];
-      }
-    });
-
-    const user = await this.userModel.findOneAndUpdate(
-      { firebaseUid },
-      { ...encryptedData, updatedAt: new Date() },
-      { new: true }
-    ).exec();
-    
-    if (!user) {
-      throw new NotFoundException(`User with Firebase UID ${firebaseUid} not found`);
-    }
-
-    // Clear relevant caches
-    await this.clearCache(user._id.toString());
-    const cacheKey = `user:firebase:${firebaseUid}`;
-    await this.cacheManager.del(cacheKey);
-    
-    return this.decryptUserData(user);
   }
 
   private decryptUserData(user: User): User {
-    const userObject = user.toObject();
+    const userObject = user.toObject() as Record<string, any>;
     return {
       ...userObject,
       phone: userObject.phone ? this.decrypt(userObject.phone) : undefined,
-      address: userObject.address ? this.decrypt(userObject.address) : undefined,
-    };
+      address: userObject.address
+        ? this.decrypt(userObject.address)
+        : undefined,
+    } as User;
+  }
+
+  // FCM token management
+  async addFcmToken(userId: string, token: string): Promise<User> {
+    const user = await this.userModel.findById(userId).exec();
+    if (!user) {
+      throw new NotFoundException(`User with ID ${userId} not found`);
+    }
+
+    // Add token if it doesn't exist
+    if (!user.fcmTokens.includes(token)) {
+      user.fcmTokens.push(token);
+      await user.save();
+      await this.clearCache(userId);
+    }
+
+    return this.decryptUserData(user);
+  }
+
+  async removeFcmToken(userId: string, token: string): Promise<User> {
+    const user = await this.userModel.findById(userId).exec();
+    if (!user) {
+      throw new NotFoundException(`User with ID ${userId} not found`);
+    }
+
+    // Remove token if it exists
+    const tokenIndex = user.fcmTokens.indexOf(token);
+    if (tokenIndex > -1) {
+      user.fcmTokens.splice(tokenIndex, 1);
+      await user.save();
+      await this.clearCache(userId);
+    }
+
+    return this.decryptUserData(user);
+  }
+
+  async getUserFcmTokens(userId: string): Promise<string[]> {
+    const user = await this.userModel.findById(userId).exec();
+    if (!user) {
+      throw new NotFoundException(`User with ID ${userId} not found`);
+    }
+    return user.fcmTokens;
   }
 }

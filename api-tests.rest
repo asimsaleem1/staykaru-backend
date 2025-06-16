@@ -1,0 +1,48 @@
+# StayKaru API Testing
+
+This REST client file can be used with VS Code's REST Client extension to test the new JWT authentication endpoints.
+
+### Base URL
+@baseUrl = http://localhost:3002
+@apiBaseUrl = {{baseUrl}}/auth
+
+### Content Type
+@contentType = application/json
+
+### Variables
+@email = test-user@example.com
+@password = Password123!
+@name = Test User
+@role = student
+@phone = +1234567890
+@gender = male
+
+### Register a new user
+POST {{apiBaseUrl}}/register
+Content-Type: {{contentType}}
+
+{
+    "email": "{{email}}",
+    "password": "{{password}}",
+    "name": "{{name}}",
+    "role": "{{role}}",
+    "phone": "{{phone}}",
+    "gender": "{{gender}}"
+}
+
+### Login
+# @name login
+POST {{apiBaseUrl}}/login
+Content-Type: {{contentType}}
+
+{
+    "email": "{{email}}",
+    "password": "{{password}}"
+}
+
+### Save the token from the login response
+@authToken = {{login.response.body.access_token}}
+
+### Get user profile (protected route)
+GET {{apiBaseUrl}}/profile
+Authorization: Bearer {{authToken}}

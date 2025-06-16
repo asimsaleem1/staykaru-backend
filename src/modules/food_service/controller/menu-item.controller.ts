@@ -9,7 +9,13 @@ import {
   UseGuards,
   Request,
 } from '@nestjs/common';
-import { ApiTags, ApiOperation, ApiResponse, ApiBearerAuth, ApiParam } from '@nestjs/swagger';
+import {
+  ApiTags,
+  ApiOperation,
+  ApiResponse,
+  ApiBearerAuth,
+  ApiParam,
+} from '@nestjs/swagger';
 import { MenuItemService } from '../services/menu-item.service';
 import { CreateMenuItemDto } from '../dto/create-menu-item.dto';
 import { UpdateMenuItemDto } from '../dto/update-menu-item.dto';
@@ -26,8 +32,8 @@ export class MenuItemController {
   @Post()
   // @UseGuards(FoodProviderGuard) // Temporarily disabled for testing
   @ApiOperation({ summary: 'Create a new menu item' })
-  @ApiResponse({ 
-    status: 201, 
+  @ApiResponse({
+    status: 201,
     description: 'Menu item successfully created',
     schema: {
       example: {
@@ -41,12 +47,15 @@ export class MenuItemController {
         dietary_info: ['Vegetarian'],
         availability: true,
         preparation_time: 15,
-        food_provider_id: '507f1f77bcf86cd799439012'
-      }
-    }
+        food_provider_id: '507f1f77bcf86cd799439012',
+      },
+    },
   })
   @ApiResponse({ status: 400, description: 'Bad request' })
-  @ApiResponse({ status: 403, description: 'Forbidden - Only food providers can create menu items' })
+  @ApiResponse({
+    status: 403,
+    description: 'Forbidden - Only food providers can create menu items',
+  })
   async create(@Body() createMenuItemDto: CreateMenuItemDto, @Request() req) {
     // Temporary fix for testing without auth
     const userId = req.user?._id || '683700350f8a15197d2abf50'; // Dummy user ID for testing
@@ -55,8 +64,8 @@ export class MenuItemController {
 
   @Get()
   @ApiOperation({ summary: 'Get all menu items' })
-  @ApiResponse({ 
-    status: 200, 
+  @ApiResponse({
+    status: 200,
     description: 'Return all menu items',
     schema: {
       example: [
@@ -71,11 +80,11 @@ export class MenuItemController {
           preparation_time: 15,
           food_provider: {
             id: '507f1f77bcf86cd799439012',
-            name: 'Italian Bistro'
-          }
-        }
-      ]
-    }
+            name: 'Italian Bistro',
+          },
+        },
+      ],
+    },
   })
   async findAll() {
     return this.menuItemService.findAll();
@@ -84,8 +93,8 @@ export class MenuItemController {
   @Get(':id')
   @ApiOperation({ summary: 'Get a menu item by ID' })
   @ApiParam({ name: 'id', description: 'Menu Item ID' })
-  @ApiResponse({ 
-    status: 200, 
+  @ApiResponse({
+    status: 200,
     description: 'Return a menu item',
     schema: {
       example: {
@@ -103,11 +112,11 @@ export class MenuItemController {
           calories: 280,
           protein: 12,
           carbs: 35,
-          fat: 10
+          fat: 10,
         },
-        food_provider_id: '507f1f77bcf86cd799439012'
-      }
-    }
+        food_provider_id: '507f1f77bcf86cd799439012',
+      },
+    },
   })
   @ApiResponse({ status: 404, description: 'Menu item not found' })
   async findOne(@Param('id') id: string) {
@@ -118,18 +127,21 @@ export class MenuItemController {
   // @UseGuards(FoodProviderGuard) // Temporarily disabled for testing
   @ApiOperation({ summary: 'Update a menu item (Food Providers only)' })
   @ApiParam({ name: 'id', description: 'Menu Item ID' })
-  @ApiResponse({ 
-    status: 200, 
+  @ApiResponse({
+    status: 200,
     description: 'Menu item successfully updated',
     schema: {
       example: {
         id: '507f1f77bcf86cd799439011',
         name: 'Updated Pizza Name',
-        message: 'Menu item updated successfully'
-      }
-    }
+        message: 'Menu item updated successfully',
+      },
+    },
   })
-  @ApiResponse({ status: 403, description: 'Forbidden - Can only update own menu items' })
+  @ApiResponse({
+    status: 403,
+    description: 'Forbidden - Can only update own menu items',
+  })
   @ApiResponse({ status: 404, description: 'Menu item not found' })
   async update(
     @Param('id') id: string,
@@ -145,16 +157,19 @@ export class MenuItemController {
   // @UseGuards(FoodProviderGuard) // Temporarily disabled for testing
   @ApiOperation({ summary: 'Delete a menu item (Food Providers only)' })
   @ApiParam({ name: 'id', description: 'Menu Item ID' })
-  @ApiResponse({ 
-    status: 200, 
+  @ApiResponse({
+    status: 200,
     description: 'Menu item successfully deleted',
     schema: {
       example: {
-        message: 'Menu item deleted successfully'
-      }
-    }
+        message: 'Menu item deleted successfully',
+      },
+    },
   })
-  @ApiResponse({ status: 403, description: 'Forbidden - Can only delete own menu items' })
+  @ApiResponse({
+    status: 403,
+    description: 'Forbidden - Can only delete own menu items',
+  })
   @ApiResponse({ status: 404, description: 'Menu item not found' })
   async remove(@Param('id') id: string, @Request() req) {
     // Temporary fix for testing without auth

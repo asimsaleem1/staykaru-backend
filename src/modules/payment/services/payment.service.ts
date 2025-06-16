@@ -2,7 +2,11 @@ import { Injectable, BadRequestException } from '@nestjs/common';
 import { InjectModel } from '@nestjs/mongoose';
 import { Model } from 'mongoose';
 import { ConfigService } from '@nestjs/config';
-import { Payment, PaymentMethod, PaymentStatus } from '../schema/payment.schema';
+import {
+  Payment,
+  PaymentMethod,
+  PaymentStatus,
+} from '../schema/payment.schema';
 import { JazzcashPaymentAdapter } from '../adapters/jazzcash.adapter';
 import { CreditCardPaymentAdapter } from '../adapters/credit-card.adapter';
 import { PaymentAnalyticsService } from './payment-analytics.service';
@@ -29,7 +33,10 @@ export class PaymentService {
     }
   }
 
-  async processPayment(createPaymentDto: CreatePaymentDto, userId: string): Promise<Payment> {
+  async processPayment(
+    createPaymentDto: CreatePaymentDto,
+    userId: string,
+  ): Promise<Payment> {
     const adapter = this.getPaymentAdapter(createPaymentDto.method);
 
     const paymentResponse = await adapter.processPayment(

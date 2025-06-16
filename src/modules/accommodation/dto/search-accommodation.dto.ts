@@ -2,10 +2,10 @@ import { IsNumber, IsOptional, IsMongoId, Min, Max } from 'class-validator';
 import { ApiProperty } from '@nestjs/swagger';
 
 export class SearchAccommodationDto {
-  @ApiProperty({ 
-    example: '507f1f77bcf86cd799439011', 
+  @ApiProperty({
+    example: '507f1f77bcf86cd799439011',
     description: 'MongoDB ObjectId of the city to filter accommodations by',
-    required: false 
+    required: false,
   })
   @IsMongoId()
   @IsOptional()

@@ -6,7 +6,11 @@ export interface PaymentGatewayResponse {
 }
 
 export interface PaymentGateway {
-  processPayment(amount: number, currency: string, metadata: any): Promise<PaymentGatewayResponse>;
+  processPayment(
+    amount: number,
+    currency: string,
+    metadata: any,
+  ): Promise<PaymentGatewayResponse>;
   verifyPayment(transaction_id: string): Promise<boolean>;
   refundPayment(transaction_id: string): Promise<boolean>;
 }

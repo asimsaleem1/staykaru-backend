@@ -1,4 +1,8 @@
-import { Injectable, NotFoundException, BadRequestException } from '@nestjs/common';
+import {
+  Injectable,
+  NotFoundException,
+  BadRequestException,
+} from '@nestjs/common';
 import { InjectModel } from '@nestjs/mongoose';
 import { Model } from 'mongoose';
 import { Review } from '../schema/review.schema';
@@ -13,7 +17,10 @@ export class ReviewService {
     private readonly analyticsService: ReviewAnalyticsService,
   ) {}
 
-  async create(createReviewDto: CreateReviewDto, userId: string): Promise<Review> {
+  async create(
+    createReviewDto: CreateReviewDto,
+    userId: string,
+  ): Promise<Review> {
     const existingReview = await this.reviewModel.findOne({
       user: userId,
       target_type: createReviewDto.target_type,
@@ -30,7 +37,7 @@ export class ReviewService {
     });
 
     const savedReview = await (await review.save()).populate('user');
-    
+
     // Temporarily disable analytics to avoid errors during testing
     try {
       await this.analyticsService.logReviewEvent(savedReview);
@@ -56,7 +63,11 @@ export class ReviewService {
     return review;
   }
 
-  async update(id: string, updateReviewDto: UpdateReviewDto, userId: string): Promise<Review> {
+  async update(
+    id: string,
+    updateReviewDto: UpdateReviewDto,
+    userId: string,
+  ): Promise<Review> {
     const review = await this.reviewModel.findById(id);
 
     if (!review) {

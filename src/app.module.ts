@@ -17,19 +17,19 @@ import { ReviewModule } from './modules/review/review.module';
 import { NotificationModule } from './modules/notification/notification.module';
 import { AnalyticsModule } from './modules/analytics/analytics.module';
 import databaseConfig from './config/database.config';
-import firebaseConfig from './config/firebase.config';
+import jwtConfig from './config/jwt.config';
 import cacheConfig from './config/cache.config';
 
 @Module({
   imports: [
     ConfigModule.forRoot({
-      load: [databaseConfig, firebaseConfig, cacheConfig],
+      load: [databaseConfig, jwtConfig, cacheConfig],
       isGlobal: true,
     }),
     CacheModule.registerAsync({
       isGlobal: true,
       imports: [ConfigModule],
-      useFactory: async (configService: ConfigService) => ({
+      useFactory: (configService: ConfigService) => ({
         store: redisStore,
         host: configService.get('cache.host'),
         port: configService.get('cache.port'),
@@ -39,7 +39,7 @@ import cacheConfig from './config/cache.config';
     }),
     MongooseModule.forRootAsync({
       imports: [ConfigModule],
-      useFactory: async (configService: ConfigService) => ({
+      useFactory: (configService: ConfigService) => ({
         uri: configService.get<string>('database.mongoUri'),
       }),
       inject: [ConfigService],

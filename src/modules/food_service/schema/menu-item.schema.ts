@@ -13,7 +13,11 @@ export class MenuItem extends Document {
   @Prop({ required: true })
   description: string;
 
-  @Prop({ type: MongooseSchema.Types.ObjectId, ref: 'FoodProvider', required: true })
+  @Prop({
+    type: MongooseSchema.Types.ObjectId,
+    ref: 'FoodProvider',
+    required: true,
+  })
   provider: FoodProvider;
 }
 

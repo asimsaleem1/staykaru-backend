@@ -1,11 +1,14 @@
 import { ConfigService } from '@nestjs/config';
 import { Model } from 'mongoose';
-import { AnalyticsReport, AnalyticsTimeRange } from '../interfaces/analytics-report.interface';
+import {
+  AnalyticsReport,
+  AnalyticsTimeRange,
+} from '../interfaces/analytics-report.interface';
 
 export class BookingAnalyticsReport implements AnalyticsReport {
   constructor(
     private configService: ConfigService,
-    private bookingAnalyticsModel: Model<any>
+    private bookingAnalyticsModel: Model<any>,
   ) {}
 
   async generate(timeRange?: AnalyticsTimeRange) {
@@ -15,15 +18,15 @@ export class BookingAnalyticsReport implements AnalyticsReport {
       const filter = {
         createdAt: {
           $gte: timeRange.startDate,
-          $lte: timeRange.endDate
-        }
+          $lte: timeRange.endDate,
+        },
       };
       query = this.bookingAnalyticsModel.find(filter).sort({ createdAt: -1 });
     }
 
     try {
       const data = await query.exec();
-      
+
       return {
         summary: {
           totalBookings: data.length,
@@ -44,7 +47,7 @@ export class BookingAnalyticsReport implements AnalyticsReport {
 
   private calculateAverageDuration(data: any[]) {
     if (data.length === 0) return 0;
-    
+
     const totalDuration = data.reduce((sum, booking) => {
       if (!booking.checkIn || !booking.checkOut) return sum;
       const checkIn = new Date(booking.checkIn);
@@ -53,7 +56,7 @@ export class BookingAnalyticsReport implements AnalyticsReport {
       const durationDays = durationMs / (1000 * 60 * 60 * 24);
       return sum + durationDays;
     }, 0);
-    
+
     return totalDuration / data.length;
   }
 

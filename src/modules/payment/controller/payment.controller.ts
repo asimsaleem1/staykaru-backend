@@ -21,7 +21,10 @@ export class PaymentController {
   @Post()
   @ApiOperation({ summary: 'Process a new payment' })
   @ApiResponse({ status: 201, description: 'Payment successfully processed' })
-  async processPayment(@Body() createPaymentDto: CreatePaymentDto, @Request() req) {
+  async processPayment(
+    @Body() createPaymentDto: CreatePaymentDto,
+    @Request() req,
+  ) {
     // For testing without authentication, use a dummy user ID
     const userId = req.user?._id || '507f1f77bcf86cd799439011';
     return this.paymentService.processPayment(createPaymentDto, userId);
@@ -35,8 +38,8 @@ export class PaymentController {
   }
 
   @Get('my-payments')
-  @ApiOperation({ summary: 'Get user\'s payments' })
-  @ApiResponse({ status: 200, description: 'Return user\'s payments' })
+  @ApiOperation({ summary: "Get user's payments" })
+  @ApiResponse({ status: 200, description: "Return user's payments" })
   async findMyPayments(@Request() req) {
     return this.paymentService.findByUser(req.user._id);
   }

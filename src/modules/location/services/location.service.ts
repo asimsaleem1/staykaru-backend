@@ -35,7 +35,9 @@ export class LocationService {
   }
 
   async createCity(createCityDto: CreateCityDto): Promise<City> {
-    const country = await this.countryModel.findById(createCityDto.country).exec();
+    const country = await this.countryModel
+      .findById(createCityDto.country)
+      .exec();
     if (!country) {
       throw new NotFoundException(`Country not found`);
     }
@@ -58,7 +60,9 @@ export class LocationService {
         }
       } catch (error) {
         // If geocoding fails (e.g., no API key), use default coordinates or continue without location
-        console.warn(`Geocoding failed for ${createCityDto.name}: ${error.message}`);
+        console.warn(
+          `Geocoding failed for ${createCityDto.name}: ${error.message}`,
+        );
         // Set default coordinates (0, 0) if geocoding fails
         location = {
           type: 'Point',
@@ -88,36 +92,51 @@ export class LocationService {
   }
 
   async getCitiesByCountry(countryId: string): Promise<City[]> {
-    return this.cityModel.find({ country: countryId }).populate('country').exec();
+    return this.cityModel
+      .find({ country: countryId })
+      .populate('country')
+      .exec();
   }
 
-  async findNearbyCities(longitude: number, latitude: number, radius: number = 50): Promise<City[]> {
+  async findNearbyCities(
+    longitude: number,
+    latitude: number,
+    radius: number = 50,
+  ): Promise<City[]> {
     // MongoDB geospatial query to find cities within the specified radius
-    return this.cityModel.find({
-      location: {
-        $near: {
-          $geometry: {
-            type: 'Point',
-            coordinates: [longitude, latitude]
+    return this.cityModel
+      .find({
+        location: {
+          $near: {
+            $geometry: {
+              type: 'Point',
+              coordinates: [longitude, latitude],
+            },
+            $maxDistance: radius * 1000, // Convert km to meters
           },
-          $maxDistance: radius * 1000 // Convert km to meters
-        }
-      }
-    }).populate('country').exec();
+        },
+      })
+      .populate('country')
+      .exec();
   }
 
-  async findNearbyPlaces(lat: number, lng: number, radius?: number): Promise<any[]> {
+  async findNearbyPlaces(
+    lat: number,
+    lng: number,
+    radius?: number,
+  ): Promise<any[]> {
     return this.googleMapsAdapter.getNearbyPlaces(lat, lng, radius);
   }
 
   // Country Update and Delete Operations
-  async updateCountry(id: string, updateData: UpdateCountryDto): Promise<Country> {
-    const country = await this.countryModel.findByIdAndUpdate(
-      id, 
-      updateData, 
-      { new: true, runValidators: true }
-    ).exec();
-    
+  async updateCountry(
+    id: string,
+    updateData: UpdateCountryDto,
+  ): Promise<Country> {
+    const country = await this.countryModel
+      .findByIdAndUpdate(id, updateData, { new: true, runValidators: true })
+      .exec();
+
     if (!country) {
       throw new NotFoundException(`Country with ID ${id} not found`);
     }
@@ -126,16 +145,20 @@ export class LocationService {
 
   async deleteCountry(id: string): Promise<{ message: string }> {
     // Check if country has cities
-    const citiesCount = await this.cityModel.countDocuments({ country: id }).exec();
+    const citiesCount = await this.cityModel
+      .countDocuments({ country: id })
+      .exec();
     if (citiesCount > 0) {
-      throw new Error(`Cannot delete country. It has ${citiesCount} cities associated with it.`);
+      throw new Error(
+        `Cannot delete country. It has ${citiesCount} cities associated with it.`,
+      );
     }
 
     const result = await this.countryModel.findByIdAndDelete(id).exec();
     if (!result) {
       throw new NotFoundException(`Country with ID ${id} not found`);
     }
-    
+
     return { message: 'Country deleted successfully' };
   }
 
@@ -143,18 +166,19 @@ export class LocationService {
   async updateCity(id: string, updateData: UpdateCityDto): Promise<City> {
     // If country is being updated, validate it exists
     if (updateData.country) {
-      const country = await this.countryModel.findById(updateData.country).exec();
+      const country = await this.countryModel
+        .findById(updateData.country)
+        .exec();
       if (!country) {
         throw new NotFoundException(`Country not found`);
       }
     }
 
-    const city = await this.cityModel.findByIdAndUpdate(
-      id, 
-      updateData, 
-      { new: true, runValidators: true }
-    ).populate('country').exec();
-    
+    const city = await this.cityModel
+      .findByIdAndUpdate(id, updateData, { new: true, runValidators: true })
+      .populate('country')
+      .exec();
+
     if (!city) {
       throw new NotFoundException(`City with ID ${id} not found`);
     }
@@ -166,7 +190,7 @@ export class LocationService {
     if (!result) {
       throw new NotFoundException(`City with ID ${id} not found`);
     }
-    
+
     return { message: 'City deleted successfully' };
   }
 }

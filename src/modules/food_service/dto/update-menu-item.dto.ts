@@ -13,7 +13,10 @@ export class UpdateMenuItemDto {
   @IsOptional()
   price?: number;
 
-  @ApiProperty({ example: 'Creamy, rich butter chicken curry', required: false })
+  @ApiProperty({
+    example: 'Creamy, rich butter chicken curry',
+    required: false,
+  })
   @IsString()
   @IsOptional()
   description?: string;

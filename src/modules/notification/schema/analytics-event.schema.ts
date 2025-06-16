@@ -15,4 +15,5 @@ export class AnalyticsEvent {
   metadata: Record<string, any>;
 }
 
-export const AnalyticsEventSchema = SchemaFactory.createForClass(AnalyticsEvent);
+export const AnalyticsEventSchema =
+  SchemaFactory.createForClass(AnalyticsEvent);

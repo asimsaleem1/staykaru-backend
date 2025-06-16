@@ -11,19 +11,31 @@ import { ConfigService } from '@nestjs/config';
 export class AnalyticsReportFactory {
   constructor(
     private configService: ConfigService,
-    @InjectModel('BookingAnalytics') private readonly bookingAnalyticsModel: Model<any>,
-    @InjectModel('OrderAnalytics') private readonly orderAnalyticsModel: Model<any>,
-    @InjectModel('PaymentAnalytics') private readonly paymentAnalyticsModel: Model<any>
+    @InjectModel('BookingAnalytics')
+    private readonly bookingAnalyticsModel: Model<any>,
+    @InjectModel('OrderAnalytics')
+    private readonly orderAnalyticsModel: Model<any>,
+    @InjectModel('PaymentAnalytics')
+    private readonly paymentAnalyticsModel: Model<any>,
   ) {}
 
   createReport(type: string): AnalyticsReport {
     switch (type) {
       case 'booking':
-        return new BookingAnalyticsReport(this.configService, this.bookingAnalyticsModel);
+        return new BookingAnalyticsReport(
+          this.configService,
+          this.bookingAnalyticsModel,
+        );
       case 'order':
-        return new OrderAnalyticsReport(this.configService, this.orderAnalyticsModel);
+        return new OrderAnalyticsReport(
+          this.configService,
+          this.orderAnalyticsModel,
+        );
       case 'payment':
-        return new PaymentAnalyticsReport(this.configService, this.paymentAnalyticsModel);
+        return new PaymentAnalyticsReport(
+          this.configService,
+          this.paymentAnalyticsModel,
+        );
       default:
         throw new Error(`Unsupported report type: ${type}`);
     }

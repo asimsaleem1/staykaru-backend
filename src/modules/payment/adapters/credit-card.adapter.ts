@@ -1,5 +1,8 @@
 import { Injectable } from '@nestjs/common';
-import { PaymentGateway, PaymentGatewayResponse } from '../interfaces/payment-gateway.interface';
+import {
+  PaymentGateway,
+  PaymentGatewayResponse,
+} from '../interfaces/payment-gateway.interface';
 import { ConfigService } from '@nestjs/config';
 
 @Injectable()

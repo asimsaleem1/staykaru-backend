@@ -1,4 +1,11 @@
-import { IsMongoId, IsArray, IsNumber, Min, ValidateNested, ArrayMinSize } from 'class-validator';
+import {
+  IsMongoId,
+  IsArray,
+  IsNumber,
+  Min,
+  ValidateNested,
+  ArrayMinSize,
+} from 'class-validator';
 import { Type } from 'class-transformer';
 import { ApiProperty } from '@nestjs/swagger';
 

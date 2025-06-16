@@ -9,7 +9,10 @@ export class UpdateReviewDto {
   @IsOptional()
   rating?: number;
 
-  @ApiProperty({ example: 'Updated: Great service and friendly staff!', required: false })
+  @ApiProperty({
+    example: 'Updated: Great service and friendly staff!',
+    required: false,
+  })
   @IsString()
   @IsOptional()
   comment?: string;

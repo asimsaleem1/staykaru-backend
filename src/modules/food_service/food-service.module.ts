@@ -5,7 +5,10 @@ import { FoodProviderController } from './controller/food-provider.controller';
 import { MenuItemController } from './controller/menu-item.controller';
 import { FoodProviderService } from './services/food-provider.service';
 import { MenuItemService } from './services/menu-item.service';
-import { FoodProvider, FoodProviderSchema } from './schema/food-provider.schema';
+import {
+  FoodProvider,
+  FoodProviderSchema,
+} from './schema/food-provider.schema';
 import { MenuItem, MenuItemSchema } from './schema/menu-item.schema';
 import { UserModule } from '../user/user.module';
 

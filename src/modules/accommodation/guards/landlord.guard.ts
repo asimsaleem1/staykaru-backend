@@ -1,32 +1,34 @@
-import { Injectable, CanActivate, ExecutionContext, ForbiddenException } from '@nestjs/common';
-import { UserService } from '../../user/services/user.service';
+import {
+  Injectable,
+  CanActivate,
+  ExecutionContext,
+  ForbiddenException,
+} from '@nestjs/common';
+import { Request } from 'express';
 import { UserRole } from '../../user/schema/user.schema';
+
+interface RequestWithUser extends Request {
+  user: {
+    _id: string;
+    role: UserRole;
+    [key: string]: any;
+  };
+}
 
 @Injectable()
 export class LandlordGuard implements CanActivate {
-  constructor(private readonly userService: UserService) {}
+  canActivate(context: ExecutionContext): boolean {
+    const request = context.switchToHttp().getRequest<RequestWithUser>();
+    const user = request.user;
 
-  async canActivate(context: ExecutionContext): Promise<boolean> {
-    const request = context.switchToHttp().getRequest();
-    const firebaseUser = request.user;
-
-    if (!firebaseUser || !firebaseUser.uid) {
+    if (!user || !user._id) {
       throw new ForbiddenException('Authentication required');
     }
 
-    // Fetch the user from the database using the Firebase user ID
-    const dbUser = await this.userService.findByFirebaseUid(firebaseUser.uid);
-
-    if (!dbUser) {
-      throw new ForbiddenException('User not found in database');
-    }
-
-    if (dbUser.role !== UserRole.LANDLORD) {
+    if (user.role !== UserRole.LANDLORD) {
       throw new ForbiddenException('Only landlords can perform this action');
     }
 
-    // Attach the complete user information to the request
-    request.user = dbUser;
     return true;
   }
 }

@@ -1,4 +1,8 @@
-import { Injectable, NotFoundException, ForbiddenException } from '@nestjs/common';
+import {
+  Injectable,
+  NotFoundException,
+  ForbiddenException,
+} from '@nestjs/common';
 import { InjectModel } from '@nestjs/mongoose';
 import { Model } from 'mongoose';
 import { MenuItem } from '../schema/menu-item.schema';
@@ -15,15 +19,22 @@ export class MenuItemService {
     private readonly foodProviderModel: Model<FoodProvider>,
   ) {}
 
-  async create(createMenuItemDto: CreateMenuItemDto, userId: string): Promise<MenuItem> {
-    const foodProvider = await this.foodProviderModel.findById(createMenuItemDto.provider);
-    
+  async create(
+    createMenuItemDto: CreateMenuItemDto,
+    userId: string,
+  ): Promise<MenuItem> {
+    const foodProvider = await this.foodProviderModel.findById(
+      createMenuItemDto.provider,
+    );
+
     if (!foodProvider) {
       throw new NotFoundException('Food provider not found');
     }
 
     if (foodProvider.owner.toString() !== userId) {
-      throw new ForbiddenException('You can only add menu items to your own food provider');
+      throw new ForbiddenException(
+        'You can only add menu items to your own food provider',
+      );
     }
 
     const menuItem = new this.menuItemModel(createMenuItemDto);
@@ -31,10 +42,7 @@ export class MenuItemService {
   }
 
   async findAll(): Promise<MenuItem[]> {
-    return this.menuItemModel
-      .find()
-      .populate('provider')
-      .exec();
+    return this.menuItemModel.find().populate('provider').exec();
   }
 
   async findOne(id: string): Promise<MenuItem> {
@@ -65,7 +73,9 @@ export class MenuItemService {
     }
 
     if (menuItem.provider.owner.toString() !== userId) {
-      throw new ForbiddenException('You can only update menu items from your own food provider');
+      throw new ForbiddenException(
+        'You can only update menu items from your own food provider',
+      );
     }
 
     return this.menuItemModel
@@ -85,7 +95,9 @@ export class MenuItemService {
     }
 
     if (menuItem.provider.owner.toString() !== userId) {
-      throw new ForbiddenException('You can only delete menu items from your own food provider');
+      throw new ForbiddenException(
+        'You can only delete menu items from your own food provider',
+      );
     }
 
     await this.menuItemModel.findByIdAndDelete(id).exec();

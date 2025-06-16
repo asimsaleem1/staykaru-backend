@@ -6,12 +6,12 @@ export enum PaymentStatus {
   PENDING = 'pending',
   COMPLETED = 'completed',
   FAILED = 'failed',
-  REFUNDED = 'refunded'
+  REFUNDED = 'refunded',
 }
 
 export enum PaymentMethod {
   JAZZCASH = 'jazzcash',
-  CREDIT_CARD = 'credit_card'
+  CREDIT_CARD = 'credit_card',
 }
 
 @Schema({ timestamps: true })

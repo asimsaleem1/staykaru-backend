@@ -8,7 +8,13 @@ import {
   Param,
   UseGuards,
 } from '@nestjs/common';
-import { ApiTags, ApiOperation, ApiResponse, ApiBearerAuth, ApiParam } from '@nestjs/swagger';
+import {
+  ApiTags,
+  ApiOperation,
+  ApiResponse,
+  ApiBearerAuth,
+  ApiParam,
+} from '@nestjs/swagger';
 import { UserService } from '../services/user.service';
 import { CreateUserDto } from '../dto/create-user.dto';
 import { UpdateUserDto } from '../dto/update-user.dto';
@@ -26,8 +32,8 @@ export class UserController {
 
   @Post()
   @ApiOperation({ summary: 'Create a new user' })
-  @ApiResponse({ 
-    status: 201, 
+  @ApiResponse({
+    status: 201,
     description: 'User successfully created',
     schema: {
       example: {
@@ -37,22 +43,24 @@ export class UserController {
         role: 'student',
         phone: '+1234567890',
         address: '123 Main St',
-        created_at: '2025-05-28T10:00:00.000Z'
-      }
-    }
+        created_at: '2025-05-28T10:00:00.000Z',
+      },
+    },
   })
   @ApiResponse({ status: 400, description: 'Bad request' })
-  @ApiResponse({ status: 403, description: 'Forbidden - Admin access required' })
+  @ApiResponse({
+    status: 403,
+    description: 'Forbidden - Admin access required',
+  })
   @Roles(UserRole.ADMIN)
   async create(@Body() createUserDto: CreateUserDto) {
-    // Use a random Firebase UID for testing if no authentication is present
-    return this.userService.create(createUserDto, 'firebase-uid-' + Date.now());
+    return this.userService.create(createUserDto);
   }
 
   @Get()
   @ApiOperation({ summary: 'Get all users' })
-  @ApiResponse({ 
-    status: 200, 
+  @ApiResponse({
+    status: 200,
     description: 'Return all users',
     schema: {
       example: [
@@ -61,10 +69,10 @@ export class UserController {
           name: 'John Doe',
           email: 'john@example.com',
           role: 'student',
-          created_at: '2025-05-28T10:00:00.000Z'
-        }
-      ]
-    }
+          created_at: '2025-05-28T10:00:00.000Z',
+        },
+      ],
+    },
   })
   async findAll() {
     return this.userService.findAll();
@@ -73,8 +81,8 @@ export class UserController {
   @Get(':id')
   @ApiOperation({ summary: 'Get a user by ID' })
   @ApiParam({ name: 'id', description: 'User ID' })
-  @ApiResponse({ 
-    status: 200, 
+  @ApiResponse({
+    status: 200,
     description: 'Return a user',
     schema: {
       example: {
@@ -85,9 +93,9 @@ export class UserController {
         phone: '+1234567890',
         address: '123 Main St',
         created_at: '2025-05-28T10:00:00.000Z',
-        updated_at: '2025-05-28T10:00:00.000Z'
-      }
-    }
+        updated_at: '2025-05-28T10:00:00.000Z',
+      },
+    },
   })
   @ApiResponse({ status: 404, description: 'User not found' })
   async findOne(@Param('id') id: string) {
@@ -97,16 +105,16 @@ export class UserController {
   @Put(':id')
   @ApiOperation({ summary: 'Update a user' })
   @ApiParam({ name: 'id', description: 'User ID' })
-  @ApiResponse({ 
-    status: 200, 
+  @ApiResponse({
+    status: 200,
     description: 'User successfully updated',
     schema: {
       example: {
         id: '507f1f77bcf86cd799439011',
         name: 'John Updated',
-        message: 'User updated successfully'
-      }
-    }
+        message: 'User updated successfully',
+      },
+    },
   })
   @ApiResponse({ status: 404, description: 'User not found' })
   async update(@Param('id') id: string, @Body() updateUserDto: UpdateUserDto) {
@@ -114,22 +122,17 @@ export class UserController {
   }
 
   @Delete(':id')
-  @ApiOperation({ summary: 'Delete a user (Admin only)' })
+  @ApiOperation({ summary: 'Remove a user by ID' })
   @ApiParam({ name: 'id', description: 'User ID' })
-  @ApiResponse({ 
-    status: 200, 
-    description: 'User successfully deleted',
-    schema: {
-      example: {
-        message: 'User deleted successfully'
-      }
-    }
+  @ApiResponse({ status: 200, description: 'User deleted successfully' })
+  @ApiResponse({
+    status: 403,
+    description: 'Forbidden - Admin access required',
   })
-  @ApiResponse({ status: 403, description: 'Forbidden - Admin access required' })
   @ApiResponse({ status: 404, description: 'User not found' })
   @Roles(UserRole.ADMIN)
   async remove(@Param('id') id: string) {
-    await this.userService.remove(id);
+    await this.userService.delete(id);
     return { message: 'User deleted successfully' };
   }
 }

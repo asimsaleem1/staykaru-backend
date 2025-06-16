@@ -23,8 +23,8 @@ export class FoodProvider extends Document {
   @Prop({
     type: {
       open: { type: String },
-      close: { type: String }
-    }
+      close: { type: String },
+    },
   })
   operating_hours: {
     open: string;
@@ -34,15 +34,18 @@ export class FoodProvider extends Document {
   @Prop({
     type: {
       phone: { type: String },
-      email: { type: String }
-    }
+      email: { type: String },
+    },
   })
   contact_info: {
     phone: string;
     email: string;
   };
 
-  @Prop({ type: [{ type: MongooseSchema.Types.ObjectId, ref: 'MenuItem' }], default: [] })
+  @Prop({
+    type: [{ type: MongooseSchema.Types.ObjectId, ref: 'MenuItem' }],
+    default: [],
+  })
   menu_items: string[];
 
   @Prop({ type: Number, default: 0 })

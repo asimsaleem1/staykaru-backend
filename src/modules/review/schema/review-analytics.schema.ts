@@ -25,4 +25,5 @@ export class ReviewAnalytics extends Document {
   timestamp: Date;
 }
 
-export const ReviewAnalyticsSchema = SchemaFactory.createForClass(ReviewAnalytics);
+export const ReviewAnalyticsSchema =
+  SchemaFactory.createForClass(ReviewAnalytics);

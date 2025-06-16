@@ -12,7 +12,11 @@ export enum OrderStatus {
 }
 
 export class OrderItem {
-  @Prop({ type: MongooseSchema.Types.ObjectId, ref: 'MenuItem', required: true })
+  @Prop({
+    type: MongooseSchema.Types.ObjectId,
+    ref: 'MenuItem',
+    required: true,
+  })
   menu_item: MenuItem;
 
   @Prop({ required: true, min: 1 })
@@ -24,7 +28,11 @@ export class Order extends Document {
   @Prop({ type: MongooseSchema.Types.ObjectId, ref: 'User', required: true })
   user: User;
 
-  @Prop({ type: MongooseSchema.Types.ObjectId, ref: 'FoodProvider', required: true })
+  @Prop({
+    type: MongooseSchema.Types.ObjectId,
+    ref: 'FoodProvider',
+    required: true,
+  })
   food_provider: FoodProvider;
 
   @Prop({ type: [OrderItem], required: true })

@@ -1,12 +1,18 @@
-import { IsString, IsNotEmpty, MinLength, MaxLength, IsOptional } from 'class-validator';
+import {
+  IsString,
+  IsNotEmpty,
+  MinLength,
+  MaxLength,
+  IsOptional,
+} from 'class-validator';
 import { ApiPropertyOptional } from '@nestjs/swagger';
 
 export class UpdateCountryDto {
-  @ApiPropertyOptional({ 
+  @ApiPropertyOptional({
     example: 'India',
     description: 'Updated name of the country',
     minLength: 2,
-    maxLength: 100
+    maxLength: 100,
   })
   @IsOptional()
   @IsString()

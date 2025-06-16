@@ -25,4 +25,5 @@ export class PaymentAnalytics extends Document {
   timestamp: Date;
 }
 
-export const PaymentAnalyticsSchema = SchemaFactory.createForClass(PaymentAnalytics);
+export const PaymentAnalyticsSchema =
+  SchemaFactory.createForClass(PaymentAnalytics);

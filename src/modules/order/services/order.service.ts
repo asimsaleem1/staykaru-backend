@@ -1,4 +1,8 @@
-import { Injectable, NotFoundException, BadRequestException } from '@nestjs/common';
+import {
+  Injectable,
+  NotFoundException,
+  BadRequestException,
+} from '@nestjs/common';
 import { InjectModel } from '@nestjs/mongoose';
 import { Model } from 'mongoose';
 import { ConfigService } from '@nestjs/config';
@@ -25,7 +29,9 @@ export class OrderService {
           throw new NotFoundException(`Menu item ${item.menu_item} not found`);
         }
         if (menuItem.provider.toString() !== createOrderDto.food_provider) {
-          throw new BadRequestException('All items must be from the same food provider');
+          throw new BadRequestException(
+            'All items must be from the same food provider',
+          );
         }
         totalPrice += menuItem.price * item.quantity;
         return item;
@@ -40,11 +46,9 @@ export class OrderService {
       status: OrderStatus.PLACED,
     });
 
-    const savedOrder = await (await order.save()).populate([
-      'user',
-      'food_provider',
-      'items.menu_item',
-    ]);
+    const savedOrder = await (
+      await order.save()
+    ).populate(['user', 'food_provider', 'items.menu_item']);
 
     // Log order analytics using MongoDB
     try {
@@ -55,7 +59,7 @@ export class OrderService {
         status: savedOrder.status,
         totalAmount: totalPrice,
         itemCount: createOrderDto.items.length,
-        createdAt: new Date()
+        createdAt: new Date(),
       });
     } catch (error) {
       console.error('Error logging order analytics:', error);
@@ -68,7 +72,7 @@ export class OrderService {
         user_id: savedOrder.food_provider.owner.toString(),
         message: `New order received worth ${totalPrice}`,
         createdAt: new Date(),
-        read: false
+        read: false,
       });
     } catch (error) {
       console.error('Error creating order notification:', error);
@@ -126,7 +130,9 @@ export class OrderService {
     }
 
     if (order.food_provider._id.toString() !== providerId) {
-      throw new BadRequestException('You can only update orders for your own food service');
+      throw new BadRequestException(
+        'You can only update orders for your own food service',
+      );
     }
 
     order.status = updateOrderStatusDto.status;
@@ -139,7 +145,7 @@ export class OrderService {
         userId: order.user.toString(),
         message: `Your order status has been updated to ${updateOrderStatusDto.status}`,
         createdAt: new Date(),
-        read: false
+        read: false,
       });
     } catch (error) {
       console.error('Error creating order notification:', error);

@@ -9,7 +9,8 @@ import { ReviewAnalytics } from '../schema/review-analytics.schema';
 export class ReviewAnalyticsService {
   constructor(
     private configService: ConfigService,
-    @InjectModel(ReviewAnalytics.name) private readonly reviewAnalyticsModel: Model<ReviewAnalytics>
+    @InjectModel(ReviewAnalytics.name)
+    private readonly reviewAnalyticsModel: Model<ReviewAnalytics>,
   ) {}
 
   async logReviewEvent(review: Review): Promise<void> {

@@ -1,4 +1,11 @@
-import { IsString, IsEnum, IsNumber, IsMongoId, Min, Max } from 'class-validator';
+import {
+  IsString,
+  IsEnum,
+  IsNumber,
+  IsMongoId,
+  Min,
+  Max,
+} from 'class-validator';
 import { ApiProperty } from '@nestjs/swagger';
 import { ReviewTargetType } from '../schema/review.schema';
 

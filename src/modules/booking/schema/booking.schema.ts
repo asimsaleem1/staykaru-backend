@@ -14,7 +14,11 @@ export class Booking extends Document {
   @Prop({ type: MongooseSchema.Types.ObjectId, ref: 'User', required: true })
   user: User;
 
-  @Prop({ type: MongooseSchema.Types.ObjectId, ref: 'Accommodation', required: true })
+  @Prop({
+    type: MongooseSchema.Types.ObjectId,
+    ref: 'Accommodation',
+    required: true,
+  })
   accommodation: Accommodation;
 
   @Prop({ required: true })

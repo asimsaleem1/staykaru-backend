@@ -21,7 +21,11 @@ export class GoogleMapsAdapter {
     return response.data.results;
   }
 
-  async getNearbyPlaces(lat: number, lng: number, radius: number = 5000): Promise<any[]> {
+  async getNearbyPlaces(
+    lat: number,
+    lng: number,
+    radius: number = 5000,
+  ): Promise<any[]> {
     const response = await this.client.placesNearby({
       params: {
         location: { lat, lng },

@@ -38,16 +38,16 @@ export class OrderController {
   }
 
   @Get('my-orders')
-  @ApiOperation({ summary: 'Get user\'s orders' })
-  @ApiResponse({ status: 200, description: 'Return user\'s orders' })
+  @ApiOperation({ summary: "Get user's orders" })
+  @ApiResponse({ status: 200, description: "Return user's orders" })
   async findMyOrders(@Request() req) {
     return this.orderService.findByUser(req.user._id);
   }
 
   @Get('provider-orders')
   // @UseGuards(FoodProviderGuard) // Temporarily disabled for testing
-  @ApiOperation({ summary: 'Get food provider\'s orders' })
-  @ApiResponse({ status: 200, description: 'Return food provider\'s orders' })
+  @ApiOperation({ summary: "Get food provider's orders" })
+  @ApiResponse({ status: 200, description: "Return food provider's orders" })
   async findProviderOrders(@Request() req) {
     return this.orderService.findByFoodProvider(req.user._id);
   }
@@ -62,12 +62,19 @@ export class OrderController {
   @Put(':id/status')
   // @UseGuards(FoodProviderGuard) // Temporarily disabled for testing
   @ApiOperation({ summary: 'Update order status' })
-  @ApiResponse({ status: 200, description: 'Order status successfully updated' })
+  @ApiResponse({
+    status: 200,
+    description: 'Order status successfully updated',
+  })
   async updateStatus(
     @Param('id') id: string,
     @Body() updateOrderStatusDto: UpdateOrderStatusDto,
     @Request() req,
   ) {
-    return this.orderService.updateStatus(id, updateOrderStatusDto, req.user._id);
+    return this.orderService.updateStatus(
+      id,
+      updateOrderStatusDto,
+      req.user._id,
+    );
   }
 }

@@ -210,14 +210,14 @@ export class AppService {
         </div>
         
         <div class="footer">
-          <p>Built with NestJS, MongoDB & Firebase</p>
+          <p>Built with NestJS, MongoDB & JWT Authentication</p>
           <p>Ready for testing with Swagger UI</p>
         </div>
       </div>
     </body>
     </html>
     `;
-    
+
     res.setHeader('Content-Type', 'text/html');
     res.send(html);
   }
@@ -232,7 +232,7 @@ export class AppService {
       services: {
         database: 'connected',
         cache: 'active',
-        swagger: 'available at /api'
+        swagger: 'available at /api',
       },
       endpoints: {
         documentation: '/api',
@@ -244,8 +244,8 @@ export class AppService {
         orders: '/orders',
         payments: '/payments',
         reviews: '/reviews',
-        analytics: '/analytics'
-      }
+        analytics: '/analytics',
+      },
     };
   }
 }

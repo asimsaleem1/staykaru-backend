@@ -8,9 +8,9 @@ export class AnalyticsService {
 
   async getAnalytics(type: string, days?: number) {
     const report = this.reportFactory.createReport(type);
-    
+
     let timeRange: AnalyticsTimeRange | undefined;
-    
+
     if (days) {
       const endDate = new Date();
       const startDate = new Date();

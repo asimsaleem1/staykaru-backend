@@ -1,4 +1,8 @@
-import { Injectable, NotFoundException, BadRequestException } from '@nestjs/common';
+import {
+  Injectable,
+  NotFoundException,
+  BadRequestException,
+} from '@nestjs/common';
 import { InjectModel } from '@nestjs/mongoose';
 import { Model } from 'mongoose';
 import { ConfigService } from '@nestjs/config';
@@ -17,13 +21,17 @@ export class BookingService {
     private readonly configService: ConfigService,
   ) {}
 
-  async create(createBookingDto: CreateBookingDto, userId: string): Promise<Booking> {
+  async create(
+    createBookingDto: CreateBookingDto,
+    userId: string,
+  ): Promise<Booking> {
     const accommodation = await this.accommodationService.findOne(
       createBookingDto.accommodation,
     );
 
     const isAvailable = accommodation.availability.some(
-      (date) => date.toISOString().split('T')[0] === createBookingDto.start_date,
+      (date) =>
+        date.toISOString().split('T')[0] === createBookingDto.start_date,
     );
 
     if (!isAvailable) {
@@ -36,17 +44,23 @@ export class BookingService {
       status: BookingStatus.PENDING,
       total_price: accommodation.price,
       duration_days: Math.ceil(
-        (new Date(createBookingDto.end_date).getTime() - 
-         new Date(createBookingDto.start_date).getTime()) / (1000 * 60 * 60 * 24)
-      )
+        (new Date(createBookingDto.end_date).getTime() -
+          new Date(createBookingDto.start_date).getTime()) /
+          (1000 * 60 * 60 * 24),
+      ),
     });
 
-    const savedBooking = await (await booking.save()).populate(['user', 'accommodation']);
+    const savedBooking = await (
+      await booking.save()
+    ).populate(['user', 'accommodation']);
 
-    await this.realtimeService.broadcastBookingUpdate(savedBooking._id.toString(), {
-      status: savedBooking.status,
-      user_id: userId,
-    });
+    await this.realtimeService.broadcastBookingUpdate(
+      savedBooking._id.toString(),
+      {
+        status: savedBooking.status,
+        user_id: userId,
+      },
+    );
 
     // Analytics tracking is now handled through MongoDB
     try {
@@ -99,7 +113,9 @@ export class BookingService {
     }
 
     if (booking.accommodation.landlord.toString() !== landlordId) {
-      throw new BadRequestException('Only the landlord can update booking status');
+      throw new BadRequestException(
+        'Only the landlord can update booking status',
+      );
     }
 
     booking.status = updateBookingStatusDto.status;
