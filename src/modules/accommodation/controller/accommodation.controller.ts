@@ -21,6 +21,14 @@ import { CreateAccommodationDto } from '../dto/create-accommodation.dto';
 import { UpdateAccommodationDto } from '../dto/update-accommodation.dto';
 import { SearchAccommodationDto } from '../dto/search-accommodation.dto';
 
+interface RequestWithUser extends Request {
+  user?: {
+    _id: string | { toString(): string };
+    email: string;
+    [key: string]: any;
+  };
+}
+
 @ApiTags('accommodations')
 @Controller('accommodations')
 // @UseGuards(AuthGuard) // Temporarily disabled for testing
@@ -72,12 +80,13 @@ export class AccommodationController {
   })
   async create(
     @Body() createAccommodationDto: CreateAccommodationDto,
-    @Request() req: any,
+    @Request() req: RequestWithUser,
   ) {
     // For testing without authentication, req.user will be undefined
     return this.accommodationService.create(
       createAccommodationDto,
-      req.user || null,
+      // eslint-disable-next-line @typescript-eslint/no-unsafe-argument
+      req.user as any,
     );
   }
 
@@ -229,12 +238,14 @@ export class AccommodationController {
   async update(
     @Param('id') id: string,
     @Body() updateAccommodationDto: UpdateAccommodationDto,
-    @Request() req: any,
+    @Request() req: RequestWithUser,
   ) {
     return this.accommodationService.update(
       id,
       updateAccommodationDto,
-      String((req as any).user?._id || 'temp-user-id'),
+      typeof req.user?._id === 'string'
+        ? req.user._id
+        : req.user?._id?.toString() || 'temp-user-id',
     );
   }
 
@@ -256,10 +267,12 @@ export class AccommodationController {
     description: 'Forbidden - Can only delete own accommodations',
   })
   @ApiResponse({ status: 404, description: 'Accommodation not found' })
-  async remove(@Param('id') id: string, @Request() req: any) {
+  async remove(@Param('id') id: string, @Request() req: RequestWithUser) {
     await this.accommodationService.remove(
       id,
-      String((req as any).user?._id || 'temp-user-id'),
+      typeof req.user?._id === 'string'
+        ? req.user._id
+        : req.user?._id?.toString() || 'temp-user-id',
     );
     return { message: 'Accommodation deleted successfully' };
   }
