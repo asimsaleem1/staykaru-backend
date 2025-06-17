@@ -1,4 +1,8 @@
-import { Injectable, NotFoundException } from '@nestjs/common';
+import {
+  Injectable,
+  NotFoundException,
+  BadRequestException,
+} from '@nestjs/common';
 import { InjectModel } from '@nestjs/mongoose';
 import { Model } from 'mongoose';
 import { Inject } from '@nestjs/common';
@@ -6,9 +10,11 @@ import { CACHE_MANAGER } from '@nestjs/cache-manager';
 import { Cache } from 'cache-manager';
 import { ConfigService } from '@nestjs/config';
 import * as CryptoJS from 'crypto-js';
+import * as bcrypt from 'bcrypt';
 import { User } from '../schema/user.schema';
 import { CreateUserDto } from '../dto/create-user.dto';
 import { UpdateUserDto } from '../dto/update-user.dto';
+import { ChangePasswordDto } from '../dto/change-password.dto';
 
 @Injectable()
 export class UserService {
@@ -53,9 +59,9 @@ export class UserService {
     };
 
     const user = new this.userModel(encryptedData);
-    await user.save();
-    await this.clearCache(user._id.toString());
-    return user;
+    const savedUser = await user.save();
+    await this.clearCache(savedUser._id.toString());
+    return savedUser;
   }
 
   async findAll(): Promise<User[]> {
@@ -198,5 +204,29 @@ export class UserService {
       throw new NotFoundException(`User with ID ${userId} not found`);
     }
     return user.fcmTokens;
+  }
+
+  async changePassword(
+    userId: string,
+    changePasswordDto: ChangePasswordDto,
+  ): Promise<User> {
+    const user = await this.userModel.findById(userId).exec();
+    if (!user) {
+      throw new NotFoundException(`User with ID ${userId} not found`);
+    }
+
+    const isPasswordMatching = await bcrypt.compare(
+      changePasswordDto.oldPassword,
+      user.password,
+    );
+    if (!isPasswordMatching) {
+      throw new BadRequestException('Old password is incorrect');
+    }
+
+    user.password = await bcrypt.hash(changePasswordDto.newPassword, 10);
+    await user.save();
+    await this.clearCache(userId);
+
+    return this.decryptUserData(user);
   }
 }

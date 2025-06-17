@@ -19,6 +19,7 @@ import {
 import { UserService } from '../services/user.service';
 import { CreateUserDto } from '../dto/create-user.dto';
 import { UpdateUserDto } from '../dto/update-user.dto';
+import { ChangePasswordDto } from '../dto/change-password.dto';
 import { Roles } from '../decorators/roles.decorator';
 import { UserRole } from '../schema/user.schema';
 import { JwtAuthGuard } from '../../auth/guards/jwt-auth.guard';
@@ -160,5 +161,48 @@ export class UserController {
   async remove(@Param('id') id: string) {
     await this.userService.delete(id);
     return { message: 'User deleted successfully' };
+  }
+
+  @Post('change-password')
+  @UseGuards(JwtAuthGuard)
+  @ApiBearerAuth('JWT-auth')
+  @ApiOperation({ summary: 'Change user password' })
+  @ApiResponse({
+    status: 200,
+    description: 'Password changed successfully',
+    schema: {
+      example: {
+        message: 'Password changed successfully',
+        user: {
+          id: '507f1f77bcf86cd799439011',
+          name: 'John Doe',
+          email: 'john@example.com',
+        },
+      },
+    },
+  })
+  @ApiResponse({
+    status: 400,
+    description: 'Bad request - Invalid old password',
+  })
+  @ApiResponse({ status: 401, description: 'Unauthorized' })
+  @ApiResponse({ status: 404, description: 'User not found' })
+  async changePassword(
+    @Request() req: AuthenticatedRequest,
+    @Body() changePasswordDto: ChangePasswordDto,
+  ) {
+    const userId = req.user._id;
+    const user = await this.userService.changePassword(
+      userId,
+      changePasswordDto,
+    );
+    return {
+      message: 'Password changed successfully',
+      user: {
+        id: user._id,
+        name: user.name,
+        email: user.email,
+      },
+    };
   }
 }
