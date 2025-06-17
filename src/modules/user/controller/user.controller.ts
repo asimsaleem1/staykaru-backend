@@ -103,25 +103,6 @@ export class UserController {
     return this.userService.findOne(id);
   }
 
-  @Put(':id')
-  @ApiOperation({ summary: 'Update a user' })
-  @ApiParam({ name: 'id', description: 'User ID' })
-  @ApiResponse({
-    status: 200,
-    description: 'User successfully updated',
-    schema: {
-      example: {
-        id: '507f1f77bcf86cd799439011',
-        name: 'John Updated',
-        message: 'User updated successfully',
-      },
-    },
-  })
-  @ApiResponse({ status: 404, description: 'User not found' })
-  async update(@Param('id') id: string, @Body() updateUserDto: UpdateUserDto) {
-    return this.userService.update(id, updateUserDto);
-  }
-
   @Put('profile')
   @UseGuards(JwtAuthGuard)
   @ApiBearerAuth('JWT-auth')
@@ -145,6 +126,25 @@ export class UserController {
   ) {
     const userId = req.user._id;
     return this.userService.update(userId, updateUserDto);
+  }
+
+  @Put(':id')
+  @ApiOperation({ summary: 'Update a user' })
+  @ApiParam({ name: 'id', description: 'User ID' })
+  @ApiResponse({
+    status: 200,
+    description: 'User successfully updated',
+    schema: {
+      example: {
+        id: '507f1f77bcf86cd799439011',
+        name: 'John Updated',
+        message: 'User updated successfully',
+      },
+    },
+  })
+  @ApiResponse({ status: 404, description: 'User not found' })
+  async update(@Param('id') id: string, @Body() updateUserDto: UpdateUserDto) {
+    return this.userService.update(id, updateUserDto);
   }
 
   @Delete(':id')
