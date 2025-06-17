@@ -29,7 +29,7 @@ import cacheConfig from './config/cache.config';
     CacheModule.registerAsync({
       isGlobal: true,
       imports: [ConfigModule],
-      useFactory: (configService: ConfigService) => ({
+      useFactory: async (configService: ConfigService) => ({
         store: redisStore,
         host: configService.get('cache.host'),
         port: configService.get('cache.port'),
@@ -39,7 +39,7 @@ import cacheConfig from './config/cache.config';
     }),
     MongooseModule.forRootAsync({
       imports: [ConfigModule],
-      useFactory: (configService: ConfigService) => ({
+      useFactory: async (configService: ConfigService) => ({
         uri: configService.get<string>('database.mongoUri'),
       }),
       inject: [ConfigService],
