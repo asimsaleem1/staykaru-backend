@@ -10,11 +10,12 @@ import {
 import { ApiTags, ApiOperation, ApiResponse } from '@nestjs/swagger';
 import { PaymentService } from '../services/payment.service';
 import { CreatePaymentDto } from '../dto/create-payment.dto';
-import { AuthGuard } from '../../auth/guards/auth.guard';
+import { JwtAuthGuard } from '../../auth/guards/jwt-auth.guard';
+import { AuthenticatedRequest } from '../../../interfaces/request.interface';
 
 @ApiTags('payments')
 @Controller('payments')
-// @UseGuards(AuthGuard) // Temporarily disabled for testing
+@UseGuards(JwtAuthGuard)
 export class PaymentController {
   constructor(private readonly paymentService: PaymentService) {}
 
@@ -23,10 +24,9 @@ export class PaymentController {
   @ApiResponse({ status: 201, description: 'Payment successfully processed' })
   async processPayment(
     @Body() createPaymentDto: CreatePaymentDto,
-    @Request() req,
+    @Request() req: AuthenticatedRequest,
   ) {
-    // For testing without authentication, use a dummy user ID
-    const userId = req.user?._id || '507f1f77bcf86cd799439011';
+    const userId = req.user._id;
     return this.paymentService.processPayment(createPaymentDto, userId);
   }
 
@@ -40,8 +40,8 @@ export class PaymentController {
   @Get('my-payments')
   @ApiOperation({ summary: "Get user's payments" })
   @ApiResponse({ status: 200, description: "Return user's payments" })
-  async findMyPayments(@Request() req) {
-    const userId = req.user?._id || '507f1f77bcf86cd799439011';
+  async findMyPayments(@Request() req: AuthenticatedRequest) {
+    const userId = req.user._id;
     return this.paymentService.findByUser(userId);
   }
 

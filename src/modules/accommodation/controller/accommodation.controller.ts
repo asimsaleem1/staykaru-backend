@@ -14,7 +14,6 @@ import {
   ApiTags,
   ApiOperation,
   ApiResponse,
-  ApiBearerAuth,
   ApiParam,
   ApiQuery,
 } from '@nestjs/swagger';
@@ -22,8 +21,8 @@ import { AccommodationService } from '../services/accommodation.service';
 import { CreateAccommodationDto } from '../dto/create-accommodation.dto';
 import { UpdateAccommodationDto } from '../dto/update-accommodation.dto';
 import { SearchAccommodationDto } from '../dto/search-accommodation.dto';
-import { AuthGuard } from '../../auth/guards/auth.guard';
-import { LandlordGuard } from '../guards/landlord.guard';
+import { JwtAuthGuard } from '../../auth/guards/jwt-auth.guard';
+import { AuthenticatedRequest } from '../../../interfaces/request.interface';
 
 @ApiTags('accommodations')
 @Controller('accommodations')

@@ -12,21 +12,23 @@ import { ApiTags, ApiOperation, ApiResponse } from '@nestjs/swagger';
 import { OrderService } from '../services/order.service';
 import { CreateOrderDto } from '../dto/create-order.dto';
 import { UpdateOrderStatusDto } from '../dto/update-order-status.dto';
-import { AuthGuard } from '../../auth/guards/auth.guard';
-import { FoodProviderGuard } from '../../food_service/guards/food-provider.guard';
+import { JwtAuthGuard } from '../../auth/guards/jwt-auth.guard';
+import { AuthenticatedRequest } from '../../../interfaces/request.interface';
 
 @ApiTags('orders')
 @Controller('orders')
-// @UseGuards(AuthGuard) // Temporarily disabled for testing
+@UseGuards(JwtAuthGuard)
 export class OrderController {
   constructor(private readonly orderService: OrderService) {}
 
   @Post()
   @ApiOperation({ summary: 'Create a new order' })
   @ApiResponse({ status: 201, description: 'Order successfully created' })
-  async create(@Body() createOrderDto: CreateOrderDto, @Request() req) {
-    // For testing without authentication, use a dummy user ID
-    const userId = req.user?._id || '507f1f77bcf86cd799439011';
+  async create(
+    @Body() createOrderDto: CreateOrderDto,
+    @Request() req: AuthenticatedRequest,
+  ) {
+    const userId = req.user._id;
     return this.orderService.create(createOrderDto, userId);
   }
 
@@ -40,17 +42,16 @@ export class OrderController {
   @Get('my-orders')
   @ApiOperation({ summary: "Get user's orders" })
   @ApiResponse({ status: 200, description: "Return user's orders" })
-  async findMyOrders(@Request() req) {
-    const userId = req.user?._id || '507f1f77bcf86cd799439011';
+  async findMyOrders(@Request() req: AuthenticatedRequest) {
+    const userId = req.user._id;
     return this.orderService.findByUser(userId);
   }
 
   @Get('provider-orders')
-  // @UseGuards(FoodProviderGuard) // Temporarily disabled for testing
   @ApiOperation({ summary: "Get food provider's orders" })
   @ApiResponse({ status: 200, description: "Return food provider's orders" })
-  async findProviderOrders(@Request() req) {
-    const userId = req.user?._id || '507f1f77bcf86cd799439011';
+  async findProviderOrders(@Request() req: AuthenticatedRequest) {
+    const userId = req.user._id;
     return this.orderService.findByFoodProvider(userId);
   }
 
@@ -62,7 +63,6 @@ export class OrderController {
   }
 
   @Put(':id/status')
-  // @UseGuards(FoodProviderGuard) // Temporarily disabled for testing
   @ApiOperation({ summary: 'Update order status' })
   @ApiResponse({
     status: 200,
@@ -71,7 +71,7 @@ export class OrderController {
   async updateStatus(
     @Param('id') id: string,
     @Body() updateOrderStatusDto: UpdateOrderStatusDto,
-    @Request() req,
+    @Request() req: AuthenticatedRequest,
   ) {
     return this.orderService.updateStatus(
       id,
