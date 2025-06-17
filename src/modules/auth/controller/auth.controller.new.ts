@@ -1,0 +1,101 @@
+import {
+  Controller,
+  Post,
+  Body,
+  Get,
+  UseGuards,
+  Request,
+  HttpCode,
+  HttpStatus,
+} from '@nestjs/common';
+import {
+  ApiTags,
+  ApiOperation,
+  ApiResponse,
+  ApiBearerAuth,
+} from '@nestjs/swagger';
+import { AuthService } from '../services/auth.service';
+import { RegisterDto } from '../dto/register.dto';
+import { LoginDto } from '../dto/login.dto';
+import { JwtAuthGuard } from '../guards/jwt-auth.guard';
+import { User } from '../../user/schema/user.schema';
+import { UserService } from '../../user/services/user.service';
+
+interface RequestWithUser extends Request {
+  user: User;
+}
+
+@ApiTags('auth')
+@Controller('auth')
+export class AuthController {
+  constructor(
+    private readonly authService: AuthService,
+    private readonly userService: UserService,
+  ) {}
+
+  @Post('register')
+  @ApiOperation({ summary: 'Register a new user' })
+  @ApiResponse({
+    status: 201,
+    description: 'User registered successfully',
+    schema: {
+      example: {
+        message: 'Registration successful',
+        user: {
+          id: '507f1f77bcf86cd799439011',
+          name: 'John Doe',
+          email: 'john@example.com',
+          role: 'student',
+          phone: '+1234567890',
+          gender: 'male',
+        },
+      },
+    },
+  })
+  @ApiResponse({ status: 400, description: 'Bad Request' })
+  async register(@Body() registerDto: RegisterDto) {
+    return this.authService.register(registerDto);
+  }
+
+  @Post('login')
+  @HttpCode(HttpStatus.OK)
+  @ApiOperation({ summary: 'Login with email and password' })
+  @ApiResponse({
+    status: 200,
+    description: 'Login successful',
+    schema: {
+      example: {
+        message: 'Login successful',
+        access_token: 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9...',
+        user: {
+          id: '507f1f77bcf86cd799439011',
+          name: 'John Doe',
+          email: 'john@example.com',
+          role: 'student',
+          phone: '+1234567890',
+          gender: 'male',
+        },
+      },
+    },
+  })
+  @ApiResponse({ status: 401, description: 'Unauthorized' })
+  async login(@Body() loginDto: LoginDto) {
+    return this.authService.login(loginDto);
+  }
+
+  @Get('profile')
+  @UseGuards(JwtAuthGuard)
+  @ApiBearerAuth('JWT-auth')
+  @ApiOperation({ summary: 'Get user profile' })
+  @ApiResponse({
+    status: 200,
+    description: 'User profile retrieved successfully',
+  })
+  @ApiResponse({ status: 401, description: 'Unauthorized' })
+  getProfile(@Request() req: RequestWithUser) {
+    // Use the user object directly from the JWT token
+    return {
+      user: req.user,
+    };
+  }
+}

@@ -8,6 +8,10 @@ import { JwtService } from '@nestjs/jwt';
 import { ConfigService } from '@nestjs/config';
 import { Request } from 'express';
 
+interface RequestWithUser extends Request {
+  user?: { sub: string; email: string };
+}
+
 @Injectable()
 export class AuthGuard implements CanActivate {
   constructor(
@@ -16,7 +20,7 @@ export class AuthGuard implements CanActivate {
   ) {}
 
   async canActivate(context: ExecutionContext): Promise<boolean> {
-    const request = context.switchToHttp().getRequest();
+    const request = context.switchToHttp().getRequest() as RequestWithUser;
     const token = this.extractTokenFromHeader(request);
 
     if (!token) {
@@ -24,15 +28,16 @@ export class AuthGuard implements CanActivate {
     }
 
     try {
-      const payload = await this.jwtService.verifyAsync(token, {
-        secret: this.configService.get<string>('jwt.secret'),
-      });
+      const payload: { sub: string; email: string } =
+        await this.jwtService.verifyAsync(token, {
+          secret: this.configService.get<string>('jwt.secret'),
+        });
 
       // Add user info from JWT payload to request
       request.user = payload;
 
       return true;
-    } catch (error) {
+    } catch {
       throw new UnauthorizedException('Invalid token');
     }
   }

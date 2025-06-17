@@ -7,7 +7,6 @@ import {
   Body,
   Param,
   Query,
-  UseGuards,
   Request,
 } from '@nestjs/common';
 import {
@@ -21,8 +20,6 @@ import { AccommodationService } from '../services/accommodation.service';
 import { CreateAccommodationDto } from '../dto/create-accommodation.dto';
 import { UpdateAccommodationDto } from '../dto/update-accommodation.dto';
 import { SearchAccommodationDto } from '../dto/search-accommodation.dto';
-import { JwtAuthGuard } from '../../auth/guards/jwt-auth.guard';
-import { AuthenticatedRequest } from '../../../interfaces/request.interface';
 
 @ApiTags('accommodations')
 @Controller('accommodations')
@@ -75,10 +72,13 @@ export class AccommodationController {
   })
   async create(
     @Body() createAccommodationDto: CreateAccommodationDto,
-    @Request() req,
+    @Request() req: any,
   ) {
     // For testing without authentication, req.user will be undefined
-    return this.accommodationService.create(createAccommodationDto, req.user);
+    return this.accommodationService.create(
+      createAccommodationDto,
+      req.user || null,
+    );
   }
 
   @Get()
@@ -229,12 +229,12 @@ export class AccommodationController {
   async update(
     @Param('id') id: string,
     @Body() updateAccommodationDto: UpdateAccommodationDto,
-    @Request() req,
+    @Request() req: any,
   ) {
     return this.accommodationService.update(
       id,
       updateAccommodationDto,
-      req.user._id,
+      String((req as any).user?._id || 'temp-user-id'),
     );
   }
 
@@ -256,8 +256,11 @@ export class AccommodationController {
     description: 'Forbidden - Can only delete own accommodations',
   })
   @ApiResponse({ status: 404, description: 'Accommodation not found' })
-  async remove(@Param('id') id: string, @Request() req) {
-    await this.accommodationService.remove(id, req.user._id);
+  async remove(@Param('id') id: string, @Request() req: any) {
+    await this.accommodationService.remove(
+      id,
+      String((req as any).user?._id || 'temp-user-id'),
+    );
     return { message: 'Accommodation deleted successfully' };
   }
 }

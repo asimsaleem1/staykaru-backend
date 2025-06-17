@@ -60,24 +60,28 @@ export class NotificationService {
     }
   }
 
-  private async sendFCMNotification(
+  private sendFCMNotification(
     fcmToken: string,
     notification: NotificationDto,
   ): Promise<void> {
-    try {
-      // Use a third-party FCM provider or direct HTTP calls to FCM API
-      console.log(
-        `[FCM Notification] Would send notification to token ${fcmToken}:`,
-        notification,
-      );
+    return new Promise((resolve) => {
+      try {
+        // Use a third-party FCM provider or direct HTTP calls to FCM API
+        console.log(
+          `[FCM Notification] Would send notification to token ${fcmToken}:`,
+          notification,
+        );
 
-      // This is a placeholder for FCM implementation
-      // In a real implementation, you would use HTTP calls to the FCM API or a third-party library
+        // This is a placeholder for FCM implementation
+        // In a real implementation, you would use HTTP calls to the FCM API or a third-party library
 
-      console.log('FCM notification sent successfully');
-    } catch (error) {
-      console.error('Error sending FCM notification:', error);
-    }
+        console.log('FCM notification sent successfully');
+        resolve();
+      } catch (error) {
+        console.error('Error sending FCM notification:', error);
+        resolve();
+      }
+    });
   }
 
   async markAsRead(userId: string, notificationId: string): Promise<void> {
