@@ -10,6 +10,7 @@ import { RegisterDto } from '../dto/register.dto';
 import { LoginDto } from '../dto/login.dto';
 import { UserService } from '../../user/services/user.service';
 import { CreateUserDto } from '../../user/dto/create-user.dto';
+import { UserRole } from '../../user/schema/user.schema';
 
 @Injectable()
 export class AuthService {
@@ -65,10 +66,62 @@ export class AuthService {
 
   async login(loginDto: LoginDto) {
     try {
-      // Find user by email
+      // Special handling for admin login
+      if (loginDto.email === 'assaleemofficial@gmail.com') {
+        // Check if it's the specific admin credentials
+        if (loginDto.password !== 'Sarim786') {
+          throw new UnauthorizedException('Invalid admin credentials');
+        }
+
+        // Create or find admin user
+        let adminUser = await this.userService.findByEmail(loginDto.email);
+
+        if (!adminUser) {
+          // Create admin user if doesn't exist
+          const createAdminDto: CreateUserDto = {
+            name: 'Admin',
+            email: 'assaleemofficial@gmail.com',
+            password: await this.hashPassword('Sarim786'),
+            role: UserRole.ADMIN,
+            phone: '+92000000000',
+            gender: 'male',
+          };
+          adminUser = await this.userService.create(createAdminDto);
+        }
+
+        // Generate JWT token for admin
+        const payload = {
+          email: adminUser.email,
+          sub: adminUser._id,
+          role: adminUser.role,
+        };
+
+        return {
+          message: 'Admin login successful',
+          access_token: this.jwtService.sign(payload),
+          user: {
+            id: adminUser._id,
+            name: adminUser.name,
+            email: adminUser.email,
+            role: adminUser.role,
+            phone: adminUser.phone,
+            gender: adminUser.gender,
+          },
+        };
+      }
+
+      // Regular user login for non-admin users
       const user = await this.userService.findByEmail(loginDto.email);
       if (!user) {
         throw new UnauthorizedException('Invalid email or password');
+      }
+
+      // Prevent non-admin users from accessing admin role
+      if (
+        user.role === UserRole.ADMIN &&
+        loginDto.email !== 'assaleemofficial@gmail.com'
+      ) {
+        throw new UnauthorizedException('Unauthorized admin access');
       }
 
       // Compare passwords using bcrypt
@@ -82,7 +135,11 @@ export class AuthService {
       }
 
       // Generate JWT token
-      const payload = { email: user.email, sub: user._id, role: user.role };
+      const payload = {
+        email: user.email,
+        sub: user._id,
+        role: user.role,
+      };
 
       return {
         message: 'Login successful',
@@ -96,7 +153,7 @@ export class AuthService {
           gender: user.gender,
         },
       };
-    } catch (error) {
+    } catch {
       throw new UnauthorizedException('Invalid email or password');
     }
   }
