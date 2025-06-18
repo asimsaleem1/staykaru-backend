@@ -104,6 +104,8 @@ export class UserService {
       address: updateUserDto.address
         ? this.encrypt(updateUserDto.address)
         : undefined,
+      // Password should not be encrypted, it should be stored as hashed value
+      password: updateUserDto.password || undefined,
     };
 
     // Remove undefined values
