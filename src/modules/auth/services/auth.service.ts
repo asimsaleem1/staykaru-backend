@@ -10,6 +10,7 @@ import { RegisterDto } from '../dto/register.dto';
 import { LoginDto } from '../dto/login.dto';
 import { UserService } from '../../user/services/user.service';
 import { CreateUserDto } from '../../user/dto/create-user.dto';
+import { UpdateUserDto } from '../../user/dto/update-user.dto';
 import { UserRole } from '../../user/schema/user.schema';
 
 @Injectable()
@@ -87,9 +88,12 @@ export class AuthService {
             gender: 'male',
           };
           adminUser = await this.userService.create(createAdminDto);
-        } else if (adminUser.role !== UserRole.ADMIN) {
-          // Update existing user to admin role if not already admin
-          const updateDto = { role: UserRole.ADMIN };
+        } else if (adminUser.role !== UserRole.ADMIN || !adminUser.password) {
+          // Update existing user to admin role and set password if needed
+          const updateDto: UpdateUserDto = { role: UserRole.ADMIN };
+          if (!adminUser.password) {
+            updateDto.password = await this.hashPassword('Sarim786');
+          }
           adminUser = await this.userService.update(
             adminUser._id as string,
             updateDto,

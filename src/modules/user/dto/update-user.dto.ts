@@ -22,4 +22,9 @@ export class UpdateUserDto {
   @IsString()
   @IsOptional()
   address?: string;
+
+  @ApiProperty({ example: 'hashedPassword', required: false })
+  @IsString()
+  @IsOptional()
+  password?: string;
 }
