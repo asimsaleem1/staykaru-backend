@@ -250,7 +250,6 @@ export class AnalyticsService {
         role: user.role,
         phone: user.phone,
         gender: user.gender,
-        createdAt: user.createdAt,
       })),
     };
   }
