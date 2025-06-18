@@ -234,10 +234,28 @@ export class UserService {
       throw new BadRequestException('Old password is incorrect');
     }
 
-    user.password = await bcrypt.hash(changePasswordDto.newPassword, 10);
-    await user.save();
+    const hashedNewPassword = await bcrypt.hash(
+      changePasswordDto.newPassword,
+      10,
+    );
+
+    const updatedUser = await this.userModel
+      .findByIdAndUpdate(
+        userId,
+        {
+          password: hashedNewPassword,
+          updatedAt: new Date(),
+        },
+        { new: true },
+      )
+      .exec();
+    
+    if (!updatedUser) {
+      throw new NotFoundException(`User with ID ${userId} not found`);
+    }
+    
     await this.clearCache(userId);
 
-    return this.decryptUserData(user);
+    return this.decryptUserData(updatedUser);
   }
 }
