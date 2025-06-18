@@ -277,4 +277,108 @@ export class UserService {
 
     return this.decryptUserData(updatedUser);
   }
+
+  // Admin functions for user management
+  async findAll(role?: UserRole, search?: string): Promise<User[]> {
+    let query = {};
+    
+    if (role) {
+      query = { ...query, role };
+    }
+    
+    if (search) {
+      query = {
+        ...query,
+        $or: [
+          { name: { $regex: search, $options: 'i' } },
+          { email: { $regex: search, $options: 'i' } },
+          { phone: { $regex: search, $options: 'i' } },
+        ],
+      };
+    }
+    
+    // Get users from cache or database
+    const cacheKey = 'users:all' + (role ? `:${role}` : '') + (search ? `:${search}` : '');
+    const cachedUsers = await this.cacheManager.get(cacheKey);
+    
+    if (cachedUsers) {
+      return cachedUsers as User[];
+    }
+    
+    const users = await this.userModel.find(query).select('-password').sort({ createdAt: -1 });
+    await this.cacheManager.set(cacheKey, users, 60 * 5); // Cache for 5 minutes
+    
+    return users;
+  }
+
+  async getUserCounts(): Promise<any> {
+    const cacheKey = 'users:counts';
+    const cachedCounts = await this.cacheManager.get(cacheKey);
+    
+    if (cachedCounts) {
+      return cachedCounts;
+    }
+    
+    const totalUsers = await this.userModel.countDocuments();
+    const students = await this.userModel.countDocuments({ role: UserRole.STUDENT });
+    const landlords = await this.userModel.countDocuments({ role: UserRole.LANDLORD });
+    const foodProviders = await this.userModel.countDocuments({ role: UserRole.FOOD_PROVIDER });
+    const admins = await this.userModel.countDocuments({ role: UserRole.ADMIN });
+    const activeUsers = await this.userModel.countDocuments({ isActive: true });
+    const inactiveUsers = await this.userModel.countDocuments({ isActive: false });
+
+    const counts = {
+      total: totalUsers,
+      byRole: {
+        [UserRole.STUDENT]: students,
+        [UserRole.LANDLORD]: landlords,
+        [UserRole.FOOD_PROVIDER]: foodProviders,
+        [UserRole.ADMIN]: admins,
+      },
+      byStatus: {
+        active: activeUsers,
+        inactive: inactiveUsers,
+      },
+    };
+    
+    await this.cacheManager.set(cacheKey, counts, 60 * 5); // Cache for 5 minutes
+    
+    return counts;
+  }
+
+  async updateUserRole(id: string, role: UserRole): Promise<User> {
+    const user = await this.userModel.findById(id);
+    
+    if (!user) {
+      throw new NotFoundException('User not found');
+    }
+    
+    user.role = role;
+    const updatedUser = await user.save();
+    
+    // Clear cache
+    await this.clearCache(id);
+    await this.cacheManager.del('users:all');
+    await this.cacheManager.del('users:counts');
+    
+    return updatedUser;
+  }
+
+  async updateUserStatus(id: string, isActive: boolean): Promise<User> {
+    const user = await this.userModel.findById(id);
+    
+    if (!user) {
+      throw new NotFoundException('User not found');
+    }
+    
+    user.isActive = isActive;
+    const updatedUser = await user.save();
+    
+    // Clear cache
+    await this.clearCache(id);
+    await this.cacheManager.del('users:all');
+    await this.cacheManager.del('users:counts');
+    
+    return updatedUser;
+  }
 }

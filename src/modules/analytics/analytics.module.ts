@@ -7,6 +7,11 @@ import { AnalyticsService } from './services/analytics.service';
 import { AnalyticsReportFactory } from './factories/analytics-report.factory';
 import { AuthModule } from '../auth/auth.module';
 import { AnalyticsSchema } from './schema/analytics.schema';
+import { User, UserSchema } from '../user/schema/user.schema';
+import { Booking, BookingSchema } from '../booking/schema/booking.schema';
+import { Review, ReviewSchema } from '../review/schema/review.schema';
+import { Order, OrderSchema } from '../order/schema/order.schema';
+import { Payment, PaymentSchema } from '../payment/schema/payment.schema';
 
 @Module({
   imports: [
@@ -35,6 +40,11 @@ import { AnalyticsSchema } from './schema/analytics.schema';
         schema: AnalyticsSchema,
         collection: 'payment_analytics',
       },
+      { name: User.name, schema: UserSchema },
+      { name: Booking.name, schema: BookingSchema },
+      { name: Review.name, schema: ReviewSchema },
+      { name: Order.name, schema: OrderSchema },
+      { name: Payment.name, schema: PaymentSchema },
     ]),
   ],
   controllers: [AnalyticsController],

@@ -33,6 +33,9 @@ export class User extends Document {
 
   @Prop({ type: [String], default: [] })
   fcmTokens: string[]; // Array to support multiple devices per user
+
+  @Prop({ default: true })
+  isActive: boolean;
 }
 
 export const UserSchema = SchemaFactory.createForClass(User);

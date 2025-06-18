@@ -8,6 +8,7 @@ import {
   Param,
   UseGuards,
   Request,
+  Query,
 } from '@nestjs/common';
 import {
   ApiTags,
@@ -15,6 +16,7 @@ import {
   ApiResponse,
   ApiParam,
   ApiBearerAuth,
+  ApiQuery,
 } from '@nestjs/swagger';
 import { UserService } from '../services/user.service';
 import { CreateUserDto } from '../dto/create-user.dto';
@@ -23,15 +25,81 @@ import { ChangePasswordDto } from '../dto/change-password.dto';
 import { Roles } from '../decorators/roles.decorator';
 import { UserRole } from '../schema/user.schema';
 import { JwtAuthGuard } from '../../auth/guards/jwt-auth.guard';
+import { RolesGuard } from '../guards/roles.guard';
 import { AuthenticatedRequest } from '../../../interfaces/request.interface';
 
 @ApiTags('users')
 @Controller('users')
-// @UseGuards(AuthGuard, RolesGuard) // Temporarily disabled for testing
-// @ApiBearerAuth('JWT-auth') // Temporarily disabled for testing
 export class UserController {
   constructor(private readonly userService: UserService) {}
 
+  // Admin endpoints for user management
+  @Get('admin/all')
+  @UseGuards(JwtAuthGuard, RolesGuard)
+  @Roles(UserRole.ADMIN)
+  @ApiBearerAuth('JWT-auth')
+  @ApiOperation({ summary: 'Get all users (Admin only)' })
+  @ApiResponse({
+    status: 200,
+    description: 'Returns all users',
+  })
+  @ApiQuery({ name: 'role', required: false, enum: UserRole })
+  @ApiQuery({ name: 'search', required: false })
+  async getAllUsers(
+    @Query('role') role?: UserRole,
+    @Query('search') search?: string,
+  ) {
+    return this.userService.findAll(role, search);
+  }
+
+  @Get('admin/count')
+  @UseGuards(JwtAuthGuard, RolesGuard)
+  @Roles(UserRole.ADMIN)
+  @ApiBearerAuth('JWT-auth')
+  @ApiOperation({ summary: 'Get user count by role (Admin only)' })
+  @ApiResponse({
+    status: 200,
+    description: 'Returns user counts by role',
+  })
+  async getUserCounts() {
+    return this.userService.getUserCounts();
+  }
+
+  @Put('admin/:id/role')
+  @UseGuards(JwtAuthGuard, RolesGuard)
+  @Roles(UserRole.ADMIN)
+  @ApiBearerAuth('JWT-auth')
+  @ApiOperation({ summary: 'Update user role (Admin only)' })
+  @ApiResponse({
+    status: 200,
+    description: 'User role updated successfully',
+  })
+  @ApiParam({ name: 'id', description: 'User ID' })
+  async updateUserRole(
+    @Param('id') id: string,
+    @Body('role') role: UserRole,
+  ) {
+    return this.userService.updateUserRole(id, role);
+  }
+
+  @Put('admin/:id/status')
+  @UseGuards(JwtAuthGuard, RolesGuard)
+  @Roles(UserRole.ADMIN)
+  @ApiBearerAuth('JWT-auth')
+  @ApiOperation({ summary: 'Update user status (Admin only)' })
+  @ApiResponse({
+    status: 200,
+    description: 'User status updated successfully',
+  })
+  @ApiParam({ name: 'id', description: 'User ID' })
+  async updateUserStatus(
+    @Param('id') id: string,
+    @Body('isActive') isActive: boolean,
+  ) {
+    return this.userService.updateUserStatus(id, isActive);
+  }
+
+  // Standard user endpoints
   @Post()
   @ApiOperation({ summary: 'Create a new user' })
   @ApiResponse({

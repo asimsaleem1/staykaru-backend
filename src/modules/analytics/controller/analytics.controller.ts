@@ -52,4 +52,70 @@ export class AnalyticsController {
       throw new BadRequestException(error.message);
     }
   }
+
+  @Get('users')
+  @ApiOperation({ summary: 'Get user analytics' })
+  @ApiResponse({ status: 200, description: 'Return user analytics data' })
+  async getUserAnalytics() {
+    try {
+      return await this.analyticsService.getUserAnalytics();
+    } catch (error) {
+      throw new BadRequestException(error.message);
+    }
+  }
+
+  @Get('reviews')
+  @ApiOperation({ summary: 'Get review analytics' })
+  @ApiResponse({ status: 200, description: 'Return review analytics data' })
+  async getReviewAnalytics() {
+    try {
+      return await this.analyticsService.getReviewAnalytics();
+    } catch (error) {
+      throw new BadRequestException(error.message);
+    }
+  }
+
+  @Get('dashboard')
+  @ApiOperation({ summary: 'Get admin dashboard summary' })
+  @ApiResponse({ status: 200, description: 'Return admin dashboard summary data' })
+  async getDashboardSummary() {
+    try {
+      return await this.analyticsService.getDashboardSummary();
+    } catch (error) {
+      throw new BadRequestException(error.message);
+    }
+  }
+
+  @Get('reports/users')
+  @ApiOperation({ summary: 'Generate user report' })
+  @ApiResponse({ status: 200, description: 'Return user report data' })
+  async generateUserReport() {
+    try {
+      return await this.analyticsService.generateUserReport();
+    } catch (error) {
+      throw new BadRequestException(error.message);
+    }
+  }
+
+  @Get('reports/bookings')
+  @ApiOperation({ summary: 'Generate booking report' })
+  @ApiResponse({ status: 200, description: 'Return booking report data' })
+  async generateBookingReport(@Query('days', ParseIntPipe) days?: number) {
+    try {
+      return await this.analyticsService.generateBookingReport(days);
+    } catch (error) {
+      throw new BadRequestException(error.message);
+    }
+  }
+
+  @Get('reports/revenue')
+  @ApiOperation({ summary: 'Generate revenue report' })
+  @ApiResponse({ status: 200, description: 'Return revenue report data' })
+  async generateRevenueReport(@Query('days', ParseIntPipe) days?: number) {
+    try {
+      return await this.analyticsService.generateRevenueReport(days);
+    } catch (error) {
+      throw new BadRequestException(error.message);
+    }
+  }
 }
