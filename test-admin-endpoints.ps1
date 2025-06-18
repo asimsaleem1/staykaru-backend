@@ -8,11 +8,10 @@ $loginData = @{
     password = "Sarim786"
 } | ConvertTo-Json
 
-try {
-    $loginResponse = Invoke-RestMethod -Uri "$baseUrl/auth/login" -Method POST -Body $loginData -ContentType "application/json"
+try {    $loginResponse = Invoke-RestMethod -Uri "$baseUrl/auth/login" -Method POST -Body $loginData -ContentType "application/json"
     Write-Host "✅ Login successful!" -ForegroundColor Green
     
-    $token = $loginResponse.token
+    $token = $loginResponse.access_token
     $headers = @{
         Authorization = "Bearer $token"
     }

@@ -11,12 +11,14 @@ import {
 } from './schema/food-provider.schema';
 import { MenuItem, MenuItemSchema } from './schema/menu-item.schema';
 import { UserModule } from '../user/user.module';
+import { Order, OrderSchema } from '../order/schema/order.schema';
 
 @Module({
   imports: [
     MongooseModule.forFeature([
       { name: FoodProvider.name, schema: FoodProviderSchema },
       { name: MenuItem.name, schema: MenuItemSchema },
+      { name: Order.name, schema: OrderSchema },
     ]),
     CacheModule.register(),
     UserModule,

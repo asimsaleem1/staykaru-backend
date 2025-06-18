@@ -8,6 +8,7 @@ import {
   Param,
   UseGuards,
   Request,
+  Query,
 } from '@nestjs/common';
 import {
   ApiTags,
@@ -15,6 +16,7 @@ import {
   ApiResponse,
   ApiBearerAuth,
   ApiParam,
+  ApiQuery,
 } from '@nestjs/swagger';
 import { FoodProviderService } from '../services/food-provider.service';
 import { CreateFoodProviderDto } from '../dto/create-food-provider.dto';
@@ -186,5 +188,140 @@ export class FoodProviderController {
     const userId = req.user?._id || '683700350f8a15197d2abf50'; // Dummy user ID for testing
     await this.foodProviderService.remove(id, userId);
     return { message: 'Food provider deleted successfully' };
+  }
+
+  // Food Provider Dashboard Endpoints
+
+  @Get('owner/my-providers')
+  @UseGuards(AuthGuard, FoodProviderGuard)
+  @ApiBearerAuth('JWT-auth')
+  @ApiOperation({ summary: 'Get all food providers owned by the user' })
+  @ApiResponse({
+    status: 200,
+    description: 'Returns all food providers owned by the user',
+  })
+  async getMyProviders(@Request() req) {
+    const ownerId = typeof req.user._id === 'string'
+      ? req.user._id
+      : req.user._id.toString();
+    return this.foodProviderService.findByOwner(ownerId);
+  }
+
+  @Get('owner/dashboard')
+  @UseGuards(AuthGuard, FoodProviderGuard)
+  @ApiBearerAuth('JWT-auth')
+  @ApiOperation({ summary: 'Get food provider dashboard summary' })
+  @ApiResponse({
+    status: 200,
+    description: 'Returns food provider dashboard summary',
+  })
+  async getProviderDashboard(@Request() req) {
+    const ownerId = typeof req.user._id === 'string'
+      ? req.user._id
+      : req.user._id.toString();
+    return this.foodProviderService.getProviderDashboard(ownerId);
+  }
+
+  @Get('owner/menu-items/:providerId')
+  @UseGuards(AuthGuard, FoodProviderGuard)
+  @ApiBearerAuth('JWT-auth')
+  @ApiOperation({ summary: 'Get all menu items for a specific food provider' })
+  @ApiParam({ name: 'providerId', description: 'Food Provider ID' })
+  @ApiResponse({
+    status: 200,
+    description: 'Returns all menu items for the specified food provider',
+  })
+  async getMenuItems(@Param('providerId') providerId: string, @Request() req) {
+    return this.foodProviderService.getMenuItems(providerId);
+  }
+
+  @Post('owner/menu-items/:providerId')
+  @UseGuards(AuthGuard, FoodProviderGuard)
+  @ApiBearerAuth('JWT-auth')
+  @ApiOperation({ summary: 'Add a new menu item to a food provider' })
+  @ApiParam({ name: 'providerId', description: 'Food Provider ID' })
+  @ApiResponse({
+    status: 201,
+    description: 'Menu item successfully created',
+  })
+  async createMenuItem(
+    @Param('providerId') providerId: string,
+    @Body() menuItemDto: any,
+    @Request() req
+  ) {
+    const ownerId = typeof req.user._id === 'string'
+      ? req.user._id
+      : req.user._id.toString();
+    return this.foodProviderService.createMenuItem(providerId, menuItemDto);
+  }
+
+  @Put('owner/menu-items/:providerId/:itemId')
+  @UseGuards(AuthGuard, FoodProviderGuard)
+  @ApiBearerAuth('JWT-auth')
+  @ApiOperation({ summary: 'Update a menu item' })
+  @ApiParam({ name: 'providerId', description: 'Food Provider ID' })
+  @ApiParam({ name: 'itemId', description: 'Menu Item ID' })
+  @ApiResponse({
+    status: 200,
+    description: 'Menu item successfully updated',
+  })
+  async updateMenuItem(
+    @Param('providerId') providerId: string,
+    @Param('itemId') itemId: string,
+    @Body() menuItemDto: any,
+    @Request() req
+  ) {
+    return this.foodProviderService.updateMenuItem(itemId, providerId, menuItemDto);
+  }
+
+  @Delete('owner/menu-items/:providerId/:itemId')
+  @UseGuards(AuthGuard, FoodProviderGuard)
+  @ApiBearerAuth('JWT-auth')
+  @ApiOperation({ summary: 'Delete a menu item' })
+  @ApiParam({ name: 'providerId', description: 'Food Provider ID' })
+  @ApiParam({ name: 'itemId', description: 'Menu Item ID' })
+  @ApiResponse({
+    status: 200,
+    description: 'Menu item successfully deleted',
+  })
+  async deleteMenuItem(
+    @Param('providerId') providerId: string,
+    @Param('itemId') itemId: string,
+    @Request() req
+  ) {
+    await this.foodProviderService.deleteMenuItem(itemId, providerId);
+    return { message: 'Menu item deleted successfully' };
+  }
+
+  @Get('owner/orders/:providerId')
+  @UseGuards(AuthGuard, FoodProviderGuard)
+  @ApiBearerAuth('JWT-auth')
+  @ApiOperation({ summary: 'Get all orders for a specific food provider' })
+  @ApiParam({ name: 'providerId', description: 'Food Provider ID' })
+  @ApiResponse({
+    status: 200,
+    description: 'Returns all orders for the specified food provider',
+  })
+  async getProviderOrders(@Param('providerId') providerId: string, @Request() req) {
+    return this.foodProviderService.getProviderOrders(providerId);
+  }
+
+  @Get('owner/analytics')
+  @UseGuards(AuthGuard, FoodProviderGuard)
+  @ApiBearerAuth('JWT-auth')
+  @ApiOperation({ summary: 'Get analytics for food providers owned by the user' })
+  @ApiResponse({
+    status: 200,
+    description: 'Returns analytics for food providers owned by the user',
+  })
+  @ApiQuery({ name: 'days', required: false, type: Number })
+  async getProviderAnalytics(
+    @Request() req,
+    @Query('days') days?: number,
+  ) {
+    const ownerId = typeof req.user._id === 'string'
+      ? req.user._id
+      : req.user._id.toString();
+    return this.foodProviderService.getProviderAnalytics(ownerId, days);
   }
 }

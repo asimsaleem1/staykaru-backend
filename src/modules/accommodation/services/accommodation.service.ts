@@ -14,6 +14,7 @@ import { UpdateAccommodationDto } from '../dto/update-accommodation.dto';
 import { SearchAccommodationDto } from '../dto/search-accommodation.dto';
 import { User } from '../../user/schema/user.schema';
 import { LocationService } from '../../location/services/location.service';
+import { Booking, BookingStatus } from '../../booking/schema/booking.schema';
 
 @Injectable()
 export class AccommodationService {
@@ -22,6 +23,8 @@ export class AccommodationService {
     private readonly accommodationModel: Model<Accommodation>,
     @Inject(CACHE_MANAGER) private cacheManager: Cache,
     private readonly locationService: LocationService,
+    @InjectModel(Booking.name)
+    private readonly bookingModel: Model<Booking>,
   ) {}
 
   private getCacheKey(id: string): string {
@@ -186,5 +189,144 @@ export class AccommodationService {
 
     await this.accommodationModel.findByIdAndDelete(id).exec();
     await this.clearCache(id);
+  }
+
+  // Landlord dashboard methods
+  async findByLandlord(landlordId: string): Promise<Accommodation[]> {
+    const cacheKey = `accommodations:landlord:${landlordId}`;
+    const cached = await this.cacheManager.get<Accommodation[]>(cacheKey);
+
+    if (cached) {
+      return cached;
+    }
+
+    const accommodations = await this.accommodationModel
+      .find({ landlord: landlordId })
+      .populate(['city', 'landlord'])
+      .exec();
+
+    await this.cacheManager.set(cacheKey, accommodations, 3600);
+    return accommodations;
+  }
+
+  async getLandlordDashboard(landlordId: string) {
+    // Get all accommodations by this landlord
+    const accommodations = await this.findByLandlord(landlordId);
+    
+    // Get total bookings for all accommodations
+    const accommodationIds = accommodations.map(acc => acc._id);
+    const totalBookings = await this.bookingModel.countDocuments({
+      accommodation: { $in: accommodationIds }
+    });
+    
+    // Get active bookings (confirmed status)
+    const activeBookings = await this.bookingModel.countDocuments({
+      accommodation: { $in: accommodationIds },
+      status: BookingStatus.CONFIRMED
+    });
+    
+    // Get booking statistics by status
+    const bookingsByStatus = await this.bookingModel.aggregate([
+      { $match: { accommodation: { $in: accommodationIds } } },
+      { $group: { _id: '$status', count: { $sum: 1 } } }
+    ]);
+    
+    // Get recent bookings
+    const recentBookings = await this.bookingModel
+      .find({ accommodation: { $in: accommodationIds } })
+      .sort({ createdAt: -1 })
+      .limit(5)
+      .populate(['user', 'accommodation'])
+      .exec();
+    
+    return {
+      totalAccommodations: accommodations.length,
+      totalBookings,
+      activeBookings,
+      bookingsByStatus: bookingsByStatus.reduce((acc, curr) => {
+        acc[curr._id] = curr.count;
+        return acc;
+      }, {}),
+      recentBookings,
+      accommodations: accommodations.map(acc => ({
+        _id: acc._id,
+        title: acc.title,
+        city: acc.city,
+        price: acc.price,
+      }))
+    };
+  }
+
+  async getLandlordBookings(landlordId: string) {
+    // Get all accommodations by this landlord
+    const accommodations = await this.findByLandlord(landlordId);
+    const accommodationIds = accommodations.map(acc => acc._id);
+    
+    // Get all bookings for these accommodations
+    const bookings = await this.bookingModel
+      .find({ accommodation: { $in: accommodationIds } })
+      .populate(['user', 'accommodation'])
+      .sort({ createdAt: -1 })
+      .exec();
+    
+    return bookings;
+  }
+
+  async getLandlordAnalytics(landlordId: string, days = 30) {
+    // Get all accommodations by this landlord
+    const accommodations = await this.findByLandlord(landlordId);
+    const accommodationIds = accommodations.map(acc => acc._id);
+    
+    // Calculate date range
+    const endDate = new Date();
+    const startDate = new Date();
+    startDate.setDate(startDate.getDate() - days);
+    
+    // Get bookings within date range
+    const bookings = await this.bookingModel
+      .find({
+        accommodation: { $in: accommodationIds },
+        createdAt: { $gte: startDate, $lte: endDate }
+      })
+      .exec();
+    
+    // Group bookings by date
+    const bookingsByDate = {};
+    bookings.forEach(booking => {
+      const dateStr = booking['createdAt'].toISOString().split('T')[0];
+      if (!bookingsByDate[dateStr]) {
+        bookingsByDate[dateStr] = 0;
+      }
+      bookingsByDate[dateStr]++;
+    });
+    
+    // Group bookings by accommodation
+    const bookingsByAccommodation = await this.bookingModel.aggregate([
+      { $match: { accommodation: { $in: accommodationIds } } },
+      { $group: { _id: '$accommodation', count: { $sum: 1 } } }
+    ]);
+    
+    // Get accommodation details for each ID
+    const accommodationDetails = await Promise.all(
+      bookingsByAccommodation.map(async item => {
+        const accommodation = await this.accommodationModel.findById(item._id);
+        return {
+          _id: accommodation._id,
+          title: accommodation.title,
+          bookings: item.count
+        };
+      })
+    );
+    
+    return {
+      totalBookings: bookings.length,
+      bookingsByDate,
+      bookingsByAccommodation: accommodationDetails,
+      timeframe: {
+        start: startDate.toISOString(),
+        end: endDate.toISOString(),
+        days
+      }
+    };
   }
 }

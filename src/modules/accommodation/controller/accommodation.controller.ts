@@ -8,6 +8,7 @@ import {
   Param,
   Query,
   Request,
+  UseGuards,
 } from '@nestjs/common';
 import {
   ApiTags,
@@ -15,11 +16,14 @@ import {
   ApiResponse,
   ApiParam,
   ApiQuery,
+  ApiBearerAuth,
 } from '@nestjs/swagger';
 import { AccommodationService } from '../services/accommodation.service';
 import { CreateAccommodationDto } from '../dto/create-accommodation.dto';
 import { UpdateAccommodationDto } from '../dto/update-accommodation.dto';
 import { SearchAccommodationDto } from '../dto/search-accommodation.dto';
+import { AuthGuard } from '../../auth/guards/auth.guard';
+import { LandlordGuard } from '../guards/landlord.guard';
 
 interface RequestWithUser extends Request {
   user?: {
@@ -31,13 +35,12 @@ interface RequestWithUser extends Request {
 
 @ApiTags('accommodations')
 @Controller('accommodations')
-// @UseGuards(AuthGuard) // Temporarily disabled for testing
-// @ApiBearerAuth('JWT-auth') // Temporarily disabled for testing
 export class AccommodationController {
   constructor(private readonly accommodationService: AccommodationService) {}
 
   @Post()
-  // @UseGuards(LandlordGuard) // Temporarily disabled for testing
+  @UseGuards(AuthGuard, LandlordGuard)
+  @ApiBearerAuth('JWT-auth')
   @ApiOperation({ summary: 'Create a new accommodation' })
   @ApiResponse({
     status: 201,
@@ -275,5 +278,71 @@ export class AccommodationController {
         : req.user?._id?.toString() || 'temp-user-id',
     );
     return { message: 'Accommodation deleted successfully' };
+  }
+
+  // Landlord-specific endpoints
+
+  @Get('landlord/my-accommodations')
+  @UseGuards(AuthGuard, LandlordGuard)
+  @ApiBearerAuth('JWT-auth')
+  @ApiOperation({ summary: 'Get all accommodations owned by the landlord' })
+  @ApiResponse({
+    status: 200,
+    description: 'Returns all accommodations owned by the landlord',
+  })
+  async getMyAccommodations(@Request() req: RequestWithUser) {
+    const landlordId = typeof req.user._id === 'string'
+      ? req.user._id
+      : req.user._id.toString();
+    return this.accommodationService.findByLandlord(landlordId);
+  }
+
+  @Get('landlord/dashboard')
+  @UseGuards(AuthGuard, LandlordGuard)
+  @ApiBearerAuth('JWT-auth')
+  @ApiOperation({ summary: 'Get landlord dashboard summary' })
+  @ApiResponse({
+    status: 200,
+    description: 'Returns landlord dashboard summary',
+  })
+  async getLandlordDashboard(@Request() req: RequestWithUser) {
+    const landlordId = typeof req.user._id === 'string'
+      ? req.user._id
+      : req.user._id.toString();
+    return this.accommodationService.getLandlordDashboard(landlordId);
+  }
+
+  @Get('landlord/bookings')
+  @UseGuards(AuthGuard, LandlordGuard)
+  @ApiBearerAuth('JWT-auth')
+  @ApiOperation({ summary: 'Get all bookings for accommodations owned by the landlord' })
+  @ApiResponse({
+    status: 200,
+    description: 'Returns all bookings for accommodations owned by the landlord',
+  })
+  async getMyBookings(@Request() req: RequestWithUser) {
+    const landlordId = typeof req.user._id === 'string'
+      ? req.user._id
+      : req.user._id.toString();
+    return this.accommodationService.getLandlordBookings(landlordId);
+  }
+
+  @Get('landlord/analytics')
+  @UseGuards(AuthGuard, LandlordGuard)
+  @ApiBearerAuth('JWT-auth')
+  @ApiOperation({ summary: 'Get analytics for accommodations owned by the landlord' })
+  @ApiResponse({
+    status: 200,
+    description: 'Returns analytics for accommodations owned by the landlord',
+  })
+  @ApiQuery({ name: 'days', required: false, type: Number })
+  async getLandlordAnalytics(
+    @Request() req: RequestWithUser,
+    @Query('days') days?: number,
+  ) {
+    const landlordId = typeof req.user._id === 'string'
+      ? req.user._id
+      : req.user._id.toString();
+    return this.accommodationService.getLandlordAnalytics(landlordId, days);
   }
 }
