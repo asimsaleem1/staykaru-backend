@@ -244,6 +244,7 @@ export class UserService {
 
     // Clear cache BEFORE updating
     await this.clearCache(userId);
+    await this.cacheManager.del(`user:email:${user.email}`);
 
     // Update password using direct model update
     const updateResult = await this.userModel
@@ -272,6 +273,7 @@ export class UserService {
 
     // Clear cache again after update
     await this.clearCache(userId);
+    await this.cacheManager.del(`user:email:${user.email}`);
 
     return this.decryptUserData(updatedUser);
   }
