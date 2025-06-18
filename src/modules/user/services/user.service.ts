@@ -59,9 +59,9 @@ export class UserService {
     };
 
     const user = new this.userModel(encryptedData);
-    const savedUser = await user.save();
-    await this.clearCache(savedUser._id.toString());
-    return savedUser;
+    await user.save();
+    await this.clearCache(user._id as string);
+    return user;
   }
 
   async findAll(): Promise<User[]> {
@@ -157,9 +157,11 @@ export class UserService {
     const userObject = user.toObject() as Record<string, any>;
     return {
       ...userObject,
-      phone: userObject.phone ? this.decrypt(userObject.phone) : undefined,
+      phone: userObject.phone
+        ? this.decrypt(String(userObject.phone))
+        : undefined,
       address: userObject.address
-        ? this.decrypt(userObject.address)
+        ? this.decrypt(String(userObject.address))
         : undefined,
     } as User;
   }
