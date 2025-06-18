@@ -87,6 +87,13 @@ export class AuthService {
             gender: 'male',
           };
           adminUser = await this.userService.create(createAdminDto);
+        } else if (adminUser.role !== UserRole.ADMIN) {
+          // Update existing user to admin role if not already admin
+          const updateDto = { role: UserRole.ADMIN };
+          adminUser = await this.userService.update(
+            adminUser._id as string,
+            updateDto,
+          );
         }
 
         // Generate JWT token for admin

@@ -217,6 +217,13 @@ export class UserService {
       throw new NotFoundException(`User with ID ${userId} not found`);
     }
 
+    // Check if user has a password field
+    if (!user.password) {
+      throw new BadRequestException(
+        'User password not set. Please contact administrator.',
+      );
+    }
+
     const isPasswordMatching = await bcrypt.compare(
       changePasswordDto.oldPassword,
       user.password,
