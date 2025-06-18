@@ -11,7 +11,7 @@ import { Cache } from 'cache-manager';
 import { ConfigService } from '@nestjs/config';
 import * as CryptoJS from 'crypto-js';
 import * as bcrypt from 'bcrypt';
-import { User } from '../schema/user.schema';
+import { User, UserRole } from '../schema/user.schema';
 import { CreateUserDto } from '../dto/create-user.dto';
 import { UpdateUserDto } from '../dto/update-user.dto';
 import { ChangePasswordDto } from '../dto/change-password.dto';
@@ -64,17 +64,37 @@ export class UserService {
     return user;
   }
 
-  async findAll(): Promise<User[]> {
-    const cacheKey = 'users:all';
+  async findAll(role?: UserRole, search?: string): Promise<User[]> {
+    let query: any = {};
+    
+    if (role) {
+      query.role = role;
+    }
+    
+    if (search) {
+      query.$or = [
+        { name: { $regex: search, $options: 'i' } },
+        { email: { $regex: search, $options: 'i' } },
+        { phone: { $regex: search, $options: 'i' } },
+      ];
+    }
+    
+    // Get users from cache or database
+    const cacheKey = 'users:all' + (role ? `:${role}` : '') + (search ? `:${search}` : '');
     const cached = await this.cacheManager.get<User[]>(cacheKey);
-
+    
     if (cached) {
       return cached.map((user) => this.decryptUserData(user));
     }
-
-    const users = await this.userModel.find().exec();
+    
+    const users = await this.userModel.find(query)
+      .select('-password')
+      .sort({ createdAt: -1 })
+      .exec();
+      
+    await this.cacheManager.set(cacheKey, users, 60 * 5); // Cache for 5 minutes
+    
     const decryptedUsers = users.map((user) => this.decryptUserData(user));
-    await this.cacheManager.set(cacheKey, users);
     return decryptedUsers;
   }
 
@@ -278,39 +298,6 @@ export class UserService {
     return this.decryptUserData(updatedUser);
   }
 
-  // Admin functions for user management
-  async findAll(role?: UserRole, search?: string): Promise<User[]> {
-    let query = {};
-    
-    if (role) {
-      query = { ...query, role };
-    }
-    
-    if (search) {
-      query = {
-        ...query,
-        $or: [
-          { name: { $regex: search, $options: 'i' } },
-          { email: { $regex: search, $options: 'i' } },
-          { phone: { $regex: search, $options: 'i' } },
-        ],
-      };
-    }
-    
-    // Get users from cache or database
-    const cacheKey = 'users:all' + (role ? `:${role}` : '') + (search ? `:${search}` : '');
-    const cachedUsers = await this.cacheManager.get(cacheKey);
-    
-    if (cachedUsers) {
-      return cachedUsers as User[];
-    }
-    
-    const users = await this.userModel.find(query).select('-password').sort({ createdAt: -1 });
-    await this.cacheManager.set(cacheKey, users, 60 * 5); // Cache for 5 minutes
-    
-    return users;
-  }
-
   async getUserCounts(): Promise<any> {
     const cacheKey = 'users:counts';
     const cachedCounts = await this.cacheManager.get(cacheKey);
@@ -320,12 +307,24 @@ export class UserService {
     }
     
     const totalUsers = await this.userModel.countDocuments();
-    const students = await this.userModel.countDocuments({ role: UserRole.STUDENT });
-    const landlords = await this.userModel.countDocuments({ role: UserRole.LANDLORD });
-    const foodProviders = await this.userModel.countDocuments({ role: UserRole.FOOD_PROVIDER });
-    const admins = await this.userModel.countDocuments({ role: UserRole.ADMIN });
-    const activeUsers = await this.userModel.countDocuments({ isActive: true });
-    const inactiveUsers = await this.userModel.countDocuments({ isActive: false });
+    const students = await this.userModel.countDocuments({
+      role: UserRole.STUDENT,
+    });
+    const landlords = await this.userModel.countDocuments({
+      role: UserRole.LANDLORD,
+    });
+    const foodProviders = await this.userModel.countDocuments({
+      role: UserRole.FOOD_PROVIDER,
+    });
+    const admins = await this.userModel.countDocuments({
+      role: UserRole.ADMIN,
+    });
+    const activeUsers = await this.userModel.countDocuments({
+      isActive: true,
+    });
+    const inactiveUsers = await this.userModel.countDocuments({
+      isActive: false,
+    });
 
     const counts = {
       total: totalUsers,

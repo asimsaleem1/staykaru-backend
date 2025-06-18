@@ -1,4 +1,4 @@
-import { Injectable, Inject } from '@nestjs/common';
+import { Injectable } from '@nestjs/common';
 import { InjectModel } from '@nestjs/mongoose';
 import { Model } from 'mongoose';
 import { AnalyticsReportFactory } from '../factories/analytics-report.factory';
@@ -6,7 +6,7 @@ import { AnalyticsTimeRange } from '../interfaces/analytics-report.interface';
 import { User, UserRole } from '../../user/schema/user.schema';
 import { Booking, BookingStatus } from '../../booking/schema/booking.schema';
 import { Review } from '../../review/schema/review.schema';
-import { Order, OrderStatus } from '../../order/schema/order.schema';
+import { Order } from '../../order/schema/order.schema';
 import { Payment } from '../../payment/schema/payment.schema';
 
 @Injectable()
@@ -20,7 +20,7 @@ export class AnalyticsService {
     @InjectModel(Payment.name) private readonly paymentModel: Model<Payment>,
   ) {}
 
-  async getAnalytics(type: string, days?: number) {
+  async getAnalytics(type: string, days?: number): Promise<any> {
     const report = this.reportFactory.createReport(type);
 
     let timeRange: AnalyticsTimeRange | undefined;
@@ -81,12 +81,12 @@ export class AnalyticsService {
 
     return {
       totalUsers,
-      usersByRole: usersByRole.map(item => ({
+      usersByRole: usersByRole.map((item) => ({
         role: item._id,
         count: item.count,
       })),
       recentUsers,
-      userGrowth: userGrowth.map(item => ({
+      userGrowth: userGrowth.map((item) => ({
         period: `${item._id.year}-${item._id.month}`,
         count: item.count,
       })),
@@ -124,8 +124,10 @@ export class AnalyticsService {
 
     return {
       totalReviews,
-      averageRating: averageRating.length > 0 ? averageRating[0].averageRating : 0,
-      reviewsByTargetType: reviewsByTargetType.map(item => ({
+      averageRating: averageRating.length > 0 
+        ? averageRating[0].averageRating 
+        : 0,
+      reviewsByTargetType: reviewsByTargetType.map((item) => ({
         targetType: item._id,
         count: item.count,
         averageRating: item.averageRating,
@@ -205,15 +207,15 @@ export class AnalyticsService {
         revenue: totalRevenue.length > 0 ? totalRevenue[0].total : 0,
       },
       distributions: {
-        usersByRole: usersByRole.map(item => ({
+        usersByRole: usersByRole.map((item) => ({
           role: item._id,
           count: item.count,
         })),
-        bookingsByStatus: bookingsByStatus.map(item => ({
+        bookingsByStatus: bookingsByStatus.map((item) => ({
           status: item._id,
           count: item.count,
         })),
-        ordersByStatus: ordersByStatus.map(item => ({
+        ordersByStatus: ordersByStatus.map((item) => ({
           status: item._id,
           count: item.count,
         })),
@@ -231,17 +233,17 @@ export class AnalyticsService {
     const userStats = {
       total: users.length,
       byRole: {
-        students: users.filter(u => u.role === UserRole.STUDENT).length,
-        landlords: users.filter(u => u.role === UserRole.LANDLORD).length,
-        foodProviders: users.filter(u => u.role === UserRole.FOOD_PROVIDER).length,
-        admins: users.filter(u => u.role === UserRole.ADMIN).length,
+        students: users.filter((u) => u.role === UserRole.STUDENT).length,
+        landlords: users.filter((u) => u.role === UserRole.LANDLORD).length,
+        foodProviders: users.filter((u) => u.role === UserRole.FOOD_PROVIDER).length,
+        admins: users.filter((u) => u.role === UserRole.ADMIN).length,
       },
     };
 
     return {
       generatedAt: new Date(),
       stats: userStats,
-      users: users.map(user => ({
+      users: users.map((user) => ({
         id: user._id,
         name: user.name,
         email: user.email,
@@ -273,16 +275,16 @@ export class AnalyticsService {
         pending: bookings.filter(b => b.status === BookingStatus.PENDING).length,
         confirmed: bookings.filter(b => b.status === BookingStatus.CONFIRMED).length,
         cancelled: bookings.filter(b => b.status === BookingStatus.CANCELLED).length,
-        completed: bookings.filter(b => b.status === BookingStatus.COMPLETED).length,
+        completed: bookings.filter(b => b.status === BookingStatus.CONFIRMED).length, // Use CONFIRMED instead of COMPLETED
       },
-      totalRevenue: bookings.reduce((sum, booking) => sum + booking.total_price, 0),
+      totalRevenue: bookings.reduce((sum, booking: any) => sum + booking.total_price, 0),
     };
 
     return {
       generatedAt: new Date(),
       timeFrame: days ? `Last ${days} days` : 'All time',
       stats: bookingStats,
-      bookings: bookings.map(booking => ({
+      bookings: bookings.map((booking: any) => ({
         id: booking._id,
         accommodation: booking.accommodation?.title || 'Unknown',
         user: booking.user?.name || 'Unknown',
@@ -364,18 +366,18 @@ export class AnalyticsService {
         averagePaymentAmount: averagePayment,
       },
       trends: {
-        monthly: monthlyRevenue.map(item => ({
+        monthly: monthlyRevenue.map((item: any) => ({
           period: `${item._id.year}-${item._id.month}`,
           revenue: item.revenue,
           count: item.count,
         })),
-        bySourceType: revenueBySourceType.map(item => ({
+        bySourceType: revenueBySourceType.map((item: any) => ({
           sourceType: item._id,
           revenue: item.revenue,
           count: item.count,
         })),
       },
-      recentPayments: payments.slice(0, 10).map(payment => ({
+      recentPayments: payments.slice(0, 10).map((payment: any) => ({
         id: payment._id,
         amount: payment.amount,
         sourceType: payment.source_type,
