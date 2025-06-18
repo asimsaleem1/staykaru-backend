@@ -214,6 +214,7 @@ export class UserService {
     userId: string,
     changePasswordDto: ChangePasswordDto,
   ): Promise<User> {
+    // Find user first
     const user = await this.userModel.findById(userId).exec();
     if (!user) {
       throw new NotFoundException(`User with ID ${userId} not found`);
@@ -226,6 +227,7 @@ export class UserService {
       );
     }
 
+    // Verify old password
     const isPasswordMatching = await bcrypt.compare(
       changePasswordDto.oldPassword,
       user.password,
@@ -234,26 +236,41 @@ export class UserService {
       throw new BadRequestException('Old password is incorrect');
     }
 
+    // Hash new password
     const hashedNewPassword = await bcrypt.hash(
       changePasswordDto.newPassword,
       10,
     );
 
-    const updatedUser = await this.userModel
-      .findByIdAndUpdate(
-        userId,
+    // Clear cache BEFORE updating
+    await this.clearCache(userId);
+
+    // Update password using direct model update
+    const updateResult = await this.userModel
+      .updateOne(
+        { _id: userId },
         {
-          password: hashedNewPassword,
-          updatedAt: new Date(),
+          $set: {
+            password: hashedNewPassword,
+            updatedAt: new Date(),
+          },
         },
-        { new: true },
       )
       .exec();
-    
-    if (!updatedUser) {
-      throw new NotFoundException(`User with ID ${userId} not found`);
+
+    if (updateResult.modifiedCount === 0) {
+      throw new BadRequestException('Failed to update password');
     }
-    
+
+    // Get updated user
+    const updatedUser = await this.userModel.findById(userId).exec();
+    if (!updatedUser) {
+      throw new NotFoundException(
+        `User with ID ${userId} not found after update`,
+      );
+    }
+
+    // Clear cache again after update
     await this.clearCache(userId);
 
     return this.decryptUserData(updatedUser);
