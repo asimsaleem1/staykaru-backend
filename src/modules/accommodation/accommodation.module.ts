@@ -10,6 +10,7 @@ import {
 import { LocationModule } from '../location/location.module';
 import { UserModule } from '../user/user.module';
 import { Booking, BookingSchema } from '../booking/schema/booking.schema';
+import { AuthModule } from '../auth/auth.module';
 
 @Module({
   imports: [
@@ -20,6 +21,7 @@ import { Booking, BookingSchema } from '../booking/schema/booking.schema';
     CacheModule.register(),
     LocationModule,
     UserModule,
+    AuthModule,
   ],
   controllers: [AccommodationController],
   providers: [AccommodationService],

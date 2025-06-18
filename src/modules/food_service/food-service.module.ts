@@ -12,6 +12,7 @@ import {
 import { MenuItem, MenuItemSchema } from './schema/menu-item.schema';
 import { UserModule } from '../user/user.module';
 import { Order, OrderSchema } from '../order/schema/order.schema';
+import { AuthModule } from '../auth/auth.module';
 
 @Module({
   imports: [
@@ -22,6 +23,7 @@ import { Order, OrderSchema } from '../order/schema/order.schema';
     ]),
     CacheModule.register(),
     UserModule,
+    AuthModule,
   ],
   controllers: [FoodProviderController, MenuItemController],
   providers: [FoodProviderService, MenuItemService],

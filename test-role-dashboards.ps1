@@ -4,12 +4,31 @@ Write-Host "Testing Landlord Dashboard endpoints..." -ForegroundColor Green
 # Login as a landlord user (replace with actual credentials)
 Write-Host "1. Logging in as landlord..."
 $loginResponse = Invoke-RestMethod -Uri "http://localhost:3000/auth/login" -Method Post -Body (@{
-    email = "landlord@example.com"
-    password = "password123"
+    email = "assaleemofficial@gmail.com"
+    password = "Sarim786"
 } | ConvertTo-Json) -ContentType "application/json"
 
 $token = $loginResponse.access_token
 Write-Host "Authentication successful. Token received." -ForegroundColor Green
+
+# Create a test accommodation if needed
+Write-Host "Creating a test accommodation..." -ForegroundColor Green
+try {
+    $testAccommodation = Invoke-RestMethod -Uri "http://localhost:3000/accommodations" -Method Post -Body (@{
+        title = "Test Accommodation"
+        description = "Test accommodation for dashboard testing"
+        price = 100
+        city = "5f9d88b9c38e1e1d4c8b4567" # Replace with a valid city ID
+        amenities = @("WiFi", "Kitchen")
+    } | ConvertTo-Json) -ContentType "application/json" -Headers @{
+        "Authorization" = "Bearer $token"
+    }
+    Write-Host "Test accommodation created with ID: $($testAccommodation._id)" -ForegroundColor Green
+    $accommodationId = $testAccommodation._id
+}
+catch {
+    Write-Host "Error creating test accommodation: $_" -ForegroundColor Yellow
+}
 
 # Test my-accommodations endpoint
 Write-Host "2. Getting landlord's accommodations..."
@@ -21,6 +40,41 @@ try {
 }
 catch {
     Write-Host "Error getting accommodations: $_" -ForegroundColor Red
+}
+
+# Test landlord dashboard endpoint
+Write-Host "3. Getting landlord dashboard data..."
+try {
+    $dashboard = Invoke-RestMethod -Uri "http://localhost:3000/accommodations/landlord/dashboard" -Method Get -Headers @{
+        "Authorization" = "Bearer $token"
+    }
+    Write-Host "Dashboard data received. Total accommodations: $($dashboard.totalAccommodations)" -ForegroundColor Green
+}
+catch {
+    Write-Host "Error getting dashboard: $_" -ForegroundColor Red
+}
+
+# Create a test food provider if needed
+Write-Host "Creating a test food provider..." -ForegroundColor Green
+try {
+    $testProvider = Invoke-RestMethod -Uri "http://localhost:3000/food-providers" -Method Post -Body (@{
+        name = "Test Food Provider"
+        description = "Test food provider for dashboard testing"
+        cuisine_type = "Test Cuisine"
+        operating_hours = @{
+            open = "09:00"
+            close = "22:00"
+        }
+    } | ConvertTo-Json) -ContentType "application/json" -Headers @{
+        "Authorization" = "Bearer $fpToken"
+    }
+    Write-Host "Test food provider created with ID: $($testProvider._id)" -ForegroundColor Green
+    $providerId = $testProvider._id
+}
+catch {
+    Write-Host "Error creating test food provider: $_" -ForegroundColor Yellow
+    # For testing purposes, use a placeholder ID
+    $providerId = "dummy-provider-id"
 }
 
 # Test landlord dashboard endpoint
@@ -65,12 +119,35 @@ Write-Host "`nTesting Food Provider Dashboard endpoints..." -ForegroundColor Gre
 # Login as a food provider user (replace with actual credentials)
 Write-Host "1. Logging in as food provider..."
 $fpLoginResponse = Invoke-RestMethod -Uri "http://localhost:3000/auth/login" -Method Post -Body (@{
-    email = "foodprovider@example.com"
-    password = "password123"
+    email = "assaleemofficial@gmail.com"
+    password = "Sarim786"
 } | ConvertTo-Json) -ContentType "application/json"
 
 $fpToken = $fpLoginResponse.access_token
 Write-Host "Authentication successful. Token received." -ForegroundColor Green
+
+# Create a test food provider if needed
+Write-Host "Creating a test food provider..." -ForegroundColor Green
+try {
+    $testProvider = Invoke-RestMethod -Uri "http://localhost:3000/food-providers" -Method Post -Body (@{
+        name = "Test Food Provider"
+        description = "Test food provider for dashboard testing"
+        cuisine_type = "Test Cuisine"
+        operating_hours = @{
+            open = "09:00"
+            close = "22:00"
+        }
+    } | ConvertTo-Json) -ContentType "application/json" -Headers @{
+        "Authorization" = "Bearer $fpToken"
+    }
+    Write-Host "Test food provider created with ID: $($testProvider._id)" -ForegroundColor Green
+    $providerId = $testProvider._id
+}
+catch {
+    Write-Host "Error creating test food provider: $_" -ForegroundColor Yellow
+    # For testing purposes, use a placeholder ID
+    $providerId = "dummy-provider-id"
+}
 
 # Test my-providers endpoint
 Write-Host "2. Getting user's food providers..."
@@ -79,16 +156,6 @@ try {
         "Authorization" = "Bearer $fpToken"
     }
     Write-Host "Food providers count: $($providers.Count)" -ForegroundColor Green
-    
-    # Save first provider ID for next tests
-    if ($providers.Count -gt 0) {
-        $providerId = $providers[0]._id
-        Write-Host "Using food provider ID: $providerId for further tests" -ForegroundColor Green
-    }
-    else {
-        Write-Host "No food providers found for this user" -ForegroundColor Yellow
-        exit
-    }
 }
 catch {
     Write-Host "Error getting food providers: $_" -ForegroundColor Red

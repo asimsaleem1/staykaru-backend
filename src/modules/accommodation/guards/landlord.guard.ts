@@ -25,7 +25,7 @@ export class LandlordGuard implements CanActivate {
       throw new ForbiddenException('Authentication required');
     }
 
-    if (user.role !== UserRole.LANDLORD) {
+    if (user.role !== UserRole.LANDLORD && user.role !== UserRole.ADMIN) {
       throw new ForbiddenException('Only landlords can perform this action');
     }
 

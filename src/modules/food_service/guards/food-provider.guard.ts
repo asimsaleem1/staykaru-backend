@@ -25,7 +25,7 @@ export class FoodProviderGuard implements CanActivate {
       throw new ForbiddenException('Authentication required');
     }
 
-    if (user.role !== UserRole.FOOD_PROVIDER) {
+    if (user.role !== UserRole.FOOD_PROVIDER && user.role !== UserRole.ADMIN) {
       throw new ForbiddenException(
         'Only food providers can perform this action',
       );
