@@ -1,6 +1,7 @@
 import { Prop, Schema, SchemaFactory } from '@nestjs/mongoose';
 import { Document, Schema as MongooseSchema } from 'mongoose';
 import { FoodProvider } from './food-provider.schema';
+import { User } from '../../user/schema/user.schema';
 
 @Schema({ timestamps: true })
 export class MenuItem extends Document {

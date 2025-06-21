@@ -465,8 +465,8 @@ export class UserService {
         isActive: user.isActive,
         lastLoginAt: user.lastLoginAt,
         failedLoginAttempts: user.failedLoginAttempts,
-        createdAt: user.createdAt,
-        updatedAt: user.updatedAt,
+        createdAt: (user as any).createdAt,
+        updatedAt: (user as any).updatedAt,
       },
       deactivation: user.deactivatedAt
         ? {
@@ -506,7 +506,7 @@ export class UserService {
         deactivatedAt: user.deactivatedAt,
         deactivatedBy: user.deactivatedBy,
         deactivationReason: user.deactivationReason,
-        createdAt: user.createdAt,
+        createdAt: (user as any).createdAt,
       })),
       totalCount: suspiciousUsers.length,
     };
