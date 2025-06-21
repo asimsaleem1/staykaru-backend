@@ -149,11 +149,11 @@ try {
     Write-Host "❌ Get landlord bookings failed: $($_.Exception.Message)" -ForegroundColor Red
 }
 
-# 11. Change password (known issue - 400 validation error)
+# 11. Change password (with correct field names)
 Write-Host "`n11. Testing Change Password..." -ForegroundColor Yellow
 $totalTests++
 $changePasswordData = @{
-    currentPassword = $registerData.password
+    oldPassword = $registerData.password
     newPassword = "NewTest123!@#"
 }
 

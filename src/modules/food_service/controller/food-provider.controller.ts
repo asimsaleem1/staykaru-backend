@@ -22,6 +22,7 @@ import { FoodProviderService } from '../services/food-provider.service';
 import { CreateFoodProviderDto } from '../dto/create-food-provider.dto';
 import { UpdateFoodProviderDto } from '../dto/update-food-provider.dto';
 import { AuthGuard } from '../../auth/guards/auth.guard';
+import { JwtAuthGuard } from '../../auth/guards/jwt-auth.guard';
 import { FoodProviderGuard } from '../guards/food-provider.guard';
 import { RolesGuard } from '../../user/guards/roles.guard';
 import { Roles } from '../../user/decorators/roles.decorator';
@@ -341,7 +342,7 @@ export class FoodProviderController {
 
   // Admin endpoints for food provider management
   @Get('admin/pending')
-  @UseGuards(AuthGuard, RolesGuard)
+  @UseGuards(JwtAuthGuard, RolesGuard)
   @Roles(UserRole.ADMIN)
   @ApiBearerAuth('JWT-auth')
   @ApiOperation({ summary: 'Get all pending food providers for admin approval' })
@@ -354,7 +355,7 @@ export class FoodProviderController {
   }
 
   @Get('admin/all')
-  @UseGuards(AuthGuard, RolesGuard)
+  @UseGuards(JwtAuthGuard, RolesGuard)
   @Roles(UserRole.ADMIN)
   @ApiBearerAuth('JWT-auth')
   @ApiOperation({ summary: 'Get all food providers with approval status (Admin only)' })
@@ -367,7 +368,7 @@ export class FoodProviderController {
   }
 
   @Put('admin/:id/approve')
-  @UseGuards(AuthGuard, RolesGuard)
+  @UseGuards(JwtAuthGuard, RolesGuard)
   @Roles(UserRole.ADMIN)
   @ApiBearerAuth('JWT-auth')
   @ApiOperation({ summary: 'Approve a food provider (Admin only)' })
@@ -385,7 +386,7 @@ export class FoodProviderController {
   }
 
   @Put('admin/:id/reject')
-  @UseGuards(AuthGuard, RolesGuard)
+  @UseGuards(JwtAuthGuard, RolesGuard)
   @Roles(UserRole.ADMIN)
   @ApiBearerAuth('JWT-auth')
   @ApiOperation({ summary: 'Reject a food provider (Admin only)' })
@@ -404,7 +405,7 @@ export class FoodProviderController {
   }
 
   @Put('admin/:id/toggle-status')
-  @UseGuards(AuthGuard, RolesGuard)
+  @UseGuards(JwtAuthGuard, RolesGuard)
   @Roles(UserRole.ADMIN)
   @ApiBearerAuth('JWT-auth')
   @ApiOperation({ summary: 'Toggle food provider active status (Admin only)' })
@@ -433,7 +434,7 @@ export class FoodProviderController {
 
   // Admin endpoints for menu item management
   @Get('admin/menu-items/pending')
-  @UseGuards(AuthGuard, RolesGuard)
+  @UseGuards(JwtAuthGuard, RolesGuard)
   @Roles(UserRole.ADMIN)
   @ApiBearerAuth('JWT-auth')
   @ApiOperation({ summary: 'Get all pending menu items for admin approval' })
@@ -446,7 +447,7 @@ export class FoodProviderController {
   }
 
   @Put('admin/menu-items/:id/approve')
-  @UseGuards(AuthGuard, RolesGuard)
+  @UseGuards(JwtAuthGuard, RolesGuard)
   @Roles(UserRole.ADMIN)
   @ApiBearerAuth('JWT-auth')
   @ApiOperation({ summary: 'Approve a menu item (Admin only)' })
@@ -464,7 +465,7 @@ export class FoodProviderController {
   }
 
   @Put('admin/menu-items/:id/reject')
-  @UseGuards(AuthGuard, RolesGuard)
+  @UseGuards(JwtAuthGuard, RolesGuard)
   @Roles(UserRole.ADMIN)
   @ApiBearerAuth('JWT-auth')
   @ApiOperation({ summary: 'Reject a menu item (Admin only)' })
@@ -483,7 +484,7 @@ export class FoodProviderController {
   }
 
   @Put('admin/menu-items/:id/toggle-status')
-  @UseGuards(AuthGuard, RolesGuard)
+  @UseGuards(JwtAuthGuard, RolesGuard)
   @Roles(UserRole.ADMIN)
   @ApiBearerAuth('JWT-auth')
   @ApiOperation({ summary: 'Toggle menu item active status (Admin only)' })
