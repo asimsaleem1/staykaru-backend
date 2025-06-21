@@ -29,6 +29,8 @@ import { User } from '../../user/schema/user.schema';
 import { UserService } from '../../user/services/user.service';
 import { ChangePasswordDto } from '../dto/change-password.dto';
 import { Document } from 'mongoose';
+import { LandlordRegistrationDto } from '../dto/landlord-registration.dto';
+import { FoodProviderRegistrationDto } from '../dto/food-provider-registration.dto';
 
 interface RequestWithUser extends Request {
   user: User & Document;
@@ -213,8 +215,8 @@ export class AuthController {
   })
   @ApiResponse({ status: 401, description: 'Invalid social media token' })
   async socialLogin(@Body() socialLoginDto: SocialLoginDto) {
-    const { provider, token } = socialLoginDto;
-    
+    const { provider, token, role } = socialLoginDto;
+
     let result;
     switch (provider) {
       case 'google':
@@ -224,22 +226,74 @@ export class AuthController {
         result = await this.authService.facebookLogin({ accessToken: token });
         break;
       default:
-        throw new BadRequestException('Only Google and Facebook login supported for students');
+        throw new BadRequestException(
+          'Only Google and Facebook login supported',
+        );
     }
 
-    // Automatically set role as student
-    if (result.user.role !== 'student') {
-      result.user.role = 'student';
-      await this.authService.updateUserRole(String(result.user.id), 'student');
+    // Set the selected role
+    const userId = String(result.user?.id || result.user?._id);
+    const currentRole = result.user?.role;
+    
+    if (currentRole !== role) {
+      await this.authService.updateUserRole(userId, role);
+      // Update the result object
+      if (result.user) {
+        result.user.role = role;
+      }
     }
 
-    // Check if student registration is complete
-    const isRegistrationComplete = result.user.university && result.user.studentId && result.user.phone;
+    // Check if registration is complete based on role
+    let isRegistrationComplete = false;
+    let redirectTo = '';
+
+    switch (role) {
+      case 'student':
+        isRegistrationComplete = Boolean(
+          result.user?.university &&
+            result.user?.studentId &&
+            result.user?.phone,
+        );
+        redirectTo = isRegistrationComplete
+          ? '/student/dashboard'
+          : '/student/complete-registration';
+        break;
+
+      case 'landlord':
+        isRegistrationComplete = Boolean(
+          result.user?.address &&
+            result.user?.identificationType &&
+            result.user?.identificationNumber &&
+            result.user?.phone,
+        );
+        redirectTo = isRegistrationComplete
+          ? '/landlord/dashboard'
+          : '/landlord/complete-registration';
+        break;
+
+      case 'food_provider':
+        isRegistrationComplete = Boolean(
+          result.user?.businessName &&
+            result.user?.address &&
+            result.user?.identificationType &&
+            result.user?.identificationNumber &&
+            result.user?.phone,
+        );
+        redirectTo = isRegistrationComplete
+          ? '/food-provider/dashboard'
+          : '/food-provider/complete-registration';
+        break;
+
+      default:
+        throw new BadRequestException('Invalid role selected');
+    }
     
     return {
-      ...result,
+      token: result.token,
+      user: result.user,
       needsRegistration: !isRegistrationComplete,
-      redirectTo: isRegistrationComplete ? '/student/dashboard' : '/student/complete-registration',
+      redirectTo,
+      role,
     };
   }
 
@@ -337,10 +391,10 @@ export class AuthController {
   @ApiResponse({ status: 400, description: 'Invalid input data' })
   @ApiResponse({ status: 401, description: 'Unauthorized' })
   async completeStudentRegistration(
-    @Request() req,
+    @Request() req: RequestWithUser,
     @Body() studentRegistrationDto: StudentRegistrationDto,
   ) {
-    const userId = String(req.user.id);
+    const userId = String(req.user.id || req.user._id);
     const updatedUser = await this.authService.completeStudentRegistration(
       userId,
       studentRegistrationDto,
@@ -351,5 +405,77 @@ export class AuthController {
       user: updatedUser,
       redirectTo: '/student/dashboard',
     };
+  }
+
+  @Post('complete-landlord-registration')
+  @UseGuards(JwtAuthGuard)
+  @HttpCode(HttpStatus.OK)
+  @ApiOperation({
+    summary: 'Complete landlord registration after social login',
+  })
+  @ApiResponse({
+    status: 200,
+    description: 'Landlord registration completed successfully',
+    schema: {
+      example: {
+        message: 'Landlord registration completed successfully',
+        user: {
+          id: '507f1f77bcf86cd799439011',
+          name: 'John Doe',
+          email: 'john.doe@example.com',
+          role: 'landlord',
+          registrationComplete: true,
+          phone: '+1234567890',
+          address: '123 Main Street, City',
+        },
+      },
+    },
+  })
+  @ApiResponse({ status: 400, description: 'Bad Request' })
+  @ApiResponse({ status: 401, description: 'Unauthorized' })
+  async completeLandlordRegistration(
+    @Request() req: RequestWithUser,
+    @Body() registrationDto: LandlordRegistrationDto,
+  ) {
+    return await this.authService.completeLandlordRegistration(
+      String(req.user.id),
+      registrationDto,
+    );
+  }
+
+  @Post('complete-food-provider-registration')
+  @UseGuards(JwtAuthGuard)
+  @HttpCode(HttpStatus.OK)
+  @ApiOperation({
+    summary: 'Complete food provider registration after social login',
+  })
+  @ApiResponse({
+    status: 200,
+    description: 'Food provider registration completed successfully',
+    schema: {
+      example: {
+        message: 'Food provider registration completed successfully',
+        user: {
+          id: '507f1f77bcf86cd799439011',
+          name: 'Jane Smith',
+          email: 'jane.smith@example.com',
+          role: 'food_provider',
+          registrationComplete: true,
+          phone: '+1234567890',
+          businessName: 'Delicious Food Corner',
+        },
+      },
+    },
+  })
+  @ApiResponse({ status: 400, description: 'Bad Request' })
+  @ApiResponse({ status: 401, description: 'Unauthorized' })
+  async completeFoodProviderRegistration(
+    @Request() req: RequestWithUser,
+    @Body() registrationDto: FoodProviderRegistrationDto,
+  ) {
+    return await this.authService.completeFoodProviderRegistration(
+      String(req.user.id),
+      registrationDto,
+    );
   }
 }

@@ -21,6 +21,13 @@ import { SocialAuthService } from './social-auth.service';
 import { FacebookLoginDto } from '../dto/facebook-login.dto';
 import { GoogleLoginDto } from '../dto/google-login.dto';
 import { StudentRegistrationDto } from '../dto/student-registration.dto';
+import { LandlordRegistrationDto } from '../dto/landlord-registration.dto';
+import { FoodProviderRegistrationDto } from '../dto/food-provider-registration.dto';
+
+interface ResetTokenPayload {
+  email: string;
+  type: string;
+}
 
 @Injectable()
 export class AuthService {
@@ -181,6 +188,7 @@ export class AuthService {
           phone: user.phone,
           gender: user.gender,
         },
+        redirectTo: '/student/dashboard', // Traditional login always redirects to student
       };
     } catch {
       throw new UnauthorizedException('Invalid email or password');
@@ -434,10 +442,7 @@ export class AuthService {
   async resetPassword(token: string, newPassword: string): Promise<void> {
     try {
       // Verify and decode the reset token
-      const decoded = this.jwtService.verify(token) as {
-        email: string;
-        type: string;
-      };
+      const decoded: ResetTokenPayload = this.jwtService.verify(token);
       if (decoded.type !== 'password-reset') {
         throw new BadRequestException('Invalid token type');
       }
@@ -497,33 +502,35 @@ export class AuthService {
         phone: registrationDto.phone,
         countryCode: registrationDto.countryCode,
         gender: registrationDto.gender,
-        identificationType: registrationDto.identificationType as IdentificationType,
-        identificationNumber: registrationDto.identificationNumber as string,
+        identificationType: IdentificationType.CNIC, // Default to CNIC for students
+        identificationNumber: registrationDto.studentId, // Use studentId as identification
         registrationComplete: true,
       };
 
       // Add optional fields if provided
-      if (registrationDto.profileImage) {
-        updateUserDto.profileImage = registrationDto.profileImage as string;
-      }
       if (registrationDto.university) {
         updateUserDto.university = registrationDto.university;
       }
-      if (registrationDto.course) {
-        updateUserDto.course = registrationDto.course as string;
+      if (registrationDto.program) {
+        updateUserDto.program = registrationDto.program;
       }
       if (registrationDto.yearOfStudy) {
         updateUserDto.yearOfStudy = registrationDto.yearOfStudy;
       }
-      if (registrationDto.emergencyContact) {
-        updateUserDto.emergencyContact =
-          registrationDto.emergencyContact as string;
+      if (registrationDto.dateOfBirth) {
+        updateUserDto.dateOfBirth = registrationDto.dateOfBirth;
       }
-      if (registrationDto.dietary) {
-        updateUserDto.dietary = registrationDto.dietary as string[];
+      if (registrationDto.emergencyContactName) {
+        updateUserDto.emergencyContactName =
+          registrationDto.emergencyContactName;
       }
-      if (registrationDto.allergies) {
-        updateUserDto.allergies = registrationDto.allergies as string[];
+      if (registrationDto.emergencyContactPhone) {
+        updateUserDto.emergencyContactPhone =
+          registrationDto.emergencyContactPhone;
+      }
+      if (registrationDto.emergencyContactRelationship) {
+        updateUserDto.emergencyContactRelationship =
+          registrationDto.emergencyContactRelationship;
       }
 
       const updatedUser = await this.userService.update(userId, updateUserDto);
@@ -537,9 +544,7 @@ export class AuthService {
           role: updatedUser.role,
           registrationComplete: Boolean(updatedUser.registrationComplete),
           phone: updatedUser.phone,
-          university: updatedUser.university
-            ? String(updatedUser.university)
-            : undefined,
+          university: updatedUser.university || undefined,
         },
       };
     } catch (error) {
@@ -550,6 +555,201 @@ export class AuthService {
         error instanceof Error
           ? error.message
           : 'Registration completion failed',
+      );
+    }
+  }
+
+  async completeLandlordRegistration(
+    userId: string,
+    registrationDto: LandlordRegistrationDto,
+  ) {
+    try {
+      // Find the user
+      const user = await this.userService.findById(userId);
+      if (!user) {
+        throw new BadRequestException('User not found');
+      }
+
+      // Check if user is a landlord
+      if (user.role !== UserRole.LANDLORD) {
+        throw new BadRequestException(
+          'Only landlords can complete this registration',
+        );
+      }
+
+      // Check if registration is already complete
+      if (user.registrationComplete) {
+        throw new BadRequestException('Registration already completed');
+      }
+
+      // Update user with registration data
+      const updateUserDto: UpdateUserDto = {
+        phone: registrationDto.phone,
+        countryCode: registrationDto.countryCode,
+        gender: registrationDto.gender,
+        address: registrationDto.address,
+        identificationType:
+          registrationDto.identificationType as IdentificationType,
+        identificationNumber: registrationDto.identificationNumber,
+        registrationComplete: true,
+      };
+
+      // Add optional fields if provided
+      if (registrationDto.businessLicense) {
+        updateUserDto.businessLicense = registrationDto.businessLicense;
+      }
+      if (registrationDto.yearsOfExperience !== undefined) {
+        updateUserDto.yearsOfExperience = registrationDto.yearsOfExperience;
+      }
+      if (registrationDto.propertyTypes) {
+        updateUserDto.propertyTypes = registrationDto.propertyTypes;
+      }
+      if (registrationDto.emergencyContactName) {
+        updateUserDto.emergencyContactName =
+          registrationDto.emergencyContactName;
+      }
+      if (registrationDto.emergencyContactPhone) {
+        updateUserDto.emergencyContactPhone =
+          registrationDto.emergencyContactPhone;
+      }
+      if (registrationDto.emergencyContactRelationship) {
+        updateUserDto.emergencyContactRelationship =
+          registrationDto.emergencyContactRelationship;
+      }
+
+      const updatedUser = await this.userService.update(userId, updateUserDto);
+
+      return {
+        message: 'Landlord registration completed successfully',
+        user: {
+          id: updatedUser._id,
+          name: updatedUser.name,
+          email: updatedUser.email,
+          role: updatedUser.role,
+          registrationComplete: Boolean(updatedUser.registrationComplete),
+          phone: updatedUser.phone,
+          address: updatedUser.address,
+        },
+      };
+    } catch (error) {
+      if (error instanceof BadRequestException) {
+        throw error;
+      }
+      throw new BadRequestException(
+        error instanceof Error
+          ? error.message
+          : 'Landlord registration completion failed',
+      );
+    }
+  }
+
+  async completeFoodProviderRegistration(
+    userId: string,
+    registrationDto: FoodProviderRegistrationDto,
+  ) {
+    try {
+      // Find the user
+      const user = await this.userService.findById(userId);
+      if (!user) {
+        throw new BadRequestException('User not found');
+      }
+
+      // Check if user is a food provider
+      if (user.role !== UserRole.FOOD_PROVIDER) {
+        throw new BadRequestException(
+          'Only food providers can complete this registration',
+        );
+      }
+
+      // Check if registration is already complete
+      if (user.registrationComplete) {
+        throw new BadRequestException('Registration already completed');
+      }
+
+      // Update user with registration data
+      const updateUserDto: UpdateUserDto = {
+        phone: registrationDto.phone,
+        countryCode: registrationDto.countryCode,
+        gender: registrationDto.gender,
+        address: registrationDto.address,
+        identificationType:
+          registrationDto.identificationType as IdentificationType,
+        identificationNumber: registrationDto.identificationNumber,
+        businessName: registrationDto.businessName,
+        registrationComplete: true,
+      };
+
+      // Add optional fields if provided
+      if (registrationDto.foodLicense) {
+        updateUserDto.foodLicense = registrationDto.foodLicense;
+      }
+      if (registrationDto.businessRegistration) {
+        updateUserDto.businessRegistration =
+          registrationDto.businessRegistration;
+      }
+      if (registrationDto.cuisineTypes) {
+        updateUserDto.cuisineTypes = registrationDto.cuisineTypes;
+      }
+      if (registrationDto.yearsOfExperience !== undefined) {
+        updateUserDto.yearsOfExperience = registrationDto.yearsOfExperience;
+      }
+      if (registrationDto.averageDeliveryTime !== undefined) {
+        updateUserDto.averageDeliveryTime = registrationDto.averageDeliveryTime;
+      }
+      if (registrationDto.minimumOrder !== undefined) {
+        updateUserDto.minimumOrder = registrationDto.minimumOrder;
+      }
+      if (registrationDto.operatingHours) {
+        updateUserDto.operatingHours = registrationDto.operatingHours;
+      }
+      if (registrationDto.emergencyContactName) {
+        updateUserDto.emergencyContactName =
+          registrationDto.emergencyContactName;
+      }
+      if (registrationDto.emergencyContactPhone) {
+        updateUserDto.emergencyContactPhone =
+          registrationDto.emergencyContactPhone;
+      }
+      if (registrationDto.emergencyContactRelationship) {
+        updateUserDto.emergencyContactRelationship =
+          registrationDto.emergencyContactRelationship;
+      }
+
+      const updatedUser = await this.userService.update(userId, updateUserDto);
+
+      return {
+        message: 'Food provider registration completed successfully',
+        user: {
+          id: updatedUser._id,
+          name: updatedUser.name,
+          email: updatedUser.email,
+          role: updatedUser.role,
+          registrationComplete: Boolean(updatedUser.registrationComplete),
+          phone: updatedUser.phone,
+          businessName: updatedUser.businessName,
+        },
+      };
+    } catch (error) {
+      if (error instanceof BadRequestException) {
+        throw error;
+      }
+      throw new BadRequestException(
+        error instanceof Error
+          ? error.message
+          : 'Food provider registration completion failed',
+      );
+    }
+  }
+
+  async updateUserRole(userId: string, role: string) {
+    try {
+      const updateUserDto: UpdateUserDto = {
+        role: role as UserRole,
+      };
+      return await this.userService.update(userId, updateUserDto);
+    } catch (error) {
+      throw new BadRequestException(
+        error instanceof Error ? error.message : 'Failed to update user role',
       );
     }
   }

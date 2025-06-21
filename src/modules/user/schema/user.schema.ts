@@ -54,6 +54,66 @@ export class User extends Document {
   @Prop()
   identificationNumber?: string; // CNIC or Passport number
 
+  // Student-specific fields
+  @Prop({ default: false })
+  registrationComplete: boolean; // Registration completion status
+
+  @Prop()
+  university?: string; // University name
+
+  @Prop()
+  studentId?: string; // Student ID
+
+  @Prop()
+  program?: string; // Study program or major
+
+  @Prop()
+  yearOfStudy?: string; // Year of study
+
+  @Prop()
+  dateOfBirth?: string; // Date of birth
+
+  @Prop()
+  emergencyContactName?: string; // Emergency contact name
+
+  @Prop()
+  emergencyContactPhone?: string; // Emergency contact phone
+
+  @Prop()
+  emergencyContactRelationship?: string; // Emergency contact relationship
+
+  // Landlord-specific fields
+  @Prop()
+  businessLicense?: string; // Business license number
+
+  @Prop()
+  yearsOfExperience?: number; // Years of experience
+
+  @Prop({ type: [String] })
+  propertyTypes?: string[]; // Property types managed
+
+  // Food Provider-specific fields
+  @Prop()
+  businessName?: string; // Restaurant/Business name
+
+  @Prop()
+  foodLicense?: string; // Food license number
+
+  @Prop()
+  businessRegistration?: string; // Business registration number
+
+  @Prop({ type: [String] })
+  cuisineTypes?: string[]; // Types of cuisine offered
+
+  @Prop()
+  averageDeliveryTime?: number; // Average delivery time in minutes
+
+  @Prop()
+  minimumOrder?: number; // Minimum order amount
+
+  @Prop()
+  operatingHours?: string; // Operating hours
+
   // Social login fields
   @Prop()
   facebookId?: string; // Facebook user ID

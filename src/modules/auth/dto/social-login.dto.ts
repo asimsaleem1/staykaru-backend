@@ -19,6 +19,14 @@ export class SocialLoginDto {
   @IsString()
   @IsNotEmpty()
   token: string;
-  // Role is automatically set to 'student' for this simplified flow
-  // No need for role selection input
+
+  @ApiProperty({
+    description: 'User role selection',
+    example: 'student',
+    enum: ['student', 'landlord', 'food_provider'],
+  })
+  @IsString()
+  @IsNotEmpty()
+  @IsIn(['student', 'landlord', 'food_provider'])
+  role: string;
 }
