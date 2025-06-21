@@ -13,6 +13,12 @@ export enum IdentificationType {
   PASSPORT = 'passport',
 }
 
+export enum SocialProvider {
+  EMAIL = 'email',
+  FACEBOOK = 'facebook',
+  GOOGLE = 'google',
+}
+
 @Schema({ timestamps: true })
 export class User extends Document {
   @Prop({ required: true })
@@ -48,26 +54,42 @@ export class User extends Document {
   @Prop()
   identificationNumber?: string; // CNIC or Passport number
 
-  @Prop({ type: [String], default: [] })
-  fcmTokens: string[]; // Array to support multiple devices per user
+  // Social login fields
+  @Prop()
+  facebookId?: string; // Facebook user ID
+
+  @Prop()
+  googleId?: string; // Google user ID
+
+  @Prop({ enum: SocialProvider, default: SocialProvider.EMAIL })
+  socialProvider: SocialProvider; // Login method used
+
+  @Prop({ default: false })
+  isEmailVerified: boolean; // Email verification status
 
   @Prop({ default: true })
   isActive: boolean;
 
-  @Prop({ type: MongooseSchema.Types.ObjectId, ref: 'User' })
-  deactivatedBy?: User;
-
-  @Prop()
-  deactivatedAt?: Date;
-
-  @Prop()
-  deactivationReason?: string;
+  // Authentication tracking
+  @Prop({ default: 0 })
+  failedLoginAttempts: number;
 
   @Prop()
   lastLoginAt?: Date;
 
-  @Prop({ default: 0 })
-  failedLoginAttempts: number;
+  // Account deactivation tracking
+  @Prop()
+  deactivatedAt?: Date;
+
+  @Prop({ type: MongooseSchema.Types.ObjectId, ref: 'User' })
+  deactivatedBy?: string;
+
+  @Prop()
+  deactivationReason?: string;
+
+  // FCM tokens for push notifications
+  @Prop({ type: [String], default: [] })
+  fcmTokens: string[];
 }
 
 export const UserSchema = SchemaFactory.createForClass(User);

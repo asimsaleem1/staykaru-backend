@@ -32,4 +32,28 @@ export class UpdateUserDto {
   @IsString()
   @IsOptional()
   password?: string;
+
+  // Social login fields
+  @ApiProperty({ example: 'facebook_user_id_123', required: false })
+  @IsString()
+  @IsOptional()
+  facebookId?: string;
+
+  @ApiProperty({ example: 'google_user_id_456', required: false })
+  @IsString()
+  @IsOptional()
+  googleId?: string;
+
+  @ApiProperty({ enum: ['email', 'facebook', 'google'], example: 'email', required: false })
+  @IsString()
+  @IsOptional()
+  socialProvider?: string;
+
+  @ApiProperty({ example: true, required: false })
+  @IsOptional()
+  isEmailVerified?: boolean;
+
+  @ApiProperty({ example: true, required: false })
+  @IsOptional()
+  isActive?: boolean;
 }

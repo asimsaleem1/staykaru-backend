@@ -11,7 +11,10 @@ import { LoginDto } from '../dto/login.dto';
 import { UserService } from '../../user/services/user.service';
 import { CreateUserDto } from '../../user/dto/create-user.dto';
 import { UpdateUserDto } from '../../user/dto/update-user.dto';
-import { UserRole, IdentificationType } from '../../user/schema/user.schema';
+import { UserRole, IdentificationType, SocialProvider } from '../../user/schema/user.schema';
+import { SocialAuthService, FacebookUserData, GoogleUserData } from './social-auth.service';
+import { FacebookLoginDto } from '../dto/facebook-login.dto';
+import { GoogleLoginDto } from '../dto/google-login.dto';
 
 @Injectable()
 export class AuthService {
@@ -19,6 +22,7 @@ export class AuthService {
     private configService: ConfigService,
     private userService: UserService,
     private jwtService: JwtService,
+    private socialAuthService: SocialAuthService,
   ) {}
 
   async register(registerDto: RegisterDto) {
@@ -174,6 +178,170 @@ export class AuthService {
       };
     } catch {
       throw new UnauthorizedException('Invalid email or password');
+    }
+  }
+
+  /**
+   * Handle Facebook login
+   */
+  async facebookLogin(facebookLoginDto: FacebookLoginDto) {
+    try {
+      // Verify Facebook access token
+      const facebookUserData = await this.socialAuthService.verifyFacebookToken(
+        facebookLoginDto.accessToken,
+      );
+
+      this.socialAuthService.validateSocialUserData(facebookUserData, 'facebook');
+
+      // Check if user exists by Facebook ID
+      let user = await this.userService.findByFacebookId(facebookUserData.id);
+
+      if (!user) {
+        // Check if user exists by email
+        user = await this.userService.findByEmail(facebookUserData.email);
+
+        if (user) {
+          // Link Facebook account to existing user
+          await this.userService.update(user.id, {
+            facebookId: facebookUserData.id,
+            socialProvider: SocialProvider.FACEBOOK,
+            isEmailVerified: true,
+          });
+        } else {
+          // Create new user from Facebook data
+          const createUserDto: CreateUserDto = {
+            name: facebookUserData.name,
+            email: facebookUserData.email,
+            password: '', // No password for social login
+            role: UserRole.STUDENT, // Default role
+            phone: '', // Will be required to complete profile
+            countryCode: '+1', // Default country code
+            gender: 'other', // Will be required to complete profile
+            profileImage: facebookUserData.picture?.data?.url || '',
+            identificationType: IdentificationType.CNIC,
+            identificationNumber: '',
+            facebookId: facebookUserData.id,
+            socialProvider: SocialProvider.FACEBOOK,
+            isEmailVerified: true,
+            isActive: true,
+          };
+
+          user = await this.userService.create(createUserDto);
+        }
+      }
+
+      // Generate JWT token
+      const payload = {
+        email: user.email,
+        sub: user.id,
+        role: user.role,
+      };
+
+      const access_token = this.jwtService.sign(payload);
+
+      return {
+        message: 'Facebook login successful',
+        access_token,
+        user: {
+          id: user.id,
+          name: user.name,
+          email: user.email,
+          role: user.role,
+          phone: user.phone,
+          countryCode: user.countryCode,
+          gender: user.gender,
+          profileImage: user.profileImage,
+          socialProvider: user.socialProvider,
+          isEmailVerified: user.isEmailVerified,
+        },
+      };
+    } catch (error) {
+      if (error instanceof UnauthorizedException || error instanceof BadRequestException) {
+        throw error;
+      }
+      throw new BadRequestException('Facebook login failed');
+    }
+  }
+
+  /**
+   * Handle Google login
+   */
+  async googleLogin(googleLoginDto: GoogleLoginDto) {
+    try {
+      // Verify Google ID token
+      const googleUserData = await this.socialAuthService.verifyGoogleToken(
+        googleLoginDto.idToken,
+      );
+
+      this.socialAuthService.validateSocialUserData(googleUserData, 'google');
+
+      // Check if user exists by Google ID
+      let user = await this.userService.findByGoogleId(googleUserData.sub);
+
+      if (!user) {
+        // Check if user exists by email
+        user = await this.userService.findByEmail(googleUserData.email);
+
+        if (user) {
+          // Link Google account to existing user
+          await this.userService.update(user.id, {
+            googleId: googleUserData.sub,
+            socialProvider: SocialProvider.GOOGLE,
+            isEmailVerified: googleUserData.email_verified,
+          });
+        } else {
+          // Create new user from Google data
+          const createUserDto: CreateUserDto = {
+            name: googleUserData.name,
+            email: googleUserData.email,
+            password: '', // No password for social login
+            role: UserRole.STUDENT, // Default role
+            phone: '', // Will be required to complete profile
+            countryCode: '+1', // Default country code
+            gender: 'other', // Will be required to complete profile
+            profileImage: googleUserData.picture || '',
+            identificationType: IdentificationType.CNIC,
+            identificationNumber: '',
+            googleId: googleUserData.sub,
+            socialProvider: SocialProvider.GOOGLE,
+            isEmailVerified: googleUserData.email_verified,
+            isActive: true,
+          };
+
+          user = await this.userService.create(createUserDto);
+        }
+      }
+
+      // Generate JWT token
+      const payload = {
+        email: user.email,
+        sub: user.id,
+        role: user.role,
+      };
+
+      const access_token = this.jwtService.sign(payload);
+
+      return {
+        message: 'Google login successful',
+        access_token,
+        user: {
+          id: user.id,
+          name: user.name,
+          email: user.email,
+          role: user.role,
+          phone: user.phone,
+          countryCode: user.countryCode,
+          gender: user.gender,
+          profileImage: user.profileImage,
+          socialProvider: user.socialProvider,
+          isEmailVerified: user.isEmailVerified,
+        },
+      };
+    } catch (error) {
+      if (error instanceof UnauthorizedException || error instanceof BadRequestException) {
+        throw error;
+      }
+      throw new BadRequestException('Google login failed');
     }
   }
 

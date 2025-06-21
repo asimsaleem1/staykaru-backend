@@ -6,6 +6,7 @@ import {
   IsNotEmpty,
   IsUrl,
   Matches,
+  IsBoolean,
 } from 'class-validator';
 import { ApiProperty } from '@nestjs/swagger';
 import { UserRole, IdentificationType } from '../schema/user.schema';
@@ -75,4 +76,34 @@ export class CreateUserDto {
   @IsString()
   @IsOptional()
   identificationNumber?: string;
+
+  // Social login fields
+  @ApiProperty({ example: 'facebook_user_id_123', required: false })
+  @IsString()
+  @IsOptional()
+  facebookId?: string;
+
+  @ApiProperty({ example: 'google_user_id_456', required: false })
+  @IsString()
+  @IsOptional()
+  googleId?: string;
+
+  @ApiProperty({
+    enum: ['email', 'facebook', 'google'],
+    example: 'email',
+    required: false,
+  })
+  @IsString()
+  @IsOptional()
+  socialProvider?: string;
+
+  @ApiProperty({ example: true, required: false })
+  @IsBoolean()
+  @IsOptional()
+  isEmailVerified?: boolean;
+
+  @ApiProperty({ example: true, required: false })
+  @IsBoolean()
+  @IsOptional()
+  isActive?: boolean;
 }
