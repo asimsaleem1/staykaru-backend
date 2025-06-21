@@ -34,12 +34,19 @@ export interface GoogleUserData {
 @Injectable()
 export class SocialAuthService {
   private googleClient: OAuth2Client;
-
   constructor(private configService: ConfigService) {
     // Initialize Google OAuth client
     const googleClientId = this.configService.get<string>('GOOGLE_CLIENT_ID');
     if (googleClientId) {
       this.googleClient = new OAuth2Client(googleClientId);
+    } else {
+      console.warn('Google OAuth not configured - GOOGLE_CLIENT_ID missing');
+    }
+
+    // Validate Facebook configuration
+    const facebookAppId = this.configService.get<string>('FACEBOOK_APP_ID');
+    if (!facebookAppId) {
+      console.warn('Facebook OAuth not configured - FACEBOOK_APP_ID missing');
     }
   }
   /**

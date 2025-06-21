@@ -478,4 +478,31 @@ export class AuthController {
       registrationDto,
     );
   }
+
+  @Get('oauth-status')
+  @ApiOperation({ summary: 'Check OAuth configuration status' })
+  @ApiResponse({
+    status: 200,
+    description: 'OAuth configuration status',
+    schema: {
+      example: {
+        google: { configured: true },
+        facebook: { configured: true },
+        message: 'OAuth providers are configured and ready',
+      },
+    },
+  })
+  getOAuthStatus() {
+    const googleConfigured = Boolean(process.env.GOOGLE_CLIENT_ID);
+    const facebookConfigured = Boolean(process.env.FACEBOOK_APP_ID);
+    
+    return {
+      google: { configured: googleConfigured },
+      facebook: { configured: facebookConfigured },
+      message:
+        googleConfigured && facebookConfigured
+          ? 'OAuth providers are configured and ready'
+          : 'Some OAuth providers need configuration. Check your .env file.',
+    };
+  }
 }
