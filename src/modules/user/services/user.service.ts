@@ -66,7 +66,7 @@ export class UserService {
   }
 
   async findAll(role?: UserRole, search?: string): Promise<User[]> {
-    const query: any = {};
+    const query: Record<string, any> = {};
 
     if (role) {
       query.role = role;
@@ -249,8 +249,8 @@ export class UserService {
       const userObject = user.toObject() as Record<string, any>;
       return {
         ...userObject,
-        phone: userObject.phone || undefined,
-        address: userObject.address || undefined,
+        phone: (userObject.phone as string) || undefined,
+        address: (userObject.address as string) || undefined,
       } as User;
     }
   }
@@ -461,7 +461,7 @@ export class UserService {
     }
 
     user.isActive = false;
-    user.deactivatedBy = adminId as any;
+    user.deactivatedBy = adminId;
     user.deactivatedAt = new Date();
     user.deactivationReason = reason;
 
@@ -529,8 +529,8 @@ export class UserService {
         isActive: user.isActive,
         lastLoginAt: user.lastLoginAt,
         failedLoginAttempts: user.failedLoginAttempts,
-        createdAt: (user as any).createdAt,
-        updatedAt: (user as any).updatedAt,
+        createdAt: user.createdAt,
+        updatedAt: user.updatedAt,
       },
       deactivation: user.deactivatedAt
         ? {
@@ -570,7 +570,7 @@ export class UserService {
         deactivatedAt: user.deactivatedAt,
         deactivatedBy: user.deactivatedBy,
         deactivationReason: user.deactivationReason,
-        createdAt: (user as any).createdAt,
+        createdAt: user.createdAt,
       })),
       totalCount: suspiciousUsers.length,
     };
@@ -590,32 +590,38 @@ export class UserService {
   }
 
   // Landlord specific methods
-  async getLandlordBookings(landlordId: string): Promise<any[]> {
+  // eslint-disable-next-line @typescript-eslint/no-unused-vars
+  getLandlordBookings(_landlordId: string): Promise<any[]> {
     // This would require integration with booking service
     // For now, return mock data
-    return [];
+    // TODO: Implement actual booking integration with landlordId
+    return Promise.resolve([]);
   }
 
-  async getLandlordStatistics(landlordId: string): Promise<any> {
+  // eslint-disable-next-line @typescript-eslint/no-unused-vars
+  getLandlordStatistics(_landlordId: string): Promise<any> {
     // This would require integration with booking service
     // For now, return mock data
-    return {
+    // TODO: Implement actual statistics calculation with landlordId
+    return Promise.resolve({
       totalBookings: 0,
       activeBookings: 0,
       completedBookings: 0,
       cancelledBookings: 0,
       totalRevenue: 0,
-    };
+    });
   }
 
-  async getLandlordRevenue(landlordId: string): Promise<any> {
+  // eslint-disable-next-line @typescript-eslint/no-unused-vars
+  getLandlordRevenue(_landlordId: string): Promise<any> {
     // This would require integration with booking service
     // For now, return mock data
-    return {
+    // TODO: Implement actual revenue calculation with landlordId
+    return Promise.resolve({
       monthlyRevenue: [],
       totalRevenue: 0,
       averageBookingValue: 0,
-    };
+    });
   }
 
   async getLandlordProfile(landlordId: string): Promise<any> {
@@ -648,7 +654,7 @@ export class UserService {
         throw error;
       }
       throw new BadRequestException(
-        `Failed to get user profile: ${error.message}`,
+        `Failed to get user profile: ${error instanceof Error ? error.message : 'Unknown error'}`,
       );
     }
   }
@@ -729,7 +735,7 @@ export class UserService {
         throw error;
       }
       throw new BadRequestException(
-        `Failed to update profile: ${error.message}`,
+        `Failed to update profile: ${error instanceof Error ? error.message : 'Unknown error'}`,
       );
     }
   }

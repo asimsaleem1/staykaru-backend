@@ -1,6 +1,6 @@
 import { IsString, IsEnum, IsOptional, IsEmail } from 'class-validator';
 import { ApiProperty } from '@nestjs/swagger';
-import { UserRole } from '../schema/user.schema';
+import { UserRole, SocialProvider } from '../schema/user.schema';
 
 export class UpdateUserDto {
   @ApiProperty({ example: 'John Doe', required: false })
@@ -44,10 +44,14 @@ export class UpdateUserDto {
   @IsOptional()
   googleId?: string;
 
-  @ApiProperty({ enum: ['email', 'facebook', 'google'], example: 'email', required: false })
-  @IsString()
+  @ApiProperty({
+    enum: ['email', 'facebook', 'google'],
+    example: 'email',
+    required: false,
+  })
+  @IsEnum(SocialProvider)
   @IsOptional()
-  socialProvider?: string;
+  socialProvider?: SocialProvider;
 
   @ApiProperty({ example: true, required: false })
   @IsOptional()

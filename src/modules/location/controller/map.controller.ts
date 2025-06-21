@@ -145,12 +145,7 @@ export class MapController {
           place_id: 'ChIJN1t_tDeuEmsRUsoyG83frY4',
           name: 'Restaurant Example',
           formatted_address: 'Karachi, Pakistan',
-          geometry: {
-            location: {
-              lat: 24.8607,
-              lng: 67.0011,
-            },
-          },
+          geometry: { location: { lat: 24.8607, lng: 67.0011 } },
           rating: 4.5,
           types: ['restaurant', 'food', 'establishment'],
         },
@@ -183,7 +178,7 @@ export class MapController {
       },
     },
   })
-  async trackOrder(@Body() trackOrderDto: TrackOrderDto) {
+  trackOrder(@Body() trackOrderDto: TrackOrderDto) {
     return this.mapService.trackOrder(
       trackOrderDto.orderId,
       trackOrderDto.location,

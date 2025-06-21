@@ -11,8 +11,12 @@ import { LoginDto } from '../dto/login.dto';
 import { UserService } from '../../user/services/user.service';
 import { CreateUserDto } from '../../user/dto/create-user.dto';
 import { UpdateUserDto } from '../../user/dto/update-user.dto';
-import { UserRole, IdentificationType, SocialProvider } from '../../user/schema/user.schema';
-import { SocialAuthService, FacebookUserData, GoogleUserData } from './social-auth.service';
+import {
+  UserRole,
+  IdentificationType,
+  SocialProvider,
+} from '../../user/schema/user.schema';
+import { SocialAuthService } from './social-auth.service';
 import { FacebookLoginDto } from '../dto/facebook-login.dto';
 import { GoogleLoginDto } from '../dto/google-login.dto';
 
@@ -191,7 +195,10 @@ export class AuthService {
         facebookLoginDto.accessToken,
       );
 
-      this.socialAuthService.validateSocialUserData(facebookUserData, 'facebook');
+      this.socialAuthService.validateSocialUserData(
+        facebookUserData,
+        'facebook',
+      );
 
       // Check if user exists by Facebook ID
       let user = await this.userService.findByFacebookId(facebookUserData.id);
@@ -202,7 +209,7 @@ export class AuthService {
 
         if (user) {
           // Link Facebook account to existing user
-          await this.userService.update(user.id, {
+          await this.userService.update(String(user.id), {
             facebookId: facebookUserData.id,
             socialProvider: SocialProvider.FACEBOOK,
             isEmailVerified: true,
@@ -233,7 +240,7 @@ export class AuthService {
       // Generate JWT token
       const payload = {
         email: user.email,
-        sub: user.id,
+        sub: String(user.id),
         role: user.role,
       };
 
@@ -243,7 +250,7 @@ export class AuthService {
         message: 'Facebook login successful',
         access_token,
         user: {
-          id: user.id,
+          id: String(user.id),
           name: user.name,
           email: user.email,
           role: user.role,
@@ -256,7 +263,10 @@ export class AuthService {
         },
       };
     } catch (error) {
-      if (error instanceof UnauthorizedException || error instanceof BadRequestException) {
+      if (
+        error instanceof UnauthorizedException ||
+        error instanceof BadRequestException
+      ) {
         throw error;
       }
       throw new BadRequestException('Facebook login failed');
@@ -284,7 +294,7 @@ export class AuthService {
 
         if (user) {
           // Link Google account to existing user
-          await this.userService.update(user.id, {
+          await this.userService.update(String(user.id), {
             googleId: googleUserData.sub,
             socialProvider: SocialProvider.GOOGLE,
             isEmailVerified: googleUserData.email_verified,
@@ -315,7 +325,7 @@ export class AuthService {
       // Generate JWT token
       const payload = {
         email: user.email,
-        sub: user.id,
+        sub: String(user.id),
         role: user.role,
       };
 
@@ -325,7 +335,7 @@ export class AuthService {
         message: 'Google login successful',
         access_token,
         user: {
-          id: user.id,
+          id: String(user.id),
           name: user.name,
           email: user.email,
           role: user.role,
@@ -338,7 +348,10 @@ export class AuthService {
         },
       };
     } catch (error) {
-      if (error instanceof UnauthorizedException || error instanceof BadRequestException) {
+      if (
+        error instanceof UnauthorizedException ||
+        error instanceof BadRequestException
+      ) {
         throw error;
       }
       throw new BadRequestException('Google login failed');
