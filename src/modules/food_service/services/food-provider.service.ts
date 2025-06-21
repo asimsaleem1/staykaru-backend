@@ -374,4 +374,213 @@ export class FoodProviderService {
       },
     };
   }
+
+  // Admin methods for food provider management
+  async getPendingFoodProviders() {
+    return this.foodProviderModel
+      .find({ approvalStatus: 'pending' })
+      .populate(['location', 'owner'])
+      .sort({ createdAt: -1 })
+      .exec();
+  }
+
+  async getAllForAdmin() {
+    return this.foodProviderModel
+      .find({})
+      .populate(['location', 'owner', 'approvedBy'])
+      .sort({ createdAt: -1 })
+      .exec();
+  }
+
+  async approveFoodProvider(providerId: string, adminId: string) {
+    const provider = await this.foodProviderModel.findById(providerId);
+    
+    if (!provider) {
+      throw new NotFoundException(`Food provider with ID ${providerId} not found`);
+    }
+
+    provider.approvalStatus = 'approved';
+    provider.is_active = true;
+    provider.approvedBy = adminId as any;
+    provider.approvedAt = new Date();
+    provider.rejectionReason = undefined;
+
+    await provider.save();
+    await this.clearCache(providerId);
+
+    return {
+      message: 'Food provider approved successfully',
+      provider: await provider.populate(['location', 'owner', 'approvedBy']),
+    };
+  }
+
+  async rejectFoodProvider(providerId: string, reason: string, adminId: string) {
+    const provider = await this.foodProviderModel.findById(providerId);
+    
+    if (!provider) {
+      throw new NotFoundException(`Food provider with ID ${providerId} not found`);
+    }
+
+    provider.approvalStatus = 'rejected';
+    provider.is_active = false;
+    provider.approvedBy = adminId as any;
+    provider.approvedAt = new Date();
+    provider.rejectionReason = reason;
+
+    await provider.save();
+    await this.clearCache(providerId);
+
+    return {
+      message: 'Food provider rejected successfully',
+      provider: await provider.populate(['location', 'owner', 'approvedBy']),
+    };
+  }
+
+  async toggleActiveStatus(providerId: string) {
+    const provider = await this.foodProviderModel.findById(providerId);
+    
+    if (!provider) {
+      throw new NotFoundException(`Food provider with ID ${providerId} not found`);
+    }
+
+    // Only allow toggling if provider is approved
+    if (provider.approvalStatus !== 'approved') {
+      throw new ForbiddenException('Can only toggle status of approved food providers');
+    }
+
+    provider.is_active = !provider.is_active;
+    await provider.save();
+    await this.clearCache(providerId);
+
+    return {
+      message: `Food provider ${provider.is_active ? 'activated' : 'deactivated'} successfully`,
+      provider: await provider.populate(['location', 'owner']),
+    };
+  }
+
+  async getFoodProviderForAdmin(providerId: string) {
+    const provider = await this.foodProviderModel
+      .findById(providerId)
+      .populate(['location', 'owner', 'approvedBy'])
+      .exec();
+
+    if (!provider) {
+      throw new NotFoundException(`Food provider with ID ${providerId} not found`);
+    }
+
+    // Get additional statistics for admin review
+    const stats = await this.getFoodProviderStats(providerId);
+
+    return {
+      provider,
+      stats,
+    };
+  }
+
+  private async getFoodProviderStats(providerId: string) {
+    // Get order statistics
+    const totalOrders = await this.orderModel.countDocuments({
+      food_provider: providerId,
+    });
+
+    const activeOrders = await this.orderModel.countDocuments({
+      food_provider: providerId,
+      status: OrderStatus.PLACED,
+    });
+
+    const completedOrders = await this.orderModel.countDocuments({
+      food_provider: providerId,
+      status: OrderStatus.DELIVERED,
+    });
+
+    const totalMenuItems = await this.menuItemModel.countDocuments({
+      provider: providerId,
+    });
+
+    const activeMenuItems = await this.menuItemModel.countDocuments({
+      provider: providerId,
+      isActive: true,
+      approvalStatus: 'approved',
+    });
+
+    return {
+      totalOrders,
+      activeOrders,
+      completedOrders,
+      totalMenuItems,
+      activeMenuItems,
+    };
+  }
+
+  // Admin methods for menu item management
+  async getPendingMenuItems() {
+    return this.menuItemModel
+      .find({ approvalStatus: 'pending' })
+      .populate(['provider'])
+      .sort({ createdAt: -1 })
+      .exec();
+  }
+
+  async approveMenuItem(menuItemId: string, adminId: string) {
+    const menuItem = await this.menuItemModel.findById(menuItemId);
+    
+    if (!menuItem) {
+      throw new NotFoundException(`Menu item with ID ${menuItemId} not found`);
+    }
+
+    menuItem.approvalStatus = 'approved';
+    menuItem.isActive = true;
+    menuItem.approvedBy = adminId as any;
+    menuItem.approvedAt = new Date();
+    menuItem.rejectionReason = undefined;
+
+    await menuItem.save();
+
+    return {
+      message: 'Menu item approved successfully',
+      menuItem: await menuItem.populate(['provider']),
+    };
+  }
+
+  async rejectMenuItem(menuItemId: string, reason: string, adminId: string) {
+    const menuItem = await this.menuItemModel.findById(menuItemId);
+    
+    if (!menuItem) {
+      throw new NotFoundException(`Menu item with ID ${menuItemId} not found`);
+    }
+
+    menuItem.approvalStatus = 'rejected';
+    menuItem.isActive = false;
+    menuItem.approvedBy = adminId as any;
+    menuItem.approvedAt = new Date();
+    menuItem.rejectionReason = reason;
+
+    await menuItem.save();
+
+    return {
+      message: 'Menu item rejected successfully',
+      menuItem: await menuItem.populate(['provider']),
+    };
+  }
+
+  async toggleMenuItemStatus(menuItemId: string) {
+    const menuItem = await this.menuItemModel.findById(menuItemId);
+    
+    if (!menuItem) {
+      throw new NotFoundException(`Menu item with ID ${menuItemId} not found`);
+    }
+
+    // Only allow toggling if menu item is approved
+    if (menuItem.approvalStatus !== 'approved') {
+      throw new ForbiddenException('Can only toggle status of approved menu items');
+    }
+
+    menuItem.isActive = !menuItem.isActive;
+    await menuItem.save();
+
+    return {
+      message: `Menu item ${menuItem.isActive ? 'activated' : 'deactivated'} successfully`,
+      menuItem: await menuItem.populate(['provider']),
+    };
+  }
 }

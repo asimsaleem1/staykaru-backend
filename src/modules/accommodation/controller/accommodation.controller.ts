@@ -10,6 +10,9 @@ import {
   Request,
   UseGuards,
 } from '@nestjs/common';
+import { RolesGuard } from '../../user/guards/roles.guard';
+import { Roles } from '../../user/decorators/roles.decorator';
+import { UserRole } from '../../user/schema/user.schema';
 import {
   ApiTags,
   ApiOperation,
@@ -345,5 +348,166 @@ export class AccommodationController {
     const landlordId =
       typeof req.user._id === 'string' ? req.user._id : req.user._id.toString();
     return this.accommodationService.getLandlordAnalytics(landlordId, days);
+  }
+
+  // Admin-specific endpoints
+
+  @Get('admin/all-accommodations')
+  @UseGuards(AuthGuard, RolesGuard)
+  @Roles(UserRole.ADMIN)
+  @ApiBearerAuth('JWT-auth')
+  @ApiOperation({ summary: 'Get all accommodations (admin view)' })
+  @ApiResponse({
+    status: 200,
+    description: 'Returns all accommodations for admin',
+  })
+  async getAllAccommodations(@Request() req: RequestWithUser) {
+    return this.accommodationService.findAll({});
+  }
+
+  @Get('admin/accommodation-approval/:id')
+  @UseGuards(AuthGuard, RolesGuard)
+  @Roles(UserRole.ADMIN)
+  @ApiBearerAuth('JWT-auth')
+  @ApiOperation({ summary: 'Get accommodation details for approval (admin)' })
+  @ApiParam({ name: 'id', description: 'Accommodation ID' })
+  @ApiResponse({
+    status: 200,
+    description: 'Returns accommodation details for approval',
+  })
+  @ApiResponse({ status: 404, description: 'Accommodation not found' })
+  async getAccommodationForApproval(@Param('id') id: string) {
+    return this.accommodationService.findOne(id);
+  }
+
+  @Put('admin/accommodation-approval/:id')
+  @UseGuards(AuthGuard, RolesGuard)
+  @Roles(UserRole.ADMIN)
+  @ApiBearerAuth('JWT-auth')
+  @ApiOperation({ summary: 'Approve or reject an accommodation (admin)' })
+  @ApiParam({ name: 'id', description: 'Accommodation ID' })
+  @ApiResponse({
+    status: 200,
+    description: 'Accommodation approval status updated',
+  })
+  @ApiResponse({ status: 404, description: 'Accommodation not found' })
+  async updateAccommodationApproval(
+    @Param('id') id: string,
+    @Body() updateAccommodationDto: UpdateAccommodationDto,
+  ) {
+    return this.accommodationService.update(id, updateAccommodationDto, '');
+  }
+
+  @Delete('admin/accommodation/:id')
+  @UseGuards(AuthGuard, RolesGuard)
+  @Roles(UserRole.ADMIN)
+  @ApiBearerAuth('JWT-auth')
+  @ApiOperation({ summary: 'Delete an accommodation (admin)' })
+  @ApiParam({ name: 'id', description: 'Accommodation ID' })
+  @ApiResponse({
+    status: 200,
+    description: 'Accommodation successfully deleted',
+    schema: {
+      example: {
+        message: 'Accommodation deleted successfully',
+      },
+    },
+  })
+  @ApiResponse({ status: 404, description: 'Accommodation not found' })
+  async removeAdmin(@Param('id') id: string) {
+    await this.accommodationService.remove(id, 'admin-user-id');
+    return { message: 'Accommodation deleted successfully' };
+  }
+
+  // Admin endpoints for accommodation management
+  @Get('admin/pending')
+  @UseGuards(AuthGuard, RolesGuard)
+  @Roles(UserRole.ADMIN)
+  @ApiBearerAuth('JWT-auth')
+  @ApiOperation({ summary: 'Get all pending accommodations for admin approval' })
+  @ApiResponse({
+    status: 200,
+    description: 'Returns all pending accommodations',
+  })
+  async getPendingAccommodations() {
+    return this.accommodationService.getPendingAccommodations();
+  }
+
+  @Get('admin/all')
+  @UseGuards(AuthGuard, RolesGuard)
+  @Roles(UserRole.ADMIN)
+  @ApiBearerAuth('JWT-auth')
+  @ApiOperation({ summary: 'Get all accommodations with approval status (Admin only)' })
+  @ApiResponse({
+    status: 200,
+    description: 'Returns all accommodations with detailed admin info',
+  })
+  async getAllAccommodationsAdmin() {
+    return this.accommodationService.getAllForAdmin();
+  }
+
+  @Put('admin/:id/approve')
+  @UseGuards(AuthGuard, RolesGuard)
+  @Roles(UserRole.ADMIN)
+  @ApiBearerAuth('JWT-auth')
+  @ApiOperation({ summary: 'Approve an accommodation (Admin only)' })
+  @ApiParam({ name: 'id', description: 'Accommodation ID' })
+  @ApiResponse({
+    status: 200,
+    description: 'Accommodation approved successfully',
+  })
+  async approveAccommodation(
+    @Param('id') id: string,
+    @Request() req: RequestWithUser,
+  ) {
+    const adminId = typeof req.user._id === 'string' ? req.user._id : req.user._id.toString();
+    return this.accommodationService.approveAccommodation(id, adminId);
+  }
+
+  @Put('admin/:id/reject')
+  @UseGuards(AuthGuard, RolesGuard)
+  @Roles(UserRole.ADMIN)
+  @ApiBearerAuth('JWT-auth')
+  @ApiOperation({ summary: 'Reject an accommodation (Admin only)' })
+  @ApiParam({ name: 'id', description: 'Accommodation ID' })
+  @ApiResponse({
+    status: 200,
+    description: 'Accommodation rejected successfully',
+  })
+  async rejectAccommodation(
+    @Param('id') id: string,
+    @Body('reason') reason: string,
+    @Request() req: RequestWithUser,
+  ) {
+    const adminId = typeof req.user._id === 'string' ? req.user._id : req.user._id.toString();
+    return this.accommodationService.rejectAccommodation(id, reason, adminId);
+  }
+
+  @Put('admin/:id/toggle-status')
+  @UseGuards(AuthGuard, RolesGuard)
+  @Roles(UserRole.ADMIN)
+  @ApiBearerAuth('JWT-auth')
+  @ApiOperation({ summary: 'Toggle accommodation active status (Admin only)' })
+  @ApiParam({ name: 'id', description: 'Accommodation ID' })
+  @ApiResponse({
+    status: 200,
+    description: 'Accommodation status toggled successfully',
+  })
+  async toggleAccommodationStatus(@Param('id') id: string) {
+    return this.accommodationService.toggleActiveStatus(id);
+  }
+
+  @Get('admin/:id/details')
+  @UseGuards(AuthGuard, RolesGuard)
+  @Roles(UserRole.ADMIN)
+  @ApiBearerAuth('JWT-auth')
+  @ApiOperation({ summary: 'Get accommodation details for admin review' })
+  @ApiParam({ name: 'id', description: 'Accommodation ID' })
+  @ApiResponse({
+    status: 200,
+    description: 'Returns detailed accommodation info for admin review',
+  })
+  async getAccommodationForAdmin(@Param('id') id: string) {
+    return this.accommodationService.getAccommodationForAdmin(id);
   }
 }

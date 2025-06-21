@@ -41,6 +41,25 @@ export class Accommodation extends Document {
 
   @Prop({ type: MongooseSchema.Types.ObjectId, ref: 'User', required: true })
   landlord: User;
+
+  @Prop({ default: false })
+  isActive: boolean;
+
+  @Prop({ 
+    type: String, 
+    enum: ['pending', 'approved', 'rejected'], 
+    default: 'pending' 
+  })
+  approvalStatus: string;
+
+  @Prop({ type: MongooseSchema.Types.ObjectId, ref: 'User' })
+  approvedBy?: User;
+
+  @Prop()
+  approvedAt?: Date;
+
+  @Prop()
+  rejectionReason?: string;
 }
 
 export const AccommodationSchema = SchemaFactory.createForClass(Accommodation);

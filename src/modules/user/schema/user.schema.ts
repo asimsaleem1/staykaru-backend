@@ -1,5 +1,5 @@
 import { Prop, Schema, SchemaFactory } from '@nestjs/mongoose';
-import { Document } from 'mongoose';
+import { Document, Schema as MongooseSchema } from 'mongoose';
 
 export enum UserRole {
   STUDENT = 'student',
@@ -36,6 +36,21 @@ export class User extends Document {
 
   @Prop({ default: true })
   isActive: boolean;
+
+  @Prop({ type: MongooseSchema.Types.ObjectId, ref: 'User' })
+  deactivatedBy?: User;
+
+  @Prop()
+  deactivatedAt?: Date;
+
+  @Prop()
+  deactivationReason?: string;
+
+  @Prop()
+  lastLoginAt?: Date;
+
+  @Prop({ default: 0 })
+  failedLoginAttempts: number;
 }
 
 export const UserSchema = SchemaFactory.createForClass(User);

@@ -56,6 +56,22 @@ export class FoodProvider extends Document {
 
   @Prop({ type: Boolean, default: true })
   is_active: boolean;
+
+  @Prop({ 
+    type: String, 
+    enum: ['pending', 'approved', 'rejected'], 
+    default: 'pending' 
+  })
+  approvalStatus: string;
+
+  @Prop({ type: MongooseSchema.Types.ObjectId, ref: 'User' })
+  approvedBy?: User;
+
+  @Prop()
+  approvedAt?: Date;
+
+  @Prop()
+  rejectionReason?: string;
 }
 
 export const FoodProviderSchema = SchemaFactory.createForClass(FoodProvider);

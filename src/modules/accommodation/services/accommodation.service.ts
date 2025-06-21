@@ -388,4 +388,129 @@ export class AccommodationService {
       },
     };
   }
+
+  // Admin methods for accommodation management
+  async getPendingAccommodations() {
+    return this.accommodationModel
+      .find({ approvalStatus: 'pending' })
+      .populate(['city', 'landlord'])
+      .sort({ createdAt: -1 })
+      .exec();
+  }
+
+  async getAllForAdmin() {
+    return this.accommodationModel
+      .find({})
+      .populate(['city', 'landlord', 'approvedBy'])
+      .sort({ createdAt: -1 })
+      .exec();
+  }
+
+  async approveAccommodation(accommodationId: string, adminId: string) {
+    const accommodation = await this.accommodationModel.findById(accommodationId);
+    
+    if (!accommodation) {
+      throw new NotFoundException(`Accommodation with ID ${accommodationId} not found`);
+    }
+
+    accommodation.approvalStatus = 'approved';
+    accommodation.isActive = true;
+    accommodation.approvedBy = adminId as any;
+    accommodation.approvedAt = new Date();
+    accommodation.rejectionReason = undefined;
+
+    await accommodation.save();
+    await this.clearCache(accommodationId);
+
+    return {
+      message: 'Accommodation approved successfully',
+      accommodation: await accommodation.populate(['city', 'landlord', 'approvedBy']),
+    };
+  }
+
+  async rejectAccommodation(accommodationId: string, reason: string, adminId: string) {
+    const accommodation = await this.accommodationModel.findById(accommodationId);
+    
+    if (!accommodation) {
+      throw new NotFoundException(`Accommodation with ID ${accommodationId} not found`);
+    }
+
+    accommodation.approvalStatus = 'rejected';
+    accommodation.isActive = false;
+    accommodation.approvedBy = adminId as any;
+    accommodation.approvedAt = new Date();
+    accommodation.rejectionReason = reason;
+
+    await accommodation.save();
+    await this.clearCache(accommodationId);
+
+    return {
+      message: 'Accommodation rejected successfully',
+      accommodation: await accommodation.populate(['city', 'landlord', 'approvedBy']),
+    };
+  }
+
+  async toggleActiveStatus(accommodationId: string) {
+    const accommodation = await this.accommodationModel.findById(accommodationId);
+    
+    if (!accommodation) {
+      throw new NotFoundException(`Accommodation with ID ${accommodationId} not found`);
+    }
+
+    // Only allow toggling if accommodation is approved
+    if (accommodation.approvalStatus !== 'approved') {
+      throw new ForbiddenException('Can only toggle status of approved accommodations');
+    }
+
+    accommodation.isActive = !accommodation.isActive;
+    await accommodation.save();
+    await this.clearCache(accommodationId);
+
+    return {
+      message: `Accommodation ${accommodation.isActive ? 'activated' : 'deactivated'} successfully`,
+      accommodation: await accommodation.populate(['city', 'landlord']),
+    };
+  }
+
+  async getAccommodationForAdmin(accommodationId: string) {
+    const accommodation = await this.accommodationModel
+      .findById(accommodationId)
+      .populate(['city', 'landlord', 'approvedBy'])
+      .exec();
+
+    if (!accommodation) {
+      throw new NotFoundException(`Accommodation with ID ${accommodationId} not found`);
+    }
+
+    // Get additional statistics for admin review
+    const stats = await this.getAccommodationStats(accommodationId);
+
+    return {
+      accommodation,
+      stats,
+    };
+  }
+
+  private async getAccommodationStats(accommodationId: string) {
+    // Get booking statistics
+    const totalBookings = await this.bookingModel.countDocuments({
+      accommodation: accommodationId,
+    });
+
+    const activeBookings = await this.bookingModel.countDocuments({
+      accommodation: accommodationId,
+      status: BookingStatus.CONFIRMED,
+    });
+
+    const completedBookings = await this.bookingModel.countDocuments({
+      accommodation: accommodationId,
+      status: BookingStatus.COMPLETED,
+    });
+
+    return {
+      totalBookings,
+      activeBookings,
+      completedBookings,
+    };
+  }
 }

@@ -96,6 +96,66 @@ export class UserController {
     return this.userService.updateUserStatus(id, isActive);
   }
 
+  @Put('admin/:id/deactivate')
+  @UseGuards(JwtAuthGuard, RolesGuard)
+  @Roles(UserRole.ADMIN)
+  @ApiBearerAuth('JWT-auth')
+  @ApiOperation({ summary: 'Deactivate user account (Admin only)' })
+  @ApiResponse({
+    status: 200,
+    description: 'User account deactivated successfully',
+  })
+  @ApiParam({ name: 'id', description: 'User ID' })
+  async deactivateUser(
+    @Param('id') id: string,
+    @Body('reason') reason: string,
+    @Request() req: AuthenticatedRequest,
+  ) {
+    const adminId = req.user._id;
+    return this.userService.deactivateUser(id, reason, adminId);
+  }
+
+  @Put('admin/:id/reactivate')
+  @UseGuards(JwtAuthGuard, RolesGuard)
+  @Roles(UserRole.ADMIN)
+  @ApiBearerAuth('JWT-auth')
+  @ApiOperation({ summary: 'Reactivate user account (Admin only)' })
+  @ApiResponse({
+    status: 200,
+    description: 'User account reactivated successfully',
+  })
+  @ApiParam({ name: 'id', description: 'User ID' })
+  async reactivateUser(@Param('id') id: string) {
+    return this.userService.reactivateUser(id);
+  }
+
+  @Get('admin/:id/activity-log')
+  @UseGuards(JwtAuthGuard, RolesGuard)
+  @Roles(UserRole.ADMIN)
+  @ApiBearerAuth('JWT-auth')
+  @ApiOperation({ summary: 'Get user activity log (Admin only)' })
+  @ApiResponse({
+    status: 200,
+    description: 'Returns user activity history',
+  })
+  @ApiParam({ name: 'id', description: 'User ID' })
+  async getUserActivityLog(@Param('id') id: string) {
+    return this.userService.getUserActivityLog(id);
+  }
+
+  @Get('admin/security/suspicious')
+  @UseGuards(JwtAuthGuard, RolesGuard)
+  @Roles(UserRole.ADMIN)
+  @ApiBearerAuth('JWT-auth')
+  @ApiOperation({ summary: 'Get users with suspicious activity (Admin only)' })
+  @ApiResponse({
+    status: 200,
+    description: 'Returns users flagged for suspicious activity',
+  })
+  async getSuspiciousUsers() {
+    return this.userService.getSuspiciousUsers();
+  }
+
   // Standard user endpoints
   @Post()
   @ApiOperation({ summary: 'Create a new user' })

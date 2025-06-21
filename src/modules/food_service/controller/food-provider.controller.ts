@@ -23,6 +23,18 @@ import { CreateFoodProviderDto } from '../dto/create-food-provider.dto';
 import { UpdateFoodProviderDto } from '../dto/update-food-provider.dto';
 import { AuthGuard } from '../../auth/guards/auth.guard';
 import { FoodProviderGuard } from '../guards/food-provider.guard';
+import { RolesGuard } from '../../user/guards/roles.guard';
+import { Roles } from '../../user/decorators/roles.decorator';
+import { UserRole } from '../../user/schema/user.schema';
+
+interface RequestWithUser extends Request {
+  user?: {
+    _id: string | { toString(): string };
+    email: string;
+    role: string;
+    [key: string]: any;
+  };
+}
 
 @ApiTags('food-providers')
 @Controller('food-providers')
@@ -325,5 +337,162 @@ export class FoodProviderController {
     const ownerId =
       typeof req.user._id === 'string' ? req.user._id : req.user._id.toString();
     return this.foodProviderService.getProviderAnalytics(ownerId, days);
+  }
+
+  // Admin endpoints for food provider management
+  @Get('admin/pending')
+  @UseGuards(AuthGuard, RolesGuard)
+  @Roles(UserRole.ADMIN)
+  @ApiBearerAuth('JWT-auth')
+  @ApiOperation({ summary: 'Get all pending food providers for admin approval' })
+  @ApiResponse({
+    status: 200,
+    description: 'Returns all pending food providers',
+  })
+  async getPendingFoodProviders() {
+    return this.foodProviderService.getPendingFoodProviders();
+  }
+
+  @Get('admin/all')
+  @UseGuards(AuthGuard, RolesGuard)
+  @Roles(UserRole.ADMIN)
+  @ApiBearerAuth('JWT-auth')
+  @ApiOperation({ summary: 'Get all food providers with approval status (Admin only)' })
+  @ApiResponse({
+    status: 200,
+    description: 'Returns all food providers with detailed admin info',
+  })
+  async getAllFoodProvidersAdmin() {
+    return this.foodProviderService.getAllForAdmin();
+  }
+
+  @Put('admin/:id/approve')
+  @UseGuards(AuthGuard, RolesGuard)
+  @Roles(UserRole.ADMIN)
+  @ApiBearerAuth('JWT-auth')
+  @ApiOperation({ summary: 'Approve a food provider (Admin only)' })
+  @ApiParam({ name: 'id', description: 'Food Provider ID' })
+  @ApiResponse({
+    status: 200,
+    description: 'Food provider approved successfully',
+  })
+  async approveFoodProvider(
+    @Param('id') id: string,
+    @Request() req: RequestWithUser,
+  ) {
+    const adminId = typeof req.user._id === 'string' ? req.user._id : req.user._id.toString();
+    return this.foodProviderService.approveFoodProvider(id, adminId);
+  }
+
+  @Put('admin/:id/reject')
+  @UseGuards(AuthGuard, RolesGuard)
+  @Roles(UserRole.ADMIN)
+  @ApiBearerAuth('JWT-auth')
+  @ApiOperation({ summary: 'Reject a food provider (Admin only)' })
+  @ApiParam({ name: 'id', description: 'Food Provider ID' })
+  @ApiResponse({
+    status: 200,
+    description: 'Food provider rejected successfully',
+  })
+  async rejectFoodProvider(
+    @Param('id') id: string,
+    @Body('reason') reason: string,
+    @Request() req: RequestWithUser,
+  ) {
+    const adminId = typeof req.user._id === 'string' ? req.user._id : req.user._id.toString();
+    return this.foodProviderService.rejectFoodProvider(id, reason, adminId);
+  }
+
+  @Put('admin/:id/toggle-status')
+  @UseGuards(AuthGuard, RolesGuard)
+  @Roles(UserRole.ADMIN)
+  @ApiBearerAuth('JWT-auth')
+  @ApiOperation({ summary: 'Toggle food provider active status (Admin only)' })
+  @ApiParam({ name: 'id', description: 'Food Provider ID' })
+  @ApiResponse({
+    status: 200,
+    description: 'Food provider status toggled successfully',
+  })
+  async toggleFoodProviderStatus(@Param('id') id: string) {
+    return this.foodProviderService.toggleActiveStatus(id);
+  }
+
+  @Get('admin/:id/details')
+  @UseGuards(AuthGuard, RolesGuard)
+  @Roles(UserRole.ADMIN)
+  @ApiBearerAuth('JWT-auth')
+  @ApiOperation({ summary: 'Get food provider details for admin review' })
+  @ApiParam({ name: 'id', description: 'Food Provider ID' })
+  @ApiResponse({
+    status: 200,
+    description: 'Returns detailed food provider info for admin review',
+  })
+  async getFoodProviderForAdmin(@Param('id') id: string) {
+    return this.foodProviderService.getFoodProviderForAdmin(id);
+  }
+
+  // Admin endpoints for menu item management
+  @Get('admin/menu-items/pending')
+  @UseGuards(AuthGuard, RolesGuard)
+  @Roles(UserRole.ADMIN)
+  @ApiBearerAuth('JWT-auth')
+  @ApiOperation({ summary: 'Get all pending menu items for admin approval' })
+  @ApiResponse({
+    status: 200,
+    description: 'Returns all pending menu items',
+  })
+  async getPendingMenuItems() {
+    return this.foodProviderService.getPendingMenuItems();
+  }
+
+  @Put('admin/menu-items/:id/approve')
+  @UseGuards(AuthGuard, RolesGuard)
+  @Roles(UserRole.ADMIN)
+  @ApiBearerAuth('JWT-auth')
+  @ApiOperation({ summary: 'Approve a menu item (Admin only)' })
+  @ApiParam({ name: 'id', description: 'Menu Item ID' })
+  @ApiResponse({
+    status: 200,
+    description: 'Menu item approved successfully',
+  })
+  async approveMenuItem(
+    @Param('id') id: string,
+    @Request() req: RequestWithUser,
+  ) {
+    const adminId = typeof req.user._id === 'string' ? req.user._id : req.user._id.toString();
+    return this.foodProviderService.approveMenuItem(id, adminId);
+  }
+
+  @Put('admin/menu-items/:id/reject')
+  @UseGuards(AuthGuard, RolesGuard)
+  @Roles(UserRole.ADMIN)
+  @ApiBearerAuth('JWT-auth')
+  @ApiOperation({ summary: 'Reject a menu item (Admin only)' })
+  @ApiParam({ name: 'id', description: 'Menu Item ID' })
+  @ApiResponse({
+    status: 200,
+    description: 'Menu item rejected successfully',
+  })
+  async rejectMenuItem(
+    @Param('id') id: string,
+    @Body('reason') reason: string,
+    @Request() req: RequestWithUser,
+  ) {
+    const adminId = typeof req.user._id === 'string' ? req.user._id : req.user._id.toString();
+    return this.foodProviderService.rejectMenuItem(id, reason, adminId);
+  }
+
+  @Put('admin/menu-items/:id/toggle-status')
+  @UseGuards(AuthGuard, RolesGuard)
+  @Roles(UserRole.ADMIN)
+  @ApiBearerAuth('JWT-auth')
+  @ApiOperation({ summary: 'Toggle menu item active status (Admin only)' })
+  @ApiParam({ name: 'id', description: 'Menu Item ID' })
+  @ApiResponse({
+    status: 200,
+    description: 'Menu item status toggled successfully',
+  })
+  async toggleMenuItemStatus(@Param('id') id: string) {
+    return this.foodProviderService.toggleMenuItemStatus(id);
   }
 }

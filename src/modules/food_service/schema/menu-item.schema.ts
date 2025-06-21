@@ -19,6 +19,25 @@ export class MenuItem extends Document {
     required: true,
   })
   provider: FoodProvider;
+
+  @Prop({ default: true })
+  isActive: boolean;
+
+  @Prop({ 
+    type: String, 
+    enum: ['pending', 'approved', 'rejected'], 
+    default: 'pending' 
+  })
+  approvalStatus: string;
+
+  @Prop({ type: MongooseSchema.Types.ObjectId, ref: 'User' })
+  approvedBy?: User;
+
+  @Prop()
+  approvedAt?: Date;
+
+  @Prop()
+  rejectionReason?: string;
 }
 
 export const MenuItemSchema = SchemaFactory.createForClass(MenuItem);

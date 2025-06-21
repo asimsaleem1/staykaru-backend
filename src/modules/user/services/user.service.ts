@@ -2,6 +2,7 @@ import {
   Injectable,
   NotFoundException,
   BadRequestException,
+  ForbiddenException,
 } from '@nestjs/common';
 import { InjectModel } from '@nestjs/mongoose';
 import { Model } from 'mongoose';
@@ -381,5 +382,146 @@ export class UserService {
     await this.cacheManager.del('users:counts');
 
     return updatedUser;
+  }
+
+  // Admin methods for user security management
+  async deactivateUser(userId: string, reason: string, adminId: string) {
+    const user = await this.userModel.findById(userId);
+
+    if (!user) {
+      throw new NotFoundException(`User with ID ${userId} not found`);
+    }
+
+    if (user.role === UserRole.ADMIN) {
+      throw new ForbiddenException('Cannot deactivate admin users');
+    }
+
+    user.isActive = false;
+    user.deactivatedBy = adminId as any;
+    user.deactivatedAt = new Date();
+    user.deactivationReason = reason;
+
+    await user.save();
+
+    return {
+      message: 'User account deactivated successfully',
+      user: {
+        id: user._id,
+        name: user.name,
+        email: user.email,
+        role: user.role,
+        isActive: user.isActive,
+        deactivatedAt: user.deactivatedAt,
+        deactivationReason: user.deactivationReason,
+      },
+    };
+  }
+
+  async reactivateUser(userId: string) {
+    const user = await this.userModel.findById(userId);
+
+    if (!user) {
+      throw new NotFoundException(`User with ID ${userId} not found`);
+    }
+
+    user.isActive = true;
+    user.deactivatedBy = undefined;
+    user.deactivatedAt = undefined;
+    user.deactivationReason = undefined;
+    user.failedLoginAttempts = 0;
+
+    await user.save();
+
+    return {
+      message: 'User account reactivated successfully',
+      user: {
+        id: user._id,
+        name: user.name,
+        email: user.email,
+        role: user.role,
+        isActive: user.isActive,
+      },
+    };
+  }
+
+  async getUserActivityLog(userId: string) {
+    const user = await this.userModel
+      .findById(userId)
+      .populate('deactivatedBy', 'name email')
+      .select('-password')
+      .exec();
+
+    if (!user) {
+      throw new NotFoundException(`User with ID ${userId} not found`);
+    }
+
+    // Get additional activity data from related models
+    const activityLog = {
+      user: {
+        id: user._id,
+        name: user.name,
+        email: user.email,
+        role: user.role,
+        isActive: user.isActive,
+        lastLoginAt: user.lastLoginAt,
+        failedLoginAttempts: user.failedLoginAttempts,
+        createdAt: user.createdAt,
+        updatedAt: user.updatedAt,
+      },
+      deactivation: user.deactivatedAt
+        ? {
+            deactivatedAt: user.deactivatedAt,
+            deactivatedBy: user.deactivatedBy,
+            reason: user.deactivationReason,
+          }
+        : null,
+    };
+
+    return activityLog;
+  }
+
+  async getSuspiciousUsers() {
+    const suspiciousUsers = await this.userModel
+      .find({
+        $or: [
+          { failedLoginAttempts: { $gte: 5 } },
+          { isActive: false },
+          { deactivatedAt: { $ne: null } },
+        ],
+      })
+      .populate('deactivatedBy', 'name email')
+      .select('-password')
+      .sort({ failedLoginAttempts: -1, updatedAt: -1 })
+      .exec();
+
+    return {
+      suspiciousUsers: suspiciousUsers.map((user) => ({
+        id: user._id,
+        name: user.name,
+        email: user.email,
+        role: user.role,
+        isActive: user.isActive,
+        failedLoginAttempts: user.failedLoginAttempts,
+        lastLoginAt: user.lastLoginAt,
+        deactivatedAt: user.deactivatedAt,
+        deactivatedBy: user.deactivatedBy,
+        deactivationReason: user.deactivationReason,
+        createdAt: user.createdAt,
+      })),
+      totalCount: suspiciousUsers.length,
+    };
+  }
+
+  async updateLastLogin(userId: string) {
+    await this.userModel.findByIdAndUpdate(userId, {
+      lastLoginAt: new Date(),
+      failedLoginAttempts: 0,
+    });
+  }
+
+  async incrementFailedLogin(userId: string) {
+    await this.userModel.findByIdAndUpdate(userId, {
+      $inc: { failedLoginAttempts: 1 },
+    });
   }
 }
