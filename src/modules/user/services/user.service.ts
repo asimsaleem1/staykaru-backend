@@ -566,19 +566,53 @@ export class UserService {
     return user;
   }
 
-  async updateFcmToken(userId: string, fcmToken: string): Promise<any> {
-    const user = await this.userModel.findByIdAndUpdate(
-      userId,
-      { fcmToken },
-      { new: true }
-    ).exec();
-
+  async getUserProfile(userId: string): Promise<any> {
+    const user = await this.findById(userId);
     if (!user) {
-      throw new NotFoundException('User not found');
+      throw new NotFoundException(`User with ID ${userId} not found`);
     }
-
-    return { message: 'FCM token updated successfully' };
+    return this.decryptUserData(user);
   }
 
-  // Admin methods
+  async updateUserProfile(userId: string, updateUserDto: UpdateUserDto): Promise<any> {
+    const user = await this.findById(userId);
+    
+    if (!user) {
+      throw new NotFoundException(`User with ID ${userId} not found`);
+    }
+
+    // Encrypt sensitive data
+    const encryptedData = { ...updateUserDto };
+    if (updateUserDto.phone) {
+      encryptedData.phone = this.encrypt(updateUserDto.phone);
+    }
+    if (updateUserDto.address) {
+      encryptedData.address = this.encrypt(updateUserDto.address);
+    }
+
+    Object.assign(user, encryptedData);
+    await user.save();
+    await this.clearCache(userId);
+    
+    return {
+      message: 'User profile updated successfully',
+      user: this.decryptUserData(user),
+    };
+  }
+
+  async updateFcmToken(userId: string, fcmToken: string): Promise<any> {
+    const user = await this.findById(userId);
+    
+    if (!user) {
+      throw new NotFoundException(`User with ID ${userId} not found`);
+    }
+
+    user.fcmToken = fcmToken;
+    await user.save();
+    await this.clearCache(userId);
+    
+    return {
+      message: 'FCM token updated successfully',
+    };
+  }
 }

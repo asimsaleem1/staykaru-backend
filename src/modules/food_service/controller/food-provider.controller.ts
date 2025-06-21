@@ -45,7 +45,8 @@ export class FoodProviderController {
   constructor(private readonly foodProviderService: FoodProviderService) {}
 
   @Post()
-  // @UseGuards(FoodProviderGuard) // Temporarily disabled for testing
+  @UseGuards(JwtAuthGuard, FoodProviderGuard)
+  @ApiBearerAuth('JWT-auth')
   @ApiOperation({ summary: 'Create a new food provider' })
   @ApiResponse({
     status: 201,
@@ -82,9 +83,7 @@ export class FoodProviderController {
     @Body() createFoodProviderDto: CreateFoodProviderDto,
     @Request() req,
   ) {
-    // Temporary fix for testing without auth - use a dummy user ID
-    const user = req.user || { _id: '683700350f8a15197d2abf50' }; // Dummy user ID for testing
-    return this.foodProviderService.create(createFoodProviderDto, user);
+    return this.foodProviderService.create(createFoodProviderDto, req.user);
   }
 
   @Get()

@@ -229,17 +229,29 @@ export class UserController {
     return this.userService.findOne(id);
   }
 
+  // Food Provider profile endpoints
+  @Get('food-provider/profile')
+  @UseGuards(JwtAuthGuard)
+  @ApiBearerAuth('JWT-auth')
+  @ApiOperation({ summary: 'Get food provider profile' })
+  @ApiResponse({
+    status: 200,
+    description: 'Food provider profile retrieved successfully',
+  })
+  async getFoodProviderProfile(@Request() req: AuthenticatedRequest) {
+    return this.userService.getUserProfile(req.user._id);
+  }
+
   @Get('profile')
   @UseGuards(JwtAuthGuard)
   @ApiBearerAuth('JWT-auth')
   @ApiOperation({ summary: 'Get user profile' })
   @ApiResponse({
     status: 200,
-    description: 'Returns user profile',
+    description: 'User profile retrieved successfully',
   })
-  async getProfile(@Request() req: AuthenticatedRequest) {
-    const userId = req.user._id;
-    return this.userService.findOne(userId);
+  async getUserProfile(@Request() req: AuthenticatedRequest) {
+    return this.userService.getUserProfile(req.user._id);
   }
 
   @Put('profile')
@@ -248,16 +260,31 @@ export class UserController {
   @ApiOperation({ summary: 'Update user profile' })
   @ApiResponse({
     status: 200,
-    description: 'Profile updated successfully',
+    description: 'User profile updated successfully',
   })
-  async updateProfile(
+  async updateUserProfile(
     @Request() req: AuthenticatedRequest,
-    @Body() updateData: any,
+    @Body() updateUserDto: UpdateUserDto,
   ) {
-    const userId = req.user._id;
-    return this.userService.update(userId, updateData);
+    return this.userService.updateUserProfile(req.user._id, updateUserDto);
   }
 
+  @Patch('profile')
+  @UseGuards(JwtAuthGuard)
+  @ApiBearerAuth('JWT-auth')
+  @ApiOperation({ summary: 'Partially update user profile' })
+  @ApiResponse({
+    status: 200,
+    description: 'User profile updated successfully',
+  })
+  async patchUserProfile(
+    @Request() req: AuthenticatedRequest,
+    @Body() updateUserDto: UpdateUserDto,
+  ) {
+    return this.userService.updateUserProfile(req.user._id, updateUserDto);
+  }
+
+  // Change password endpoint
   @Put('change-password')
   @UseGuards(JwtAuthGuard)
   @ApiBearerAuth('JWT-auth')
@@ -266,28 +293,30 @@ export class UserController {
     status: 200,
     description: 'Password changed successfully',
   })
-  async changeUserPassword(
+  @ApiResponse({
+    status: 400,
+    description: 'Invalid old password',
+  })
+  async changePassword(
     @Request() req: AuthenticatedRequest,
     @Body() changePasswordDto: ChangePasswordDto,
   ) {
-    const userId = req.user._id;
-    return this.userService.changePassword(userId, changePasswordDto);
+    return this.userService.changePassword(req.user._id, changePasswordDto);
   }
 
   @Post('fcm-token')
   @UseGuards(JwtAuthGuard)
   @ApiBearerAuth('JWT-auth')
-  @ApiOperation({ summary: 'Update FCM token' })
+  @ApiOperation({ summary: 'Update FCM token for notifications' })
   @ApiResponse({
     status: 200,
     description: 'FCM token updated successfully',
   })
-  async updateUserFcmToken(
+  async updateFcmToken(
     @Request() req: AuthenticatedRequest,
-    @Body() body: { fcmToken: string },
+    @Body('fcmToken') fcmToken: string,
   ) {
-    const userId = req.user._id;
-    return this.userService.addFcmToken(userId, body.fcmToken);
+    return this.userService.updateFcmToken(req.user._id, fcmToken);
   }
 
   // Landlord specific endpoints
