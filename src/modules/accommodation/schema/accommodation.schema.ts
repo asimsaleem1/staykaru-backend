@@ -58,6 +58,9 @@ export class Accommodation extends Document {
   @Prop()
   approvedAt?: Date;
 
+  @Prop({ type: [String], default: [] })
+  images: string[];
+
   @Prop()
   rejectionReason?: string;
 }

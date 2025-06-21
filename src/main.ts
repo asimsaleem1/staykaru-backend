@@ -2,9 +2,16 @@ import { NestFactory } from '@nestjs/core';
 import { SwaggerModule, DocumentBuilder } from '@nestjs/swagger';
 import { ValidationPipe } from '@nestjs/common';
 import { AppModule } from './app.module';
+import { NestExpressApplication } from '@nestjs/platform-express';
+import { join } from 'path';
 
 async function bootstrap() {
-  const app = await NestFactory.create(AppModule);
+  const app = await NestFactory.create<NestExpressApplication>(AppModule);
+
+  // Serve static files from uploads directory
+  app.useStaticAssets(join(__dirname, '..', 'uploads'), {
+    prefix: '/images/',
+  });
 
   // Enable CORS for client-side authentication
   app.enableCors({
@@ -82,6 +89,9 @@ async function bootstrap() {
   };
 
   SwaggerModule.setup('api', app, document);
+
+  // Serve static files from the "public" directory
+  app.useStaticAssets(join(__dirname, '..', 'public'));
 
   // Use the PORT provided by Heroku or default to 3002
   const port = process.env.PORT || 3002;

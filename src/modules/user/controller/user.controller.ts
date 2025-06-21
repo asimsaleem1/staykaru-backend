@@ -34,6 +34,14 @@ import { AuthenticatedRequest } from '../../../interfaces/request.interface';
 export class UserController {
   constructor(private readonly userService: UserService) {}
 
+  // Helper method to safely extract user ID
+  private getUserId(req: any): string {
+    console.log('UserController getUserId - req.user:', req.user);
+    console.log('UserController getUserId - req.user._id:', req.user._id);
+    console.log('UserController getUserId - req.user.id:', req.user.id);
+    return req.user._id ? req.user._id.toString() : req.user.id.toString();
+  }
+
   // Admin endpoints for user management
   @Get('admin/all')
   @UseGuards(JwtAuthGuard, RolesGuard)
@@ -206,6 +214,31 @@ export class UserController {
     return this.userService.findAll();
   }
 
+  // Food Provider profile endpoints
+  @Get('food-provider/profile')
+  @UseGuards(JwtAuthGuard)
+  @ApiBearerAuth('JWT-auth')
+  @ApiOperation({ summary: 'Get food provider profile' })
+  @ApiResponse({
+    status: 200,
+    description: 'Food provider profile retrieved successfully',
+  })
+  async getFoodProviderProfile(@Request() req: AuthenticatedRequest) {
+    return this.userService.getUserProfile(this.getUserId(req));
+  }
+
+  @Get('profile')
+  @UseGuards(JwtAuthGuard)
+  @ApiBearerAuth('JWT-auth')
+  @ApiOperation({ summary: 'Get user profile' })
+  @ApiResponse({
+    status: 200,
+    description: 'User profile retrieved successfully',
+  })
+  async getUserProfile(@Request() req: AuthenticatedRequest) {
+    return this.userService.getUserProfile(this.getUserId(req));
+  }
+
   @Get(':id')
   @ApiOperation({ summary: 'Get a user by ID' })
   @ApiParam({ name: 'id', description: 'User ID' })
@@ -230,31 +263,6 @@ export class UserController {
     return this.userService.findOne(id);
   }
 
-  // Food Provider profile endpoints
-  @Get('food-provider/profile')
-  @UseGuards(JwtAuthGuard)
-  @ApiBearerAuth('JWT-auth')
-  @ApiOperation({ summary: 'Get food provider profile' })
-  @ApiResponse({
-    status: 200,
-    description: 'Food provider profile retrieved successfully',
-  })
-  async getFoodProviderProfile(@Request() req: AuthenticatedRequest) {
-    return this.userService.getUserProfile(req.user._id);
-  }
-
-  @Get('profile')
-  @UseGuards(JwtAuthGuard)
-  @ApiBearerAuth('JWT-auth')
-  @ApiOperation({ summary: 'Get user profile' })
-  @ApiResponse({
-    status: 200,
-    description: 'User profile retrieved successfully',
-  })
-  async getUserProfile(@Request() req: AuthenticatedRequest) {
-    return this.userService.getUserProfile(req.user._id);
-  }
-
   @Put('profile')
   @UseGuards(JwtAuthGuard)
   @ApiBearerAuth('JWT-auth')
@@ -267,7 +275,7 @@ export class UserController {
     @Request() req: AuthenticatedRequest,
     @Body() updateUserDto: UpdateUserDto,
   ) {
-    return this.userService.updateUserProfile(req.user._id, updateUserDto);
+    return this.userService.updateUserProfile(this.getUserId(req), updateUserDto);
   }
 
   @Patch('profile')

@@ -13,6 +13,8 @@ import { MenuItem, MenuItemSchema } from './schema/menu-item.schema';
 import { UserModule } from '../user/user.module';
 import { Order, OrderSchema } from '../order/schema/order.schema';
 import { AuthModule } from '../auth/auth.module';
+import { City, CitySchema } from '../location/schema/city.schema';
+import { LocationModule } from '../location/location.module';
 
 @Module({
   imports: [
@@ -20,10 +22,12 @@ import { AuthModule } from '../auth/auth.module';
       { name: FoodProvider.name, schema: FoodProviderSchema },
       { name: MenuItem.name, schema: MenuItemSchema },
       { name: Order.name, schema: OrderSchema },
+      { name: City.name, schema: CitySchema },
     ]),
     CacheModule.register(),
     UserModule,
     AuthModule,
+    LocationModule,
   ],
   controllers: [FoodProviderController, MenuItemController],
   providers: [FoodProviderService, MenuItemService],

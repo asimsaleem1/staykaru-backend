@@ -16,6 +16,7 @@ import { PaymentModule } from './modules/payment/payment.module';
 import { ReviewModule } from './modules/review/review.module';
 import { NotificationModule } from './modules/notification/notification.module';
 import { AnalyticsModule } from './modules/analytics/analytics.module';
+import { FileUploadModule } from './modules/file-upload/file-upload.module';
 import databaseConfig from './config/database.config';
 import jwtConfig from './config/jwt.config';
 import cacheConfig from './config/cache.config';
@@ -49,6 +50,7 @@ import cacheConfig from './config/cache.config';
     LocationModule,
     AccommodationModule,
     FoodServiceModule,
+    FileUploadModule,
     BookingModule,
     OrderModule,
     PaymentModule,

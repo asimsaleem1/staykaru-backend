@@ -19,6 +19,7 @@ import {
   ApiQuery,
 } from '@nestjs/swagger';
 import { FoodProviderService } from '../services/food-provider.service';
+import { MenuItemService } from '../services/menu-item.service';
 import { CreateFoodProviderDto } from '../dto/create-food-provider.dto';
 import { UpdateFoodProviderDto } from '../dto/update-food-provider.dto';
 import { AuthGuard } from '../../auth/guards/auth.guard';
@@ -31,6 +32,7 @@ import { UserRole } from '../../user/schema/user.schema';
 interface RequestWithUser extends Request {
   user?: {
     _id: string | { toString(): string };
+    id?: string;
     email: string;
     role: string;
     [key: string]: any;
@@ -42,7 +44,15 @@ interface RequestWithUser extends Request {
 // @UseGuards(AuthGuard) // Temporarily disabled for testing
 // @ApiBearerAuth('JWT-auth') // Temporarily disabled for testing
 export class FoodProviderController {
-  constructor(private readonly foodProviderService: FoodProviderService) {}
+  constructor(
+    private readonly foodProviderService: FoodProviderService,
+    private readonly menuItemService: MenuItemService,
+  ) {}
+
+  // Helper method to safely extract user ID
+  private getUserId(req: any): string {
+    return req.user._id ? req.user._id.toString() : req.user.id.toString();
+  }
 
   @Post()
   @UseGuards(JwtAuthGuard, FoodProviderGuard)
@@ -173,7 +183,7 @@ export class FoodProviderController {
     @Body() updateFoodProviderDto: UpdateFoodProviderDto,
     @Request() req,
   ) {
-    const userId = req.user._id.toString();
+    const userId = this.getUserId(req);
     return this.foodProviderService.update(id, updateFoodProviderDto, userId);
   }
 
@@ -197,7 +207,7 @@ export class FoodProviderController {
   })
   @ApiResponse({ status: 404, description: 'Food provider not found' })
   async remove(@Param('id') id: string, @Request() req) {
-    const userId = req.user._id.toString();
+    const userId = this.getUserId(req);
     await this.foodProviderService.remove(id, userId);
     return { message: 'Food provider deleted successfully' };
   }
@@ -213,8 +223,7 @@ export class FoodProviderController {
     description: 'Returns all food providers owned by the user',
   })
   async getMyProviders(@Request() req) {
-    const ownerId =
-      typeof req.user._id === 'string' ? req.user._id : req.user._id.toString();
+    const ownerId = this.getUserId(req);
     return this.foodProviderService.findByOwner(ownerId);
   }
 
@@ -259,9 +268,27 @@ export class FoodProviderController {
     @Body() menuItemDto: any,
     @Request() req,
   ) {
-    const ownerId =
-      typeof req.user._id === 'string' ? req.user._id : req.user._id.toString();
-    return this.foodProviderService.createMenuItem(providerId, menuItemDto);
+    console.log(`\n[CREATE_MENU_ITEM] Creating menu item for provider ${providerId}`);
+    console.log(`[CREATE_MENU_ITEM] User:`, this.getUserId(req));
+    console.log(`[CREATE_MENU_ITEM] DTO:`, menuItemDto);
+    
+    try {
+      // Add provider ID to the DTO
+      const menuItemDtoWithProvider = {
+        ...menuItemDto,
+        provider: providerId,
+      };
+      
+      const result = await this.menuItemService.create(
+        menuItemDtoWithProvider,
+        this.getUserId(req),
+      );
+      console.log(`[CREATE_MENU_ITEM] Success:`, result._id);
+      return result;
+    } catch (error) {
+      console.error(`[CREATE_MENU_ITEM] Error:`, error.message);
+      throw error;
+    }
   }
 
   @Put('owner/menu-items/:providerId/:itemId')

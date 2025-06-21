@@ -2,6 +2,7 @@ import {
   Injectable,
   NotFoundException,
   ForbiddenException,
+  BadRequestException,
 } from '@nestjs/common';
 import { InjectModel } from '@nestjs/mongoose';
 import { Model } from 'mongoose';
@@ -23,22 +24,49 @@ export class MenuItemService {
     createMenuItemDto: CreateMenuItemDto,
     userId: string,
   ): Promise<MenuItem> {
-    const foodProvider = await this.foodProviderModel.findById(
-      createMenuItemDto.provider,
-    );
+    try {
+      // Validate that the provider exists
+      const foodProvider = await this.foodProviderModel.findById(
+        createMenuItemDto.provider,
+      );
 
-    if (!foodProvider) {
-      throw new NotFoundException('Food provider not found');
-    }
+      if (!foodProvider) {
+        throw new NotFoundException('Food provider not found');
+      }
 
-    if (foodProvider.owner.toString() !== userId) {
-      throw new ForbiddenException(
-        'You can only add menu items to your own food provider',
+      // Validate ownership
+      if (foodProvider.owner.toString() !== userId.toString()) {
+        throw new ForbiddenException(
+          'You can only add menu items to your own food provider',
+        );
+      }
+
+      // Validate required fields
+      if (!createMenuItemDto.name) {
+        throw new BadRequestException('Name is required');
+      }
+      
+      if (createMenuItemDto.price === undefined || createMenuItemDto.price <= 0) {
+        throw new BadRequestException('Valid price is required');
+      }
+      
+      if (!createMenuItemDto.description) {
+        throw new BadRequestException('Description is required');
+      }
+
+      // Create and save the menu item
+      const menuItem = new this.menuItemModel(createMenuItemDto);
+      return (await menuItem.save()).populate('provider');
+    } catch (error) {
+      if (error instanceof BadRequestException || 
+          error instanceof NotFoundException || 
+          error instanceof ForbiddenException) {
+        throw error;
+      }
+      throw new BadRequestException(
+        `Failed to create menu item: ${error.message}`,
       );
     }
-
-    const menuItem = new this.menuItemModel(createMenuItemDto);
-    return (await menuItem.save()).populate('provider');
   }
 
   async findAll(): Promise<MenuItem[]> {

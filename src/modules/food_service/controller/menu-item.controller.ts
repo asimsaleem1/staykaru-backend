@@ -28,6 +28,11 @@ import { FoodProviderGuard } from '../guards/food-provider.guard';
 export class MenuItemController {
   constructor(private readonly menuItemService: MenuItemService) {}
 
+  // Helper method to safely extract user ID
+  private getUserId(req: any): string {
+    return req.user._id ? req.user._id.toString() : req.user.id.toString();
+  }
+
   @Post()
   @UseGuards(JwtAuthGuard)
   @ApiOperation({ summary: 'Create a new menu item' })
@@ -56,7 +61,7 @@ export class MenuItemController {
     description: 'Forbidden - Only food providers can create menu items',
   })
   async create(@Body() createMenuItemDto: CreateMenuItemDto, @Request() req) {
-    const userId = req.user._id.toString();
+    const userId = this.getUserId(req);
     return this.menuItemService.create(createMenuItemDto, userId);
   }
 

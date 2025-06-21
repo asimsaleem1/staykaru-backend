@@ -37,6 +37,9 @@ export class MenuItem extends Document {
   @Prop()
   approvedAt?: Date;
 
+  @Prop({ type: String })
+  image?: string;
+
   @Prop()
   rejectionReason?: string;
 }

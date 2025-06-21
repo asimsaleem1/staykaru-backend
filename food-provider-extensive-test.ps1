@@ -2,7 +2,7 @@
 # This script performs an extensive test of all food provider functionality
 # Date: June 21, 2025
 
-$baseUrl = "https://staykaru-backend-60ed08adb2a7.herokuapp.com"
+$baseUrl = "http://localhost:3000"
 
 Write-Host "=== STAYKARU FOOD PROVIDER EXTENSIVE TEST SUITE ===" -ForegroundColor Cyan
 Write-Host "Running comprehensive test of all food provider functionality with edge cases" -ForegroundColor Cyan
@@ -306,7 +306,9 @@ try {
 # 4.2 Get owned food providers
 try {
     $ownedProviders = Invoke-RestMethod -Uri "$baseUrl/food-providers/owner/my-providers" -Method GET -Headers $script:headers
-    $ownershipVerified = ($ownedProviders | Where-Object { $_._id -eq $script:foodProviderId }).Count -gt 0
+    # Force into array to ensure .Count works with single results
+    $filteredProviders = @($ownedProviders | Where-Object { $_._id -eq $script:foodProviderId })
+    $ownershipVerified = $filteredProviders.Count -gt 0
     Write-TestResult -testName "Get owned food providers" -passed $ownershipVerified -category "DASHBOARD"
 } catch {
     Write-TestResult -testName "Get owned food providers" -passed $false -message $_.Exception.Message -category "DASHBOARD"
@@ -396,7 +398,9 @@ try {
 # 5.4 Get menu items
 try {
     $menuItems = Invoke-RestMethod -Uri "$baseUrl/food-providers/owner/menu-items/$script:foodProviderId" -Method GET -Headers $script:headers
-    $menuItemExists = ($menuItems | Where-Object { $_._id -eq $script:menuItemId }).Count -gt 0
+    # Force into array to ensure .Count works with single results
+    $filteredMenuItems = @($menuItems | Where-Object { $_._id -eq $script:menuItemId })
+    $menuItemExists = $filteredMenuItems.Count -gt 0
     Write-TestResult -testName "Get menu items" -passed $menuItemExists -category "MENU"
 } catch {
     Write-TestResult -testName "Get menu items" -passed $false -message $_.Exception.Message -category "MENU"

@@ -2,6 +2,7 @@ import {
   Injectable,
   NotFoundException,
   ForbiddenException,
+  BadRequestException,
 } from '@nestjs/common';
 import { InjectModel } from '@nestjs/mongoose';
 import { Model } from 'mongoose';
@@ -14,6 +15,7 @@ import { UpdateFoodProviderDto } from '../dto/update-food-provider.dto';
 import { User } from '../../user/schema/user.schema';
 import { MenuItem } from '../schema/menu-item.schema';
 import { Order, OrderStatus } from '../../order/schema/order.schema';
+import { City } from '../../location/schema/city.schema';
 
 @Injectable()
 export class FoodProviderService {
@@ -25,6 +27,8 @@ export class FoodProviderService {
     private readonly menuItemModel: Model<MenuItem>,
     @InjectModel(Order.name)
     private readonly orderModel: Model<Order>,
+    @InjectModel(City.name)
+    private readonly cityModel: Model<City>,
   ) {}
 
   private getCacheKey(id: string): string {
@@ -40,6 +44,30 @@ export class FoodProviderService {
     createFoodProviderDto: CreateFoodProviderDto,
     owner: User,
   ): Promise<FoodProvider> {
+    // Validate that location exists before creating the food provider
+    try {
+      // First check if the location ID is a valid ObjectId format
+      if (!createFoodProviderDto.location || createFoodProviderDto.location.length !== 24) {
+        throw new BadRequestException(`Invalid location ID format: ${createFoodProviderDto.location}`);
+      }
+      
+      // Try to find the city with the provided ID
+      const city = await this.cityModel.findById(createFoodProviderDto.location).exec();
+      if (!city) {
+        throw new BadRequestException(`Location with ID ${createFoodProviderDto.location} not found`);
+      }
+    } catch (error) {
+      if (error instanceof BadRequestException) {
+        throw error;
+      }
+      // If it's a MongoDB CastError (invalid ObjectId), convert to BadRequestException
+      if (error.name === 'CastError') {
+        throw new BadRequestException(`Invalid location ID format: ${createFoodProviderDto.location}`);
+      }
+      // Any other error
+      throw new BadRequestException(`Invalid location ID: ${createFoodProviderDto.location}`);
+    }
+
     const foodProvider = new this.foodProviderModel({
       ...createFoodProviderDto,
       owner: owner._id,
@@ -99,7 +127,8 @@ export class FoodProviderService {
       throw new NotFoundException(`Food provider with ID ${id} not found`);
     }
 
-    if (foodProvider.owner.toString() !== userId) {
+    // Convert both to string for comparison to handle ObjectId vs string
+    if (foodProvider.owner.toString() !== userId.toString()) {
       throw new ForbiddenException(
         'You can only update your own food provider profile',
       );
@@ -115,20 +144,60 @@ export class FoodProviderService {
   }
 
   async remove(id: string, userId: string): Promise<void> {
-    const foodProvider = await this.foodProviderModel.findById(id);
-
-    if (!foodProvider) {
-      throw new NotFoundException(`Food provider with ID ${id} not found`);
+    try {
+      console.log(`Attempting to delete food provider ${id} by user ${userId}`);
+      
+      // First check if the food provider exists
+      const foodProvider = await this.foodProviderModel.findById(id).exec();
+      
+      if (!foodProvider) {
+        console.log(`Food provider ${id} not found`);
+        throw new NotFoundException(`Food provider with ID ${id} not found`);
+      }
+      
+      console.log(`Food provider found. Owner: ${foodProvider.owner.toString()}, User: ${userId}`);
+      
+      // Check if the user is the owner of the food provider
+      if (foodProvider.owner.toString() !== userId.toString()) {
+        console.log(`Authorization failed. User ${userId} is not the owner of food provider ${id}`);
+        throw new ForbiddenException(
+          'You can only delete your own food provider profile',
+        );
+      }
+      
+      console.log(`Authorization passed. Deleting menu items for provider ${id}`);
+      
+      // Delete associated menu items
+      const menuItemsResult = await this.menuItemModel.deleteMany({ provider: id }).exec();
+      console.log(`Deleted ${menuItemsResult.deletedCount} menu items`);
+      
+      // Delete the food provider
+      console.log(`Deleting food provider ${id}`);
+      const deleteResult = await this.foodProviderModel.findByIdAndDelete(id).exec();
+      
+      if (!deleteResult) {
+        console.log(`Food provider ${id} not found during deletion`);
+        throw new NotFoundException(`Food provider with ID ${id} not found during deletion`);
+      }
+      
+      console.log(`Food provider ${id} deleted successfully`);
+      
+      // Clear cache
+      await this.clearCache(id);
+      console.log(`Cache cleared for ${id}`);
+    } catch (error) {
+      // Log the error
+      console.error(`Error deleting food provider ${id}: ${error.message}`);
+      console.error(error.stack);
+      
+      // If error is already a NestJS HTTP exception, rethrow it
+      if (error.status) {
+        throw error;
+      }
+      
+      // Otherwise wrap it in a BadRequestException
+      throw new BadRequestException(`Failed to delete food provider: ${error.message}`);
     }
-
-    if (foodProvider.owner.toString() !== userId) {
-      throw new ForbiddenException(
-        'You can only delete your own food provider profile',
-      );
-    }
-
-    await this.foodProviderModel.findByIdAndDelete(id).exec();
-    await this.clearCache(id);
   }
 
   // Food Provider Dashboard Methods
@@ -230,6 +299,12 @@ export class FoodProviderService {
   }
 
   async getProviderOrders(providerId: string): Promise<Order[]> {
+    // First check if the provider exists
+    const provider = await this.foodProviderModel.findById(providerId);
+    if (!provider) {
+      throw new NotFoundException(`Food provider with ID ${providerId} not found`);
+    }
+
     const orders = await this.orderModel
       .find({ food_provider: providerId })
       .populate(['user', 'food_provider'])

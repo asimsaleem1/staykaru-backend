@@ -70,6 +70,9 @@ export class FoodProvider extends Document {
   @Prop()
   approvedAt?: Date;
 
+  @Prop({ type: [String], default: [] })
+  images: string[];
+
   @Prop()
   rejectionReason?: string;
 }

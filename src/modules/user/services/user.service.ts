@@ -197,16 +197,27 @@ export class UserService {
   }
 
   private decryptUserData(user: User): User {
-    const userObject = user.toObject() as Record<string, any>;
-    return {
-      ...userObject,
-      phone: userObject.phone
-        ? this.decrypt(String(userObject.phone))
-        : undefined,
-      address: userObject.address
-        ? this.decrypt(String(userObject.address))
-        : undefined,
-    } as User;
+    try {
+      const userObject = user.toObject() as Record<string, any>;
+      return {
+        ...userObject,
+        phone: userObject.phone
+          ? this.decrypt(String(userObject.phone))
+          : undefined,
+        address: userObject.address
+          ? this.decrypt(String(userObject.address))
+          : undefined,
+      } as User;
+    } catch (error) {
+      console.error('Error decrypting user data:', error);
+      // Return user data without decryption if decryption fails
+      const userObject = user.toObject() as Record<string, any>;
+      return {
+        ...userObject,
+        phone: userObject.phone || undefined,
+        address: userObject.address || undefined,
+      } as User;
+    }
   }
 
   // FCM token management
@@ -585,52 +596,88 @@ export class UserService {
   }
 
   async getUserProfile(userId: string): Promise<any> {
-    const user = await this.userModel.findById(userId).select('-password').exec();
-    
-    if (!user) {
-      throw new NotFoundException(`User with ID ${userId} not found`);
+    try {
+      const user = await this.userModel.findById(userId).select('-password').exec();
+      
+      if (!user) {
+        throw new NotFoundException(`User with ID ${userId} not found`);
+      }
+      
+      return this.decryptUserData(user);
+    } catch (error) {
+      if (error instanceof NotFoundException) {
+        throw error;
+      }
+      throw new BadRequestException(`Failed to get user profile: ${error.message}`);
     }
-    
-    return this.decryptUserData(user);
   }
 
   async updateUserProfile(userId: string, updateUserDto: UpdateUserDto): Promise<any> {
-    const user = await this.userModel.findById(userId).exec();
-    
-    if (!user) {
-      throw new NotFoundException(`User with ID ${userId} not found`);
-    }
-
-    // Validate email if provided
-    if (updateUserDto.email) {
-      const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
-      if (!emailRegex.test(updateUserDto.email)) {
-        throw new BadRequestException('Invalid email format');
+    try {
+      const user = await this.userModel.findById(userId).exec();
+      
+      if (!user) {
+        throw new NotFoundException(`User with ID ${userId} not found`);
       }
-    }
 
-    // Encrypt sensitive data
-    const encryptedData = { ...updateUserDto };
-    if (updateUserDto.phone) {
-      encryptedData.phone = this.encrypt(updateUserDto.phone);
-    }
-    if (updateUserDto.address) {
-      encryptedData.address = this.encrypt(updateUserDto.address);
-    }
+      // Validate email if provided
+      if (updateUserDto.email) {
+        const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+        if (!emailRegex.test(updateUserDto.email)) {
+          throw new BadRequestException('Invalid email format');
+        }
+        
+        // Check if email is already in use by another user
+        const existingUser = await this.userModel.findOne({ 
+          email: updateUserDto.email,
+          _id: { $ne: userId } 
+        }).exec();
+        
+        if (existingUser) {
+          throw new BadRequestException('Email is already in use by another user');
+        }
+      }
 
-    // Update using findByIdAndUpdate for better reliability
-    const updatedUser = await this.userModel.findByIdAndUpdate(
-      userId,
-      { $set: encryptedData },
-      { new: true }
-    ).select('-password').exec();
-    
-    await this.clearCache(userId);
-    
-    return {
-      message: 'User profile updated successfully',
-      user: this.decryptUserData(updatedUser),
-    };
+      // Validate phone format if provided
+      if (updateUserDto.phone) {
+        const phoneRegex = /^\+?[1-9]\d{1,14}$/;
+        if (!phoneRegex.test(updateUserDto.phone.replace(/[\s-()]/g, ''))) {
+          throw new BadRequestException('Invalid phone number format');
+        }
+      }
+
+      // Encrypt sensitive data
+      const encryptedData = { ...updateUserDto };
+      if (updateUserDto.phone) {
+        encryptedData.phone = this.encrypt(updateUserDto.phone);
+      }
+      if (updateUserDto.address) {
+        encryptedData.address = this.encrypt(updateUserDto.address);
+      }
+
+      // Update using findByIdAndUpdate for better reliability
+      const updatedUser = await this.userModel.findByIdAndUpdate(
+        userId,
+        { $set: encryptedData },
+        { new: true }
+      ).select('-password').exec();
+      
+      if (!updatedUser) {
+        throw new NotFoundException(`User with ID ${userId} not found during update`);
+      }
+      
+      await this.clearCache(userId);
+      
+      return {
+        message: 'User profile updated successfully',
+        user: this.decryptUserData(updatedUser),
+      };
+    } catch (error) {
+      if (error instanceof BadRequestException || error instanceof NotFoundException) {
+        throw error;
+      }
+      throw new BadRequestException(`Failed to update profile: ${error.message}`);
+    }
   }
 
   async updateFcmToken(userId: string, fcmToken: string): Promise<any> {
