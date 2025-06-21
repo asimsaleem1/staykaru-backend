@@ -275,7 +275,10 @@ export class UserController {
     @Request() req: AuthenticatedRequest,
     @Body() updateUserDto: UpdateUserDto,
   ) {
-    return this.userService.updateUserProfile(this.getUserId(req), updateUserDto);
+    return this.userService.updateUserProfile(
+      this.getUserId(req),
+      updateUserDto,
+    );
   }
 
   @Patch('profile')
@@ -396,7 +399,7 @@ export class UserController {
   })
   async updateLandlordFcmToken(
     @Request() req: AuthenticatedRequest,
-    @Body() body: { fcmToken: string }
+    @Body() body: { fcmToken: string },
   ) {
     const landlordId = req.user._id;
     return this.userService.updateFcmToken(landlordId, body.fcmToken);

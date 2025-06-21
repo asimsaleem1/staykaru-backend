@@ -2,7 +2,10 @@ import { Injectable } from '@nestjs/common';
 import sharp from 'sharp';
 import * as path from 'path';
 import * as fs from 'fs/promises';
-import { ImageProcessingOptions, ImageMetadata } from '../../modules/file-upload/interfaces/image-metadata.interface';
+import {
+  ImageProcessingOptions,
+  ImageMetadata,
+} from '../../modules/file-upload/interfaces/image-metadata.interface';
 
 @Injectable()
 export class ImageProcessingUtil {
@@ -39,7 +42,7 @@ export class ImageProcessingUtil {
 
     // Get image metadata
     const metadata = await sharp(inputPath).metadata();
-    
+
     // Save processed image
     await processor.toFile(outputPath);
 
@@ -94,7 +97,7 @@ export class ImageProcessingUtil {
   async deleteImage(imagePath: string): Promise<void> {
     try {
       await fs.unlink(imagePath);
-      
+
       // Also delete thumbnail if it exists
       const thumbnailPath = this.getThumbnailPath(imagePath);
       try {
@@ -113,11 +116,15 @@ export class ImageProcessingUtil {
     const maxSize = 5 * 1024 * 1024; // 5MB
 
     if (!allowedMimeTypes.includes(file.mimetype)) {
-      throw new Error(`Invalid file type. Allowed types: ${allowedMimeTypes.join(', ')}`);
+      throw new Error(
+        `Invalid file type. Allowed types: ${allowedMimeTypes.join(', ')}`,
+      );
     }
 
     if (file.size > maxSize) {
-      throw new Error(`File too large. Maximum size is ${maxSize / (1024 * 1024)}MB`);
+      throw new Error(
+        `File too large. Maximum size is ${maxSize / (1024 * 1024)}MB`,
+      );
     }
 
     return true;

@@ -1,5 +1,8 @@
 import { Injectable, BadRequestException } from '@nestjs/common';
-import { MulterModuleOptions, MulterOptionsFactory } from '@nestjs/platform-express';
+import {
+  MulterModuleOptions,
+  MulterOptionsFactory,
+} from '@nestjs/platform-express';
 import { diskStorage } from 'multer';
 import * as path from 'path';
 import * as fs from 'fs';
@@ -12,12 +15,12 @@ export class FileUploadConfig implements MulterOptionsFactory {
         destination: (req, file, cb) => {
           const uploadType = this.getUploadType(req.url);
           const uploadPath = path.join(process.cwd(), 'uploads', uploadType);
-          
+
           // Create directory if it doesn't exist
           if (!fs.existsSync(uploadPath)) {
             fs.mkdirSync(uploadPath, { recursive: true });
           }
-          
+
           cb(null, uploadPath);
         },
         filename: (req, file, cb) => {
@@ -44,7 +47,8 @@ export class FileUploadConfig implements MulterOptionsFactory {
     if (url.includes('food-provider')) return 'food-providers';
     if (url.includes('menu-item')) return 'menu-items';
     return 'general';
-  }  private validateFile(file: any): boolean {
+  }
+  private validateFile(file: any): boolean {
     const allowedMimeTypes = ['image/jpeg', 'image/png', 'image/webp'];
     const maxSize = 5 * 1024 * 1024; // 5MB
 
@@ -52,14 +56,11 @@ export class FileUploadConfig implements MulterOptionsFactory {
 
     // eslint-disable-next-line @typescript-eslint/no-unsafe-member-access
     const mimetype = file.mimetype as string;
-    // eslint-disable-next-line @typescript-eslint/no-unsafe-member-access  
+    // eslint-disable-next-line @typescript-eslint/no-unsafe-member-access
     const size = file.size as number;
 
     return (
-      mimetype &&
-      allowedMimeTypes.includes(mimetype) &&
-      size &&
-      size <= maxSize
+      mimetype && allowedMimeTypes.includes(mimetype) && size && size <= maxSize
     );
   }
 

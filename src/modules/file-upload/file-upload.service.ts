@@ -26,7 +26,7 @@ export class FileUploadService {
     for (const file of files) {
       try {
         // Validate file
-        this.imageProcessingUtil.validateImageFile(file);        // Process and optimize the image
+        this.imageProcessingUtil.validateImageFile(file); // Process and optimize the image
         const processedImage = await this.imageProcessingUtil.processImage(
           file.path,
           file.path, // Overwrite original with optimized version
@@ -130,8 +130,6 @@ export class FileUploadService {
   }
 
   generateImageUrls(filenames: string[], uploadType: string): string[] {
-    return filenames.map((filename) =>
-      this.getImageUrl(filename, uploadType),
-    );
+    return filenames.map((filename) => this.getImageUrl(filename, uploadType));
   }
 }

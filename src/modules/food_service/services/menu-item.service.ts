@@ -45,11 +45,14 @@ export class MenuItemService {
       if (!createMenuItemDto.name) {
         throw new BadRequestException('Name is required');
       }
-      
-      if (createMenuItemDto.price === undefined || createMenuItemDto.price <= 0) {
+
+      if (
+        createMenuItemDto.price === undefined ||
+        createMenuItemDto.price <= 0
+      ) {
         throw new BadRequestException('Valid price is required');
       }
-      
+
       if (!createMenuItemDto.description) {
         throw new BadRequestException('Description is required');
       }
@@ -58,9 +61,11 @@ export class MenuItemService {
       const menuItem = new this.menuItemModel(createMenuItemDto);
       return (await menuItem.save()).populate('provider');
     } catch (error) {
-      if (error instanceof BadRequestException || 
-          error instanceof NotFoundException || 
-          error instanceof ForbiddenException) {
+      if (
+        error instanceof BadRequestException ||
+        error instanceof NotFoundException ||
+        error instanceof ForbiddenException
+      ) {
         throw error;
       }
       throw new BadRequestException(

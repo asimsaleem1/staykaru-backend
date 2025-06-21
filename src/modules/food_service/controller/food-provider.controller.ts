@@ -268,17 +268,19 @@ export class FoodProviderController {
     @Body() menuItemDto: any,
     @Request() req,
   ) {
-    console.log(`\n[CREATE_MENU_ITEM] Creating menu item for provider ${providerId}`);
+    console.log(
+      `\n[CREATE_MENU_ITEM] Creating menu item for provider ${providerId}`,
+    );
     console.log(`[CREATE_MENU_ITEM] User:`, this.getUserId(req));
     console.log(`[CREATE_MENU_ITEM] DTO:`, menuItemDto);
-    
+
     try {
       // Add provider ID to the DTO
       const menuItemDtoWithProvider = {
         ...menuItemDto,
         provider: providerId,
       };
-      
+
       const result = await this.menuItemService.create(
         menuItemDtoWithProvider,
         this.getUserId(req),
@@ -371,7 +373,9 @@ export class FoodProviderController {
   @UseGuards(JwtAuthGuard, RolesGuard)
   @Roles(UserRole.ADMIN)
   @ApiBearerAuth('JWT-auth')
-  @ApiOperation({ summary: 'Get all pending food providers for admin approval' })
+  @ApiOperation({
+    summary: 'Get all pending food providers for admin approval',
+  })
   @ApiResponse({
     status: 200,
     description: 'Returns all pending food providers',
@@ -384,7 +388,9 @@ export class FoodProviderController {
   @UseGuards(JwtAuthGuard, RolesGuard)
   @Roles(UserRole.ADMIN)
   @ApiBearerAuth('JWT-auth')
-  @ApiOperation({ summary: 'Get all food providers with approval status (Admin only)' })
+  @ApiOperation({
+    summary: 'Get all food providers with approval status (Admin only)',
+  })
   @ApiResponse({
     status: 200,
     description: 'Returns all food providers with detailed admin info',
@@ -407,7 +413,8 @@ export class FoodProviderController {
     @Param('id') id: string,
     @Request() req: RequestWithUser,
   ) {
-    const adminId = typeof req.user._id === 'string' ? req.user._id : req.user._id.toString();
+    const adminId =
+      typeof req.user._id === 'string' ? req.user._id : req.user._id.toString();
     return this.foodProviderService.approveFoodProvider(id, adminId);
   }
 
@@ -426,7 +433,8 @@ export class FoodProviderController {
     @Body('reason') reason: string,
     @Request() req: RequestWithUser,
   ) {
-    const adminId = typeof req.user._id === 'string' ? req.user._id : req.user._id.toString();
+    const adminId =
+      typeof req.user._id === 'string' ? req.user._id : req.user._id.toString();
     return this.foodProviderService.rejectFoodProvider(id, reason, adminId);
   }
 
@@ -486,7 +494,8 @@ export class FoodProviderController {
     @Param('id') id: string,
     @Request() req: RequestWithUser,
   ) {
-    const adminId = typeof req.user._id === 'string' ? req.user._id : req.user._id.toString();
+    const adminId =
+      typeof req.user._id === 'string' ? req.user._id : req.user._id.toString();
     return this.foodProviderService.approveMenuItem(id, adminId);
   }
 
@@ -505,7 +514,8 @@ export class FoodProviderController {
     @Body('reason') reason: string,
     @Request() req: RequestWithUser,
   ) {
-    const adminId = typeof req.user._id === 'string' ? req.user._id : req.user._id.toString();
+    const adminId =
+      typeof req.user._id === 'string' ? req.user._id : req.user._id.toString();
     return this.foodProviderService.rejectMenuItem(id, reason, adminId);
   }
 

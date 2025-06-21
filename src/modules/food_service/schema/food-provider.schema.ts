@@ -57,10 +57,10 @@ export class FoodProvider extends Document {
   @Prop({ type: Boolean, default: true })
   is_active: boolean;
 
-  @Prop({ 
-    type: String, 
-    enum: ['pending', 'approved', 'rejected'], 
-    default: 'pending' 
+  @Prop({
+    type: String,
+    enum: ['pending', 'approved', 'rejected'],
+    default: 'pending',
   })
   approvalStatus: string;
 

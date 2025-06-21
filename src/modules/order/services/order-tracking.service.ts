@@ -78,7 +78,10 @@ export class OrderTrackingService {
           );
           order.estimated_delivery_time = new Date(estimatedArrival);
         } catch (error) {
-          this.logger.warn('Could not calculate estimated delivery time', error);
+          this.logger.warn(
+            'Could not calculate estimated delivery time',
+            error,
+          );
         }
       }
 
@@ -149,7 +152,9 @@ export class OrderTrackingService {
     try {
       return await this.orderModel
         .find({
-          status: { $in: [OrderStatus.PREPARING, OrderStatus.OUT_FOR_DELIVERY] },
+          status: {
+            $in: [OrderStatus.PREPARING, OrderStatus.OUT_FOR_DELIVERY],
+          },
         })
         .populate('user food_provider')
         .exec();

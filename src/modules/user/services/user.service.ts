@@ -126,7 +126,10 @@ export class UserService {
       return cached;
     }
 
-    const user = await this.userModel.findById(userId).select('-password').exec();
+    const user = await this.userModel
+      .findById(userId)
+      .select('-password')
+      .exec();
 
     if (!user) {
       throw new NotFoundException(`User with ID ${userId} not found`);
@@ -584,10 +587,11 @@ export class UserService {
   }
 
   async getLandlordProfile(landlordId: string): Promise<any> {
-    const user = await this.userModel.findById(landlordId)
+    const user = await this.userModel
+      .findById(landlordId)
       .select('-password -refreshTokens')
       .exec();
-    
+
     if (!user) {
       throw new NotFoundException('Landlord not found');
     }
@@ -597,25 +601,33 @@ export class UserService {
 
   async getUserProfile(userId: string): Promise<any> {
     try {
-      const user = await this.userModel.findById(userId).select('-password').exec();
-      
+      const user = await this.userModel
+        .findById(userId)
+        .select('-password')
+        .exec();
+
       if (!user) {
         throw new NotFoundException(`User with ID ${userId} not found`);
       }
-      
+
       return this.decryptUserData(user);
     } catch (error) {
       if (error instanceof NotFoundException) {
         throw error;
       }
-      throw new BadRequestException(`Failed to get user profile: ${error.message}`);
+      throw new BadRequestException(
+        `Failed to get user profile: ${error.message}`,
+      );
     }
   }
 
-  async updateUserProfile(userId: string, updateUserDto: UpdateUserDto): Promise<any> {
+  async updateUserProfile(
+    userId: string,
+    updateUserDto: UpdateUserDto,
+  ): Promise<any> {
     try {
       const user = await this.userModel.findById(userId).exec();
-      
+
       if (!user) {
         throw new NotFoundException(`User with ID ${userId} not found`);
       }
@@ -626,15 +638,19 @@ export class UserService {
         if (!emailRegex.test(updateUserDto.email)) {
           throw new BadRequestException('Invalid email format');
         }
-        
+
         // Check if email is already in use by another user
-        const existingUser = await this.userModel.findOne({ 
-          email: updateUserDto.email,
-          _id: { $ne: userId } 
-        }).exec();
-        
+        const existingUser = await this.userModel
+          .findOne({
+            email: updateUserDto.email,
+            _id: { $ne: userId },
+          })
+          .exec();
+
         if (existingUser) {
-          throw new BadRequestException('Email is already in use by another user');
+          throw new BadRequestException(
+            'Email is already in use by another user',
+          );
         }
       }
 
@@ -656,33 +672,39 @@ export class UserService {
       }
 
       // Update using findByIdAndUpdate for better reliability
-      const updatedUser = await this.userModel.findByIdAndUpdate(
-        userId,
-        { $set: encryptedData },
-        { new: true }
-      ).select('-password').exec();
-      
+      const updatedUser = await this.userModel
+        .findByIdAndUpdate(userId, { $set: encryptedData }, { new: true })
+        .select('-password')
+        .exec();
+
       if (!updatedUser) {
-        throw new NotFoundException(`User with ID ${userId} not found during update`);
+        throw new NotFoundException(
+          `User with ID ${userId} not found during update`,
+        );
       }
-      
+
       await this.clearCache(userId);
-      
+
       return {
         message: 'User profile updated successfully',
         user: this.decryptUserData(updatedUser),
       };
     } catch (error) {
-      if (error instanceof BadRequestException || error instanceof NotFoundException) {
+      if (
+        error instanceof BadRequestException ||
+        error instanceof NotFoundException
+      ) {
         throw error;
       }
-      throw new BadRequestException(`Failed to update profile: ${error.message}`);
+      throw new BadRequestException(
+        `Failed to update profile: ${error.message}`,
+      );
     }
   }
 
   async updateFcmToken(userId: string, fcmToken: string): Promise<any> {
     const user = await this.findById(userId);
-    
+
     if (!user) {
       throw new NotFoundException(`User with ID ${userId} not found`);
     }
@@ -691,14 +713,16 @@ export class UserService {
     if (!user.fcmTokens) {
       user.fcmTokens = [];
     }
-    
+
     if (!user.fcmTokens.includes(fcmToken)) {
       user.fcmTokens.push(fcmToken);
     }
-    
-    await this.userModel.findByIdAndUpdate(userId, { fcmTokens: user.fcmTokens });
+
+    await this.userModel.findByIdAndUpdate(userId, {
+      fcmTokens: user.fcmTokens,
+    });
     await this.clearCache(userId);
-    
+
     return {
       message: 'FCM token updated successfully',
     };

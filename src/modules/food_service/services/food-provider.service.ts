@@ -47,14 +47,23 @@ export class FoodProviderService {
     // Validate that location exists before creating the food provider
     try {
       // First check if the location ID is a valid ObjectId format
-      if (!createFoodProviderDto.location || createFoodProviderDto.location.length !== 24) {
-        throw new BadRequestException(`Invalid location ID format: ${createFoodProviderDto.location}`);
+      if (
+        !createFoodProviderDto.location ||
+        createFoodProviderDto.location.length !== 24
+      ) {
+        throw new BadRequestException(
+          `Invalid location ID format: ${createFoodProviderDto.location}`,
+        );
       }
-      
+
       // Try to find the city with the provided ID
-      const city = await this.cityModel.findById(createFoodProviderDto.location).exec();
+      const city = await this.cityModel
+        .findById(createFoodProviderDto.location)
+        .exec();
       if (!city) {
-        throw new BadRequestException(`Location with ID ${createFoodProviderDto.location} not found`);
+        throw new BadRequestException(
+          `Location with ID ${createFoodProviderDto.location} not found`,
+        );
       }
     } catch (error) {
       if (error instanceof BadRequestException) {
@@ -62,10 +71,14 @@ export class FoodProviderService {
       }
       // If it's a MongoDB CastError (invalid ObjectId), convert to BadRequestException
       if (error.name === 'CastError') {
-        throw new BadRequestException(`Invalid location ID format: ${createFoodProviderDto.location}`);
+        throw new BadRequestException(
+          `Invalid location ID format: ${createFoodProviderDto.location}`,
+        );
       }
       // Any other error
-      throw new BadRequestException(`Invalid location ID: ${createFoodProviderDto.location}`);
+      throw new BadRequestException(
+        `Invalid location ID: ${createFoodProviderDto.location}`,
+      );
     }
 
     const foodProvider = new this.foodProviderModel({
@@ -146,42 +159,54 @@ export class FoodProviderService {
   async remove(id: string, userId: string): Promise<void> {
     try {
       console.log(`Attempting to delete food provider ${id} by user ${userId}`);
-      
+
       // First check if the food provider exists
       const foodProvider = await this.foodProviderModel.findById(id).exec();
-      
+
       if (!foodProvider) {
         console.log(`Food provider ${id} not found`);
         throw new NotFoundException(`Food provider with ID ${id} not found`);
       }
-      
-      console.log(`Food provider found. Owner: ${foodProvider.owner.toString()}, User: ${userId}`);
-      
+
+      console.log(
+        `Food provider found. Owner: ${foodProvider.owner.toString()}, User: ${userId}`,
+      );
+
       // Check if the user is the owner of the food provider
       if (foodProvider.owner.toString() !== userId.toString()) {
-        console.log(`Authorization failed. User ${userId} is not the owner of food provider ${id}`);
+        console.log(
+          `Authorization failed. User ${userId} is not the owner of food provider ${id}`,
+        );
         throw new ForbiddenException(
           'You can only delete your own food provider profile',
         );
       }
-      
-      console.log(`Authorization passed. Deleting menu items for provider ${id}`);
-      
+
+      console.log(
+        `Authorization passed. Deleting menu items for provider ${id}`,
+      );
+
       // Delete associated menu items
-      const menuItemsResult = await this.menuItemModel.deleteMany({ provider: id }).exec();
+      const menuItemsResult = await this.menuItemModel
+        .deleteMany({ provider: id })
+        .exec();
       console.log(`Deleted ${menuItemsResult.deletedCount} menu items`);
-      
+
       // Delete the food provider
       console.log(`Deleting food provider ${id}`);
-      const deleteResult = await this.foodProviderModel.findByIdAndDelete(id).exec();
-      
+      const deleteResult = await this.foodProviderModel
+        .findByIdAndDelete(id)
+        .exec();
+
       if (!deleteResult) {
         console.log(`Food provider ${id} not found during deletion`);
-        throw new NotFoundException(`Food provider with ID ${id} not found during deletion`);
+        throw new NotFoundException(
+          `Food provider with ID ${id} not found during deletion`,
+        );
       }
-      
+
       console.log(`Food provider ${id} deleted successfully`);
-      
+
       // Clear cache
       await this.clearCache(id);
       console.log(`Cache cleared for ${id}`);
@@ -189,14 +214,16 @@ export class FoodProviderService {
       // Log the error
       console.error(`Error deleting food provider ${id}: ${error.message}`);
       console.error(error.stack);
-      
+
       // If error is already a NestJS HTTP exception, rethrow it
       if (error.status) {
         throw error;
       }
-      
+
       // Otherwise wrap it in a BadRequestException
-      throw new BadRequestException(`Failed to delete food provider: ${error.message}`);
+      throw new BadRequestException(
+        `Failed to delete food provider: ${error.message}`,
+      );
     }
   }
 
@@ -302,7 +329,9 @@ export class FoodProviderService {
     // First check if the provider exists
     const provider = await this.foodProviderModel.findById(providerId);
     if (!provider) {
-      throw new NotFoundException(`Food provider with ID ${providerId} not found`);
+      throw new NotFoundException(
+        `Food provider with ID ${providerId} not found`,
+      );
     }
 
     const orders = await this.orderModel
@@ -469,9 +498,11 @@ export class FoodProviderService {
 
   async approveFoodProvider(providerId: string, adminId: string) {
     const provider = await this.foodProviderModel.findById(providerId);
-    
+
     if (!provider) {
-      throw new NotFoundException(`Food provider with ID ${providerId} not found`);
+      throw new NotFoundException(
+        `Food provider with ID ${providerId} not found`,
+      );
     }
 
     provider.approvalStatus = 'approved';
@@ -489,11 +520,17 @@ export class FoodProviderService {
     };
   }
 
-  async rejectFoodProvider(providerId: string, reason: string, adminId: string) {
+  async rejectFoodProvider(
+    providerId: string,
+    reason: string,
+    adminId: string,
+  ) {
     const provider = await this.foodProviderModel.findById(providerId);
-    
+
     if (!provider) {
-      throw new NotFoundException(`Food provider with ID ${providerId} not found`);
+      throw new NotFoundException(
+        `Food provider with ID ${providerId} not found`,
+      );
     }
 
     provider.approvalStatus = 'rejected';
@@ -513,14 +550,18 @@ export class FoodProviderService {
 
   async toggleActiveStatus(providerId: string) {
     const provider = await this.foodProviderModel.findById(providerId);
-    
+
     if (!provider) {
-      throw new NotFoundException(`Food provider with ID ${providerId} not found`);
+      throw new NotFoundException(
+        `Food provider with ID ${providerId} not found`,
+      );
     }
 
     // Only allow toggling if provider is approved
     if (provider.approvalStatus !== 'approved') {
-      throw new ForbiddenException('Can only toggle status of approved food providers');
+      throw new ForbiddenException(
+        'Can only toggle status of approved food providers',
+      );
     }
 
     provider.is_active = !provider.is_active;
@@ -540,7 +581,9 @@ export class FoodProviderService {
       .exec();
 
     if (!provider) {
-      throw new NotFoundException(`Food provider with ID ${providerId} not found`);
+      throw new NotFoundException(
+        `Food provider with ID ${providerId} not found`,
+      );
     }
 
     // Get additional statistics for admin review
@@ -598,7 +641,7 @@ export class FoodProviderService {
 
   async approveMenuItem(menuItemId: string, adminId: string) {
     const menuItem = await this.menuItemModel.findById(menuItemId);
-    
+
     if (!menuItem) {
       throw new NotFoundException(`Menu item with ID ${menuItemId} not found`);
     }
@@ -619,7 +662,7 @@ export class FoodProviderService {
 
   async rejectMenuItem(menuItemId: string, reason: string, adminId: string) {
     const menuItem = await this.menuItemModel.findById(menuItemId);
-    
+
     if (!menuItem) {
       throw new NotFoundException(`Menu item with ID ${menuItemId} not found`);
     }
@@ -640,14 +683,16 @@ export class FoodProviderService {
 
   async toggleMenuItemStatus(menuItemId: string) {
     const menuItem = await this.menuItemModel.findById(menuItemId);
-    
+
     if (!menuItem) {
       throw new NotFoundException(`Menu item with ID ${menuItemId} not found`);
     }
 
     // Only allow toggling if menu item is approved
     if (menuItem.approvalStatus !== 'approved') {
-      throw new ForbiddenException('Can only toggle status of approved menu items');
+      throw new ForbiddenException(
+        'Can only toggle status of approved menu items',
+      );
     }
 
     menuItem.isActive = !menuItem.isActive;

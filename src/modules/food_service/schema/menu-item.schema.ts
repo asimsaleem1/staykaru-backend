@@ -24,10 +24,10 @@ export class MenuItem extends Document {
   @Prop({ default: true })
   isActive: boolean;
 
-  @Prop({ 
-    type: String, 
-    enum: ['pending', 'approved', 'rejected'], 
-    default: 'pending' 
+  @Prop({
+    type: String,
+    enum: ['pending', 'approved', 'rejected'],
+    default: 'pending',
   })
   approvalStatus: string;
 

@@ -195,13 +195,16 @@ export class AccommodationController {
   @UseGuards(JwtAuthGuard, RolesGuard)
   @Roles(UserRole.LANDLORD)
   @ApiBearerAuth('JWT-auth')
-  @ApiOperation({ summary: 'Get all accommodations for the authenticated landlord' })
+  @ApiOperation({
+    summary: 'Get all accommodations for the authenticated landlord',
+  })
   @ApiResponse({
     status: 200,
     description: 'Return landlord accommodations',
   })
   async getLandlordAccommodations(@Request() req: RequestWithUser) {
-    const landlordId = typeof req.user._id === 'string' ? req.user._id : req.user._id.toString();
+    const landlordId =
+      typeof req.user._id === 'string' ? req.user._id : req.user._id.toString();
     return this.accommodationService.findByLandlord(landlordId);
   }
 
@@ -215,7 +218,8 @@ export class AccommodationController {
     description: 'Return landlord dashboard data',
   })
   async getLandlordDashboard(@Request() req: RequestWithUser) {
-    const landlordId = typeof req.user._id === 'string' ? req.user._id : req.user._id.toString();
+    const landlordId =
+      typeof req.user._id === 'string' ? req.user._id : req.user._id.toString();
     return this.accommodationService.getLandlordDashboard(landlordId);
   }
 
@@ -229,7 +233,8 @@ export class AccommodationController {
     description: 'Return landlord recent activities',
   })
   async getLandlordActivities(@Request() req: RequestWithUser) {
-    const landlordId = typeof req.user._id === 'string' ? req.user._id : req.user._id.toString();
+    const landlordId =
+      typeof req.user._id === 'string' ? req.user._id : req.user._id.toString();
     return this.accommodationService.getLandlordActivities(landlordId);
   }
 
@@ -238,11 +243,14 @@ export class AccommodationController {
   @UseGuards(JwtAuthGuard, RolesGuard)
   @Roles(UserRole.ADMIN)
   @ApiBearerAuth('JWT-auth')
-  @ApiOperation({ summary: 'Get all pending accommodations for admin approval' })
+  @ApiOperation({
+    summary: 'Get all pending accommodations for admin approval',
+  })
   @ApiResponse({
     status: 200,
     description: 'Returns all pending accommodations',
-  })  async findPending() {
+  })
+  async findPending() {
     return this.accommodationService.findPendingAccommodations();
   }
 
@@ -355,7 +363,8 @@ export class AccommodationController {
   })
   @ApiResponse({
     status: 403,
-    description: 'Forbidden - Can only delete own accommodations',  })
+    description: 'Forbidden - Can only delete own accommodations',
+  })
   @ApiResponse({ status: 404, description: 'Accommodation not found' })
   async remove(@Param('id') id: string, @Request() req: RequestWithUser) {
     await this.accommodationService.remove(
@@ -382,7 +391,8 @@ export class AccommodationController {
     @Param('id') id: string,
     @Request() req: RequestWithUser,
   ) {
-    const adminId = typeof req.user._id === 'string' ? req.user._id : req.user._id.toString();
+    const adminId =
+      typeof req.user._id === 'string' ? req.user._id : req.user._id.toString();
     return this.accommodationService.approveAccommodation(id, adminId);
   }
 
@@ -401,7 +411,8 @@ export class AccommodationController {
     @Body('reason') reason: string,
     @Request() req: RequestWithUser,
   ) {
-    const adminId = typeof req.user._id === 'string' ? req.user._id : req.user._id.toString();
+    const adminId =
+      typeof req.user._id === 'string' ? req.user._id : req.user._id.toString();
     return this.accommodationService.rejectAccommodation(id, reason, adminId);
   }
 

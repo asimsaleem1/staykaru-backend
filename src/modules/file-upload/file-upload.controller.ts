@@ -12,11 +12,20 @@ import {
   Res,
 } from '@nestjs/common';
 import { FileInterceptor, FilesInterceptor } from '@nestjs/platform-express';
-import { ApiTags, ApiConsumes, ApiOperation, ApiResponse } from '@nestjs/swagger';
+import {
+  ApiTags,
+  ApiConsumes,
+  ApiOperation,
+  ApiResponse,
+} from '@nestjs/swagger';
 import { Response } from 'express';
 import * as path from 'path';
 import { FileUploadService } from './file-upload.service';
-import { UploadImageDto, UploadSingleImageDto, DeleteImageDto } from './dto/upload-image.dto';
+import {
+  UploadImageDto,
+  UploadSingleImageDto,
+  DeleteImageDto,
+} from './dto/upload-image.dto';
 import { JwtAuthGuard } from '../auth/guards/jwt-auth.guard';
 
 @ApiTags('file-upload')
@@ -127,7 +136,7 @@ export class FileUploadController {
     @Res() res: Response,
   ) {
     const imagePath = this.fileUploadService.getImagePath(filename, uploadType);
-    
+
     try {
       return res.sendFile(path.resolve(imagePath));
     } catch (error) {
@@ -147,7 +156,7 @@ export class FileUploadController {
       path.dirname(imagePath),
       `${path.basename(imagePath, path.extname(imagePath))}_thumb${path.extname(imagePath)}`,
     );
-    
+
     try {
       return res.sendFile(path.resolve(thumbnailPath));
     } catch (error) {

@@ -45,10 +45,10 @@ export class Accommodation extends Document {
   @Prop({ default: false })
   isActive: boolean;
 
-  @Prop({ 
-    type: String, 
-    enum: ['pending', 'approved', 'rejected'], 
-    default: 'pending' 
+  @Prop({
+    type: String,
+    enum: ['pending', 'approved', 'rejected'],
+    default: 'pending',
   })
   approvalStatus: string;
 

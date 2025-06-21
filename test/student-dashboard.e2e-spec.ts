@@ -78,7 +78,9 @@ describe('Student Dashboard E2E Tests', () => {
       expect(response.body).toHaveProperty('access_token');
       expect(response.body).toHaveProperty('user');
       expect(response.body.user.role).toBe('student');
-      expect(response.body.user.email).toBe('student.dashboard.test@university.edu');
+      expect(response.body.user.email).toBe(
+        'student.dashboard.test@university.edu',
+      );
     });
 
     it('should get student profile information', async () => {
@@ -138,9 +140,7 @@ describe('Student Dashboard E2E Tests', () => {
     });
 
     it('should reject unauthorized access to profile', async () => {
-      await request(app.getHttpServer())
-        .get('/users/profile')
-        .expect(401);
+      await request(app.getHttpServer()).get('/users/profile').expect(401);
     });
 
     it('should reject invalid password change', async () => {
@@ -319,7 +319,9 @@ describe('Student Dashboard E2E Tests', () => {
 
     it('should validate booking date constraints', async () => {
       if (!testAccommodationId) {
-        console.log('Skipping date validation test - no accommodations available');
+        console.log(
+          'Skipping date validation test - no accommodations available',
+        );
         return;
       }
 
@@ -521,7 +523,9 @@ describe('Student Dashboard E2E Tests', () => {
 
     it('should get accommodation details with reviews', async () => {
       if (!testAccommodationId) {
-        console.log('Skipping accommodation details test - no accommodations available');
+        console.log(
+          'Skipping accommodation details test - no accommodations available',
+        );
         return;
       }
 
@@ -568,7 +572,9 @@ describe('Student Dashboard E2E Tests', () => {
       testReviewId = response.body._id;
       expect(response.body.user).toBe(studentUser._id);
       expect(response.body.rating).toBe(5);
-      expect(response.body.comment).toBe('Excellent accommodation! Very clean and well-maintained.');
+      expect(response.body.comment).toBe(
+        'Excellent accommodation! Very clean and well-maintained.',
+      );
     });
 
     it('should get all student reviews', async () => {
@@ -609,7 +615,9 @@ describe('Student Dashboard E2E Tests', () => {
         .expect(200);
 
       expect(response.body.rating).toBe(4);
-      expect(response.body.comment).toBe('Good accommodation, but room for improvement.');
+      expect(response.body.comment).toBe(
+        'Good accommodation, but room for improvement.',
+      );
     });
 
     it('should delete review', async () => {
@@ -687,17 +695,13 @@ describe('Student Dashboard E2E Tests', () => {
 
   describe('Error Handling & Security', () => {
     it('should reject access without authentication', async () => {
-      await request(app.getHttpServer())
-        .get('/users/profile')
-        .expect(401);
+      await request(app.getHttpServer()).get('/users/profile').expect(401);
 
       await request(app.getHttpServer())
         .get('/bookings/my-bookings')
         .expect(401);
 
-      await request(app.getHttpServer())
-        .get('/orders/my-orders')
-        .expect(401);
+      await request(app.getHttpServer()).get('/orders/my-orders').expect(401);
     });
 
     it('should reject access with invalid token', async () => {
@@ -772,7 +776,7 @@ describe('Student Dashboard E2E Tests', () => {
       const concurrentRequests = Array.from({ length: 10 }, () =>
         request(app.getHttpServer())
           .get('/accommodations')
-          .set('Authorization', `Bearer ${studentToken}`)
+          .set('Authorization', `Bearer ${studentToken}`),
       );
 
       const responses = await Promise.all(concurrentRequests);
@@ -819,7 +823,7 @@ describe('Student Dashboard E2E Tests', () => {
 
       if (bookingResponse.status === 200) {
         const booking = bookingResponse.body;
-        
+
         // Get accommodation details
         const accommodationResponse = await request(app.getHttpServer())
           .get(`/accommodations/${booking.accommodation}`)
@@ -842,7 +846,7 @@ describe('Student Dashboard E2E Tests', () => {
 
       if (orderResponse.status === 200) {
         const order = orderResponse.body;
-        
+
         // Calculate expected total from items
         let expectedTotal = 0;
         for (const item of order.items) {

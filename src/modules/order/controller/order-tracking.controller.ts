@@ -1,19 +1,5 @@
-import {
-  Controller,
-  Get,
-  Post,
-  Put,
-  Body,
-  Param,
-  Query,
-} from '@nestjs/common';
-import {
-  ApiTags,
-  ApiOperation,
-  ApiResponse,
-  ApiParam,
-  ApiQuery,
-} from '@nestjs/swagger';
+import { Controller, Get, Post, Put, Body, Param } from '@nestjs/common';
+import { ApiTags, ApiOperation, ApiResponse, ApiParam } from '@nestjs/swagger';
 import { OrderTrackingService } from '../services/order-tracking.service';
 import {
   UpdateOrderLocationDto,
@@ -24,9 +10,7 @@ import {
 @ApiTags('order-tracking')
 @Controller('order-tracking')
 export class OrderTrackingController {
-  constructor(
-    private readonly orderTrackingService: OrderTrackingService,
-  ) {}
+  constructor(private readonly orderTrackingService: OrderTrackingService) {}
 
   @Put('location')
   @ApiOperation({
@@ -108,8 +92,8 @@ export class OrderTrackingController {
         trackingHistory: [
           {
             location: {
-              latitude: 24.8600,
-              longitude: 67.0010,
+              latitude: 24.86,
+              longitude: 67.001,
             },
             status: 'preparing',
             timestamp: '2025-06-21T12:45:00.000Z',
@@ -201,8 +185,8 @@ export class OrderTrackingController {
       example: [
         {
           location: {
-            latitude: 24.8600,
-            longitude: 67.0010,
+            latitude: 24.86,
+            longitude: 67.001,
           },
           status: 'placed',
           timestamp: '2025-06-21T12:30:00.000Z',
@@ -241,8 +225,8 @@ export class OrderTrackingController {
         routes: [
           {
             from: {
-              latitude: 24.8600,
-              longitude: 67.0010,
+              latitude: 24.86,
+              longitude: 67.001,
             },
             to: {
               latitude: 24.8615,
@@ -256,7 +240,9 @@ export class OrderTrackingController {
       },
     },
   })
-  async optimizeRoute(@Body() optimizeRouteDto: OptimizeRouteDto) {
+  async optimizeRoute(
+    @Body() optimizeRouteDto: OptimizeRouteDto,
+  ): Promise<any> {
     return this.orderTrackingService.optimizeDeliveryRoute(
       optimizeRouteDto.startLocation,
       optimizeRouteDto.deliveryLocations,

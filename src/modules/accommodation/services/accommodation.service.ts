@@ -240,23 +240,26 @@ export class AccommodationService {
     const totalAccommodations = await this.accommodationModel.countDocuments({
       landlord: landlordId,
     });
-    
+
     const pendingAccommodations = await this.accommodationModel.countDocuments({
       landlord: landlordId,
       approvalStatus: 'pending',
     });
-    
-    const approvedAccommodations = await this.accommodationModel.countDocuments({
-      landlord: landlordId,
-      approvalStatus: 'approved',
-      isActive: true,
-    });
+
+    const approvedAccommodations = await this.accommodationModel.countDocuments(
+      {
+        landlord: landlordId,
+        approvalStatus: 'approved',
+        isActive: true,
+      },
+    );
 
     return {
       totalAccommodations,
       pendingAccommodations,
       approvedAccommodations,
-      rejectedAccommodations: totalAccommodations - pendingAccommodations - approvedAccommodations,
+      rejectedAccommodations:
+        totalAccommodations - pendingAccommodations - approvedAccommodations,
     };
   }
 
@@ -270,7 +273,7 @@ export class AccommodationService {
       .select('title approvalStatus isActive updatedAt')
       .exec();
 
-    return recentAccommodations.map(acc => ({
+    return recentAccommodations.map((acc) => ({
       type: 'accommodation',
       title: acc.title,
       status: acc.approvalStatus,
@@ -297,10 +300,13 @@ export class AccommodationService {
   }
 
   async approveAccommodation(accommodationId: string, adminId: string) {
-    const accommodation = await this.accommodationModel.findById(accommodationId);
-    
+    const accommodation =
+      await this.accommodationModel.findById(accommodationId);
+
     if (!accommodation) {
-      throw new NotFoundException(`Accommodation with ID ${accommodationId} not found`);
+      throw new NotFoundException(
+        `Accommodation with ID ${accommodationId} not found`,
+      );
     }
 
     accommodation.approvalStatus = 'approved';
@@ -314,15 +320,26 @@ export class AccommodationService {
 
     return {
       message: 'Accommodation approved successfully',
-      accommodation: await accommodation.populate(['city', 'landlord', 'approvedBy']),
+      accommodation: await accommodation.populate([
+        'city',
+        'landlord',
+        'approvedBy',
+      ]),
     };
   }
 
-  async rejectAccommodation(accommodationId: string, reason: string, adminId: string) {
-    const accommodation = await this.accommodationModel.findById(accommodationId);
-    
+  async rejectAccommodation(
+    accommodationId: string,
+    reason: string,
+    adminId: string,
+  ) {
+    const accommodation =
+      await this.accommodationModel.findById(accommodationId);
+
     if (!accommodation) {
-      throw new NotFoundException(`Accommodation with ID ${accommodationId} not found`);
+      throw new NotFoundException(
+        `Accommodation with ID ${accommodationId} not found`,
+      );
     }
 
     accommodation.approvalStatus = 'rejected';
@@ -336,20 +353,29 @@ export class AccommodationService {
 
     return {
       message: 'Accommodation rejected successfully',
-      accommodation: await accommodation.populate(['city', 'landlord', 'approvedBy']),
+      accommodation: await accommodation.populate([
+        'city',
+        'landlord',
+        'approvedBy',
+      ]),
     };
   }
 
   async toggleActiveStatus(accommodationId: string) {
-    const accommodation = await this.accommodationModel.findById(accommodationId);
-    
+    const accommodation =
+      await this.accommodationModel.findById(accommodationId);
+
     if (!accommodation) {
-      throw new NotFoundException(`Accommodation with ID ${accommodationId} not found`);
+      throw new NotFoundException(
+        `Accommodation with ID ${accommodationId} not found`,
+      );
     }
 
     // Only allow toggling if accommodation is approved
     if (accommodation.approvalStatus !== 'approved') {
-      throw new ForbiddenException('Can only toggle status of approved accommodations');
+      throw new ForbiddenException(
+        'Can only toggle status of approved accommodations',
+      );
     }
 
     accommodation.isActive = !accommodation.isActive;
@@ -369,7 +395,9 @@ export class AccommodationService {
       .exec();
 
     if (!accommodation) {
-      throw new NotFoundException(`Accommodation with ID ${accommodationId} not found`);
+      throw new NotFoundException(
+        `Accommodation with ID ${accommodationId} not found`,
+      );
     }
 
     // Get additional statistics for admin review
