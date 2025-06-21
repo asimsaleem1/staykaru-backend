@@ -190,7 +190,91 @@ export class AccommodationController {
   ) {
     return this.accommodationService.findNearby(lat, lng, radius);
   }
+  // Landlord-specific endpoints (MUST come before :id route)
+  @Get('landlord')
+  @UseGuards(JwtAuthGuard, RolesGuard)
+  @Roles(UserRole.LANDLORD)
+  @ApiBearerAuth('JWT-auth')
+  @ApiOperation({ summary: 'Get all accommodations for the authenticated landlord' })
+  @ApiResponse({
+    status: 200,
+    description: 'Return landlord accommodations',
+  })
+  async getLandlordAccommodations(@Request() req: RequestWithUser) {
+    const landlordId = typeof req.user._id === 'string' ? req.user._id : req.user._id.toString();
+    return this.accommodationService.findByLandlord(landlordId);
+  }
 
+  @Get('landlord/dashboard')
+  @UseGuards(JwtAuthGuard, RolesGuard)
+  @Roles(UserRole.LANDLORD)
+  @ApiBearerAuth('JWT-auth')
+  @ApiOperation({ summary: 'Get landlord dashboard overview' })
+  @ApiResponse({
+    status: 200,
+    description: 'Return landlord dashboard data',
+  })
+  async getLandlordDashboard(@Request() req: RequestWithUser) {
+    const landlordId = typeof req.user._id === 'string' ? req.user._id : req.user._id.toString();
+    return this.accommodationService.getLandlordDashboard(landlordId);
+  }
+
+  @Get('landlord/activities')
+  @UseGuards(JwtAuthGuard, RolesGuard)
+  @Roles(UserRole.LANDLORD)
+  @ApiBearerAuth('JWT-auth')
+  @ApiOperation({ summary: 'Get landlord recent activities' })
+  @ApiResponse({
+    status: 200,
+    description: 'Return landlord recent activities',
+  })
+  async getLandlordActivities(@Request() req: RequestWithUser) {
+    const landlordId = typeof req.user._id === 'string' ? req.user._id : req.user._id.toString();
+    return this.accommodationService.getLandlordActivities(landlordId);
+  }
+
+  // Admin endpoints (MUST come before :id route)
+  @Get('admin/pending')
+  @UseGuards(JwtAuthGuard, RolesGuard)
+  @Roles(UserRole.ADMIN)
+  @ApiBearerAuth('JWT-auth')
+  @ApiOperation({ summary: 'Get all pending accommodations for admin approval' })
+  @ApiResponse({
+    status: 200,
+    description: 'Returns all pending accommodations',
+  })
+  async findPending() {
+    return this.accommodationService.findPending();
+  }
+
+  @Get('admin/all')
+  @UseGuards(JwtAuthGuard, RolesGuard)
+  @Roles(UserRole.ADMIN)
+  @ApiBearerAuth('JWT-auth')
+  @ApiOperation({ summary: 'Get all accommodations for admin review' })
+  @ApiResponse({
+    status: 200,
+    description: 'Returns all accommodations',
+  })
+  async findAllForAdmin() {
+    return this.accommodationService.findAllForAdmin();
+  }
+
+  @Get('admin/:id/details')
+  @UseGuards(JwtAuthGuard, RolesGuard)
+  @Roles(UserRole.ADMIN)
+  @ApiBearerAuth('JWT-auth')
+  @ApiOperation({ summary: 'Get accommodation details for admin review' })
+  @ApiParam({ name: 'id', description: 'Accommodation ID' })
+  @ApiResponse({
+    status: 200,
+    description: 'Returns accommodation details for admin',
+  })
+  async getAdminAccommodationDetails(@Param('id') id: string) {
+    return this.accommodationService.getAdminAccommodationDetails(id);
+  }
+
+  // Generic :id route MUST come after all specific routes
   @Get(':id')
   @ApiOperation({ summary: 'Get an accommodation by ID' })
   @ApiParam({ name: 'id', description: 'Accommodation ID' })
@@ -272,8 +356,7 @@ export class AccommodationController {
   })
   @ApiResponse({
     status: 403,
-    description: 'Forbidden - Can only delete own accommodations',
-  })
+    description: 'Forbidden - Can only delete own accommodations',  })
   @ApiResponse({ status: 404, description: 'Accommodation not found' })
   async remove(@Param('id') id: string, @Request() req: RequestWithUser) {
     await this.accommodationService.remove(
@@ -285,76 +368,7 @@ export class AccommodationController {
     return { message: 'Accommodation deleted successfully' };
   }
 
-  // Landlord-specific endpoints
-  @Get('landlord')
-  @UseGuards(JwtAuthGuard, RolesGuard)
-  @Roles(UserRole.LANDLORD)
-  @ApiBearerAuth('JWT-auth')
-  @ApiOperation({ summary: 'Get all accommodations for the authenticated landlord' })
-  @ApiResponse({
-    status: 200,
-    description: 'Return landlord accommodations',
-  })
-  async getLandlordAccommodations(@Request() req: RequestWithUser) {
-    const landlordId = typeof req.user._id === 'string' ? req.user._id : req.user._id.toString();
-    return this.accommodationService.findByLandlord(landlordId);
-  }
-
-  @Get('landlord/dashboard')
-  @UseGuards(JwtAuthGuard, RolesGuard)
-  @Roles(UserRole.LANDLORD)
-  @ApiBearerAuth('JWT-auth')
-  @ApiOperation({ summary: 'Get landlord dashboard overview' })
-  @ApiResponse({
-    status: 200,
-    description: 'Return landlord dashboard data',
-  })
-  async getLandlordDashboard(@Request() req: RequestWithUser) {
-    const landlordId = typeof req.user._id === 'string' ? req.user._id : req.user._id.toString();
-    return this.accommodationService.getLandlordDashboard(landlordId);
-  }
-
-  @Get('landlord/activities')
-  @UseGuards(JwtAuthGuard, RolesGuard)
-  @Roles(UserRole.LANDLORD)
-  @ApiBearerAuth('JWT-auth')
-  @ApiOperation({ summary: 'Get landlord recent activities' })
-  @ApiResponse({
-    status: 200,
-    description: 'Return landlord recent activities',
-  })
-  async getLandlordActivities(@Request() req: RequestWithUser) {
-    const landlordId = typeof req.user._id === 'string' ? req.user._id : req.user._id.toString();
-    return this.accommodationService.getLandlordActivities(landlordId);
-  }
-
-  // Admin endpoints
-  @Get('admin/pending')
-  @UseGuards(JwtAuthGuard, RolesGuard)
-  @Roles(UserRole.ADMIN)
-  @ApiBearerAuth('JWT-auth')
-  @ApiOperation({ summary: 'Get all pending accommodations for admin approval' })
-  @ApiResponse({
-    status: 200,
-    description: 'Returns all pending accommodations',
-  })
-  async getPendingAccommodations() {
-    return this.accommodationService.findPendingAccommodations();
-  }
-
-  @Get('admin/all')
-  @UseGuards(JwtAuthGuard, RolesGuard)
-  @Roles(UserRole.ADMIN)
-  @ApiBearerAuth('JWT-auth')
-  @ApiOperation({ summary: 'Get all accommodations with approval status (Admin only)' })
-  @ApiResponse({
-    status: 200,
-    description: 'Returns all accommodations with detailed admin info',
-  })
-  async getAllAccommodationsAdmin() {
-    return this.accommodationService.getAllForAdmin();
-  }
-
+  // Admin actions
   @Put('admin/:id/approve')
   @UseGuards(JwtAuthGuard, RolesGuard)
   @Roles(UserRole.ADMIN)
@@ -404,19 +418,5 @@ export class AccommodationController {
   })
   async toggleAccommodationStatus(@Param('id') id: string) {
     return this.accommodationService.toggleActiveStatus(id);
-  }
-
-  @Get('admin/:id/details')
-  @UseGuards(JwtAuthGuard, RolesGuard)
-  @Roles(UserRole.ADMIN)
-  @ApiBearerAuth('JWT-auth')
-  @ApiOperation({ summary: 'Get accommodation details for admin review' })
-  @ApiParam({ name: 'id', description: 'Accommodation ID' })
-  @ApiResponse({
-    status: 200,
-    description: 'Returns detailed accommodation info for admin review',
-  })
-  async getAccommodationForAdmin(@Param('id') id: string) {
-    return this.accommodationService.getAccommodationForAdmin(id);
   }
 }
