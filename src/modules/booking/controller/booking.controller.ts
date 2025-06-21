@@ -118,6 +118,45 @@ export class BookingController {
     return this.bookingService.findByUser(userId);
   }
 
+  @Get('landlord')
+  @UseGuards(AuthGuard)
+  @ApiBearerAuth('JWT-auth')
+  @ApiOperation({ summary: "Get landlord's bookings" })
+  @ApiResponse({
+    status: 200,
+    description: "Return landlord's bookings",
+  })
+  async getLandlordBookings(@Request() req) {
+    const userId = req.user?._id;
+    return this.bookingService.findByLandlord(userId);
+  }
+
+  @Get('landlord/stats')
+  @UseGuards(AuthGuard)
+  @ApiBearerAuth('JWT-auth')
+  @ApiOperation({ summary: "Get landlord's booking statistics" })
+  @ApiResponse({
+    status: 200,
+    description: "Return landlord's booking statistics",
+  })
+  async getLandlordStats(@Request() req) {
+    const userId = req.user?._id;
+    return this.bookingService.getLandlordStats(userId);
+  }
+
+  @Get('landlord/revenue')
+  @UseGuards(AuthGuard)
+  @ApiBearerAuth('JWT-auth')
+  @ApiOperation({ summary: "Get landlord's revenue analytics" })
+  @ApiResponse({
+    status: 200,
+    description: "Return landlord's revenue analytics",
+  })
+  async getLandlordRevenue(@Request() req) {
+    const userId = req.user?._id;
+    return this.bookingService.getLandlordRevenue(userId);
+  }
+
   @Get('landlord-bookings')
   // @UseGuards(LandlordGuard) // Temporarily disabled for testing
   @ApiOperation({

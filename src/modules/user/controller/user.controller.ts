@@ -229,106 +229,65 @@ export class UserController {
     return this.userService.findOne(id);
   }
 
+  @Get('profile')
+  @UseGuards(JwtAuthGuard)
+  @ApiBearerAuth('JWT-auth')
+  @ApiOperation({ summary: 'Get user profile' })
+  @ApiResponse({
+    status: 200,
+    description: 'Returns user profile',
+  })
+  async getProfile(@Request() req: AuthenticatedRequest) {
+    const userId = typeof req.user._id === 'string' ? req.user._id : req.user._id.toString();
+    return this.userService.findById(userId);
+  }
+
   @Put('profile')
   @UseGuards(JwtAuthGuard)
   @ApiBearerAuth('JWT-auth')
   @ApiOperation({ summary: 'Update user profile' })
   @ApiResponse({
     status: 200,
-    description: 'Profile successfully updated',
-    schema: {
-      example: {
-        id: '507f1f77bcf86cd799439011',
-        name: 'John Updated',
-        message: 'Profile updated successfully',
-      },
-    },
+    description: 'Profile updated successfully',
   })
-  @ApiResponse({ status: 401, description: 'Unauthorized' })
-  @ApiResponse({ status: 404, description: 'User not found' })
   async updateProfile(
     @Request() req: AuthenticatedRequest,
-    @Body() updateUserDto: UpdateUserDto,
+    @Body() updateData: any
   ) {
-    const userId = req.user._id;
-    return this.userService.update(userId, updateUserDto);
+    const userId = typeof req.user._id === 'string' ? req.user._id : req.user._id.toString();
+    return this.userService.update(userId, updateData);
   }
 
-  @Put(':id')
-  @ApiOperation({ summary: 'Update a user' })
-  @ApiParam({ name: 'id', description: 'User ID' })
-  @ApiResponse({
-    status: 200,
-    description: 'User successfully updated',
-    schema: {
-      example: {
-        id: '507f1f77bcf86cd799439011',
-        name: 'John Updated',
-        message: 'User updated successfully',
-      },
-    },
-  })
-  @ApiResponse({ status: 404, description: 'User not found' })
-  async update(@Param('id') id: string, @Body() updateUserDto: UpdateUserDto) {
-    return this.userService.update(id, updateUserDto);
-  }
-
-  @Delete(':id')
-  @ApiOperation({ summary: 'Remove a user by ID' })
-  @ApiParam({ name: 'id', description: 'User ID' })
-  @ApiResponse({ status: 200, description: 'User deleted successfully' })
-  @ApiResponse({
-    status: 403,
-    description: 'Forbidden - Admin access required',
-  })
-  @ApiResponse({ status: 404, description: 'User not found' })
-  @Roles(UserRole.ADMIN)
-  async remove(@Param('id') id: string) {
-    await this.userService.delete(id);
-    return { message: 'User deleted successfully' };
-  }
-
-  @Post('change-password')
+  @Put('change-password')
   @UseGuards(JwtAuthGuard)
   @ApiBearerAuth('JWT-auth')
   @ApiOperation({ summary: 'Change user password' })
   @ApiResponse({
     status: 200,
     description: 'Password changed successfully',
-    schema: {
-      example: {
-        message: 'Password changed successfully',
-        user: {
-          id: '507f1f77bcf86cd799439011',
-          name: 'John Doe',
-          email: 'john@example.com',
-        },
-      },
-    },
   })
-  @ApiResponse({
-    status: 400,
-    description: 'Bad request - Invalid old password',
-  })
-  @ApiResponse({ status: 401, description: 'Unauthorized' })
-  @ApiResponse({ status: 404, description: 'User not found' })
-  async changePassword(
+  async changeUserPassword(
     @Request() req: AuthenticatedRequest,
-    @Body() changePasswordDto: ChangePasswordDto,
+    @Body() changePasswordDto: ChangePasswordDto
   ) {
-    const userId = req.user._id;
-    const user = await this.userService.changePassword(
-      userId,
-      changePasswordDto,
-    );
-    return {
-      message: 'Password changed successfully',
-      user: {
-        id: user._id,
-        name: user.name,
-        email: user.email,
-      },
-    };
+    const userId = typeof req.user._id === 'string' ? req.user._id : req.user._id.toString();
+    return this.userService.changePassword(userId, changePasswordDto);
+  }
+
+  @Post('fcm-token')
+  @UseGuards(JwtAuthGuard)
+  @ApiBearerAuth('JWT-auth')
+  @ApiOperation({ summary: 'Update FCM token' })
+  @ApiResponse({
+    status: 200,
+    description: 'FCM token updated successfully',
+  })
+  async updateUserFcmToken(
+    @Request() req: AuthenticatedRequest,
+    @Body() body: { fcmToken: string }
+  ) {
+    const userId = typeof req.user._id === 'string' ? req.user._id : req.user._id.toString();
+    return this.userService.addFcmToken(userId, body.fcmToken);
   }
 
   // Landlord specific endpoints

@@ -155,4 +155,23 @@ export class BookingService {
       (booking) => booking.accommodation.landlord.toString() === landlordId,
     );
   }
+
+  async getLandlordStats(landlordId: string): Promise<any> {
+    // Mock implementation for now
+    return {
+      totalBookings: 0,
+      activeBookings: 0,
+      completedBookings: 0,
+      cancelledBookings: 0,
+    };
+  }
+
+  async getLandlordRevenue(landlordId: string): Promise<any> {
+    // Mock implementation for now
+    return {
+      totalRevenue: 0,
+      monthlyRevenue: [],
+      averageBookingValue: 0,
+    };
+  }
 }
