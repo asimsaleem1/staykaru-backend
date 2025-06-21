@@ -26,6 +26,7 @@ import { CreateAccommodationDto } from '../dto/create-accommodation.dto';
 import { UpdateAccommodationDto } from '../dto/update-accommodation.dto';
 import { SearchAccommodationDto } from '../dto/search-accommodation.dto';
 import { AuthGuard } from '../../auth/guards/auth.guard';
+import { JwtAuthGuard } from '../../auth/guards/jwt-auth.guard';
 import { LandlordGuard } from '../guards/landlord.guard';
 
 interface RequestWithUser extends Request {
@@ -42,7 +43,7 @@ export class AccommodationController {
   constructor(private readonly accommodationService: AccommodationService) {}
 
   @Post()
-  @UseGuards(AuthGuard, RolesGuard)
+  @UseGuards(JwtAuthGuard, RolesGuard)
   @Roles(UserRole.LANDLORD, UserRole.ADMIN)
   @ApiBearerAuth('JWT-auth')
   @ApiOperation({ summary: 'Create a new accommodation' })
@@ -286,7 +287,7 @@ export class AccommodationController {
 
   // Landlord-specific endpoints
   @Get('landlord')
-  @UseGuards(AuthGuard, RolesGuard)
+  @UseGuards(JwtAuthGuard, RolesGuard)
   @Roles(UserRole.LANDLORD)
   @ApiBearerAuth('JWT-auth')
   @ApiOperation({ summary: 'Get all accommodations for the authenticated landlord' })
@@ -300,7 +301,7 @@ export class AccommodationController {
   }
 
   @Get('landlord/dashboard')
-  @UseGuards(AuthGuard, RolesGuard)
+  @UseGuards(JwtAuthGuard, RolesGuard)
   @Roles(UserRole.LANDLORD)
   @ApiBearerAuth('JWT-auth')
   @ApiOperation({ summary: 'Get landlord dashboard overview' })
@@ -314,7 +315,7 @@ export class AccommodationController {
   }
 
   @Get('landlord/activities')
-  @UseGuards(AuthGuard, RolesGuard)
+  @UseGuards(JwtAuthGuard, RolesGuard)
   @Roles(UserRole.LANDLORD)
   @ApiBearerAuth('JWT-auth')
   @ApiOperation({ summary: 'Get landlord recent activities' })
@@ -329,7 +330,7 @@ export class AccommodationController {
 
   // Admin endpoints
   @Get('admin/pending')
-  @UseGuards(AuthGuard, RolesGuard)
+  @UseGuards(JwtAuthGuard, RolesGuard)
   @Roles(UserRole.ADMIN)
   @ApiBearerAuth('JWT-auth')
   @ApiOperation({ summary: 'Get all pending accommodations for admin approval' })
@@ -342,7 +343,7 @@ export class AccommodationController {
   }
 
   @Get('admin/all')
-  @UseGuards(AuthGuard, RolesGuard)
+  @UseGuards(JwtAuthGuard, RolesGuard)
   @Roles(UserRole.ADMIN)
   @ApiBearerAuth('JWT-auth')
   @ApiOperation({ summary: 'Get all accommodations with approval status (Admin only)' })
@@ -355,7 +356,7 @@ export class AccommodationController {
   }
 
   @Put('admin/:id/approve')
-  @UseGuards(AuthGuard, RolesGuard)
+  @UseGuards(JwtAuthGuard, RolesGuard)
   @Roles(UserRole.ADMIN)
   @ApiBearerAuth('JWT-auth')
   @ApiOperation({ summary: 'Approve an accommodation (Admin only)' })
@@ -373,7 +374,7 @@ export class AccommodationController {
   }
 
   @Put('admin/:id/reject')
-  @UseGuards(AuthGuard, RolesGuard)
+  @UseGuards(JwtAuthGuard, RolesGuard)
   @Roles(UserRole.ADMIN)
   @ApiBearerAuth('JWT-auth')
   @ApiOperation({ summary: 'Reject an accommodation (Admin only)' })
@@ -392,7 +393,7 @@ export class AccommodationController {
   }
 
   @Put('admin/:id/toggle-status')
-  @UseGuards(AuthGuard, RolesGuard)
+  @UseGuards(JwtAuthGuard, RolesGuard)
   @Roles(UserRole.ADMIN)
   @ApiBearerAuth('JWT-auth')
   @ApiOperation({ summary: 'Toggle accommodation active status (Admin only)' })
@@ -406,7 +407,7 @@ export class AccommodationController {
   }
 
   @Get('admin/:id/details')
-  @UseGuards(AuthGuard, RolesGuard)
+  @UseGuards(JwtAuthGuard, RolesGuard)
   @Roles(UserRole.ADMIN)
   @ApiBearerAuth('JWT-auth')
   @ApiOperation({ summary: 'Get accommodation details for admin review' })

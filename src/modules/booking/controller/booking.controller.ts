@@ -19,11 +19,12 @@ import { BookingService } from '../services/booking.service';
 import { CreateBookingDto } from '../dto/create-booking.dto';
 import { UpdateBookingStatusDto } from '../dto/update-booking-status.dto';
 import { AuthGuard } from '../../auth/guards/auth.guard';
+import { JwtAuthGuard } from '../../auth/guards/jwt-auth.guard';
 import { LandlordGuard } from '../../accommodation/guards/landlord.guard';
 
 @ApiTags('bookings')
 @Controller('bookings')
-// @UseGuards(AuthGuard) // Temporarily disabled for testing
+// @UseGuards(JwtAuthGuard) // Temporarily disabled for testing
 // @ApiBearerAuth('JWT-auth') // Temporarily disabled for testing
 export class BookingController {
   constructor(private readonly bookingService: BookingService) {}
@@ -119,7 +120,7 @@ export class BookingController {
   }
 
   @Get('landlord')
-  @UseGuards(AuthGuard)
+  @UseGuards(JwtAuthGuard)
   @ApiBearerAuth('JWT-auth')
   @ApiOperation({ summary: "Get landlord's bookings" })
   @ApiResponse({
@@ -132,7 +133,7 @@ export class BookingController {
   }
 
   @Get('landlord/stats')
-  @UseGuards(AuthGuard)
+  @UseGuards(JwtAuthGuard)
   @ApiBearerAuth('JWT-auth')
   @ApiOperation({ summary: "Get landlord's booking statistics" })
   @ApiResponse({
@@ -145,7 +146,7 @@ export class BookingController {
   }
 
   @Get('landlord/revenue')
-  @UseGuards(AuthGuard)
+  @UseGuards(JwtAuthGuard)
   @ApiBearerAuth('JWT-auth')
   @ApiOperation({ summary: "Get landlord's revenue analytics" })
   @ApiResponse({
