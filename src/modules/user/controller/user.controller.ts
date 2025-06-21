@@ -330,4 +330,78 @@ export class UserController {
       },
     };
   }
+
+  // Landlord specific endpoints
+  @Get('landlord/bookings')
+  @UseGuards(JwtAuthGuard, RolesGuard)
+  @Roles(UserRole.LANDLORD)
+  @ApiBearerAuth('JWT-auth')
+  @ApiOperation({ summary: 'Get landlord bookings' })
+  @ApiResponse({
+    status: 200,
+    description: 'Returns landlord bookings',
+  })
+  async getLandlordBookings(@Request() req: AuthenticatedRequest) {
+    const landlordId = typeof req.user._id === 'string' ? req.user._id : req.user._id.toString();
+    return this.userService.getLandlordBookings(landlordId);
+  }
+
+  @Get('landlord/statistics')
+  @UseGuards(JwtAuthGuard, RolesGuard)
+  @Roles(UserRole.LANDLORD)
+  @ApiBearerAuth('JWT-auth')
+  @ApiOperation({ summary: 'Get landlord booking statistics' })
+  @ApiResponse({
+    status: 200,
+    description: 'Returns landlord booking statistics',
+  })
+  async getLandlordStatistics(@Request() req: AuthenticatedRequest) {
+    const landlordId = typeof req.user._id === 'string' ? req.user._id : req.user._id.toString();
+    return this.userService.getLandlordStatistics(landlordId);
+  }
+
+  @Get('landlord/revenue')
+  @UseGuards(JwtAuthGuard, RolesGuard)
+  @Roles(UserRole.LANDLORD)
+  @ApiBearerAuth('JWT-auth')
+  @ApiOperation({ summary: 'Get landlord revenue analytics' })
+  @ApiResponse({
+    status: 200,
+    description: 'Returns landlord revenue analytics',
+  })
+  async getLandlordRevenue(@Request() req: AuthenticatedRequest) {
+    const landlordId = typeof req.user._id === 'string' ? req.user._id : req.user._id.toString();
+    return this.userService.getLandlordRevenue(landlordId);
+  }
+
+  @Get('landlord/profile')
+  @UseGuards(JwtAuthGuard, RolesGuard)
+  @Roles(UserRole.LANDLORD)
+  @ApiBearerAuth('JWT-auth')
+  @ApiOperation({ summary: 'Get landlord profile' })
+  @ApiResponse({
+    status: 200,
+    description: 'Returns landlord profile',
+  })
+  async getLandlordProfile(@Request() req: AuthenticatedRequest) {
+    const landlordId = typeof req.user._id === 'string' ? req.user._id : req.user._id.toString();
+    return this.userService.getLandlordProfile(landlordId);
+  }
+
+  @Post('landlord/fcm-token')
+  @UseGuards(JwtAuthGuard, RolesGuard)
+  @Roles(UserRole.LANDLORD)
+  @ApiBearerAuth('JWT-auth')
+  @ApiOperation({ summary: 'Update FCM token for landlord' })
+  @ApiResponse({
+    status: 200,
+    description: 'FCM token updated successfully',
+  })
+  async updateLandlordFcmToken(
+    @Request() req: AuthenticatedRequest,
+    @Body() body: { fcmToken: string }
+  ) {
+    const landlordId = typeof req.user._id === 'string' ? req.user._id : req.user._id.toString();
+    return this.userService.updateFcmToken(landlordId, body.fcmToken);
+  }
 }

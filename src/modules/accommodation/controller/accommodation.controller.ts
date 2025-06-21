@@ -42,7 +42,8 @@ export class AccommodationController {
   constructor(private readonly accommodationService: AccommodationService) {}
 
   @Post()
-  @UseGuards(AuthGuard, LandlordGuard)
+  @UseGuards(AuthGuard, RolesGuard)
+  @Roles(UserRole.LANDLORD, UserRole.ADMIN)
   @ApiBearerAuth('JWT-auth')
   @ApiOperation({ summary: 'Create a new accommodation' })
   @ApiResponse({
@@ -284,142 +285,49 @@ export class AccommodationController {
   }
 
   // Landlord-specific endpoints
-
-  @Get('landlord/my-accommodations')
-  @UseGuards(AuthGuard, LandlordGuard)
+  @Get('landlord')
+  @UseGuards(AuthGuard, RolesGuard)
+  @Roles(UserRole.LANDLORD)
   @ApiBearerAuth('JWT-auth')
-  @ApiOperation({ summary: 'Get all accommodations owned by the landlord' })
+  @ApiOperation({ summary: 'Get all accommodations for the authenticated landlord' })
   @ApiResponse({
     status: 200,
-    description: 'Returns all accommodations owned by the landlord',
+    description: 'Return landlord accommodations',
   })
-  async getMyAccommodations(@Request() req: RequestWithUser) {
-    const landlordId =
-      typeof req.user._id === 'string' ? req.user._id : req.user._id.toString();
+  async getLandlordAccommodations(@Request() req: RequestWithUser) {
+    const landlordId = typeof req.user._id === 'string' ? req.user._id : req.user._id.toString();
     return this.accommodationService.findByLandlord(landlordId);
   }
 
   @Get('landlord/dashboard')
-  @UseGuards(AuthGuard, LandlordGuard)
+  @UseGuards(AuthGuard, RolesGuard)
+  @Roles(UserRole.LANDLORD)
   @ApiBearerAuth('JWT-auth')
-  @ApiOperation({ summary: 'Get landlord dashboard summary' })
+  @ApiOperation({ summary: 'Get landlord dashboard overview' })
   @ApiResponse({
     status: 200,
-    description: 'Returns landlord dashboard summary',
+    description: 'Return landlord dashboard data',
   })
   async getLandlordDashboard(@Request() req: RequestWithUser) {
-    const landlordId =
-      typeof req.user._id === 'string' ? req.user._id : req.user._id.toString();
+    const landlordId = typeof req.user._id === 'string' ? req.user._id : req.user._id.toString();
     return this.accommodationService.getLandlordDashboard(landlordId);
   }
 
-  @Get('landlord/bookings')
-  @UseGuards(AuthGuard, LandlordGuard)
-  @ApiBearerAuth('JWT-auth')
-  @ApiOperation({
-    summary: 'Get all bookings for accommodations owned by the landlord',
-  })
-  @ApiResponse({
-    status: 200,
-    description:
-      'Returns all bookings for accommodations owned by the landlord',
-  })
-  async getMyBookings(@Request() req: RequestWithUser) {
-    const landlordId =
-      typeof req.user._id === 'string' ? req.user._id : req.user._id.toString();
-    return this.accommodationService.getLandlordBookings(landlordId);
-  }
-
-  @Get('landlord/analytics')
-  @UseGuards(AuthGuard, LandlordGuard)
-  @ApiBearerAuth('JWT-auth')
-  @ApiOperation({
-    summary: 'Get analytics for accommodations owned by the landlord',
-  })
-  @ApiResponse({
-    status: 200,
-    description: 'Returns analytics for accommodations owned by the landlord',
-  })
-  @ApiQuery({ name: 'days', required: false, type: Number })
-  async getLandlordAnalytics(
-    @Request() req: RequestWithUser,
-    @Query('days') days?: number,
-  ) {
-    const landlordId =
-      typeof req.user._id === 'string' ? req.user._id : req.user._id.toString();
-    return this.accommodationService.getLandlordAnalytics(landlordId, days);
-  }
-
-  // Admin-specific endpoints
-
-  @Get('admin/all-accommodations')
+  @Get('landlord/activities')
   @UseGuards(AuthGuard, RolesGuard)
-  @Roles(UserRole.ADMIN)
+  @Roles(UserRole.LANDLORD)
   @ApiBearerAuth('JWT-auth')
-  @ApiOperation({ summary: 'Get all accommodations (admin view)' })
+  @ApiOperation({ summary: 'Get landlord recent activities' })
   @ApiResponse({
     status: 200,
-    description: 'Returns all accommodations for admin',
+    description: 'Return landlord recent activities',
   })
-  async getAllAccommodations(@Request() req: RequestWithUser) {
-    return this.accommodationService.findAll({});
+  async getLandlordActivities(@Request() req: RequestWithUser) {
+    const landlordId = typeof req.user._id === 'string' ? req.user._id : req.user._id.toString();
+    return this.accommodationService.getLandlordActivities(landlordId);
   }
 
-  @Get('admin/accommodation-approval/:id')
-  @UseGuards(AuthGuard, RolesGuard)
-  @Roles(UserRole.ADMIN)
-  @ApiBearerAuth('JWT-auth')
-  @ApiOperation({ summary: 'Get accommodation details for approval (admin)' })
-  @ApiParam({ name: 'id', description: 'Accommodation ID' })
-  @ApiResponse({
-    status: 200,
-    description: 'Returns accommodation details for approval',
-  })
-  @ApiResponse({ status: 404, description: 'Accommodation not found' })
-  async getAccommodationForApproval(@Param('id') id: string) {
-    return this.accommodationService.findOne(id);
-  }
-
-  @Put('admin/accommodation-approval/:id')
-  @UseGuards(AuthGuard, RolesGuard)
-  @Roles(UserRole.ADMIN)
-  @ApiBearerAuth('JWT-auth')
-  @ApiOperation({ summary: 'Approve or reject an accommodation (admin)' })
-  @ApiParam({ name: 'id', description: 'Accommodation ID' })
-  @ApiResponse({
-    status: 200,
-    description: 'Accommodation approval status updated',
-  })
-  @ApiResponse({ status: 404, description: 'Accommodation not found' })
-  async updateAccommodationApproval(
-    @Param('id') id: string,
-    @Body() updateAccommodationDto: UpdateAccommodationDto,
-  ) {
-    return this.accommodationService.update(id, updateAccommodationDto, '');
-  }
-
-  @Delete('admin/accommodation/:id')
-  @UseGuards(AuthGuard, RolesGuard)
-  @Roles(UserRole.ADMIN)
-  @ApiBearerAuth('JWT-auth')
-  @ApiOperation({ summary: 'Delete an accommodation (admin)' })
-  @ApiParam({ name: 'id', description: 'Accommodation ID' })
-  @ApiResponse({
-    status: 200,
-    description: 'Accommodation successfully deleted',
-    schema: {
-      example: {
-        message: 'Accommodation deleted successfully',
-      },
-    },
-  })
-  @ApiResponse({ status: 404, description: 'Accommodation not found' })
-  async removeAdmin(@Param('id') id: string) {
-    await this.accommodationService.remove(id, 'admin-user-id');
-    return { message: 'Accommodation deleted successfully' };
-  }
-
-  // Admin endpoints for accommodation management
+  // Admin endpoints
   @Get('admin/pending')
   @UseGuards(AuthGuard, RolesGuard)
   @Roles(UserRole.ADMIN)

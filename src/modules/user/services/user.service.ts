@@ -524,4 +524,61 @@ export class UserService {
       $inc: { failedLoginAttempts: 1 },
     });
   }
+
+  // Landlord specific methods
+  async getLandlordBookings(landlordId: string): Promise<any[]> {
+    // This would require integration with booking service
+    // For now, return mock data
+    return [];
+  }
+
+  async getLandlordStatistics(landlordId: string): Promise<any> {
+    // This would require integration with booking service
+    // For now, return mock data
+    return {
+      totalBookings: 0,
+      activeBookings: 0,
+      completedBookings: 0,
+      cancelledBookings: 0,
+      totalRevenue: 0,
+    };
+  }
+
+  async getLandlordRevenue(landlordId: string): Promise<any> {
+    // This would require integration with booking service
+    // For now, return mock data
+    return {
+      monthlyRevenue: [],
+      totalRevenue: 0,
+      averageBookingValue: 0,
+    };
+  }
+
+  async getLandlordProfile(landlordId: string): Promise<any> {
+    const user = await this.userModel.findById(landlordId)
+      .select('-password -refreshTokens')
+      .exec();
+    
+    if (!user) {
+      throw new NotFoundException('Landlord not found');
+    }
+
+    return user;
+  }
+
+  async updateFcmToken(userId: string, fcmToken: string): Promise<any> {
+    const user = await this.userModel.findByIdAndUpdate(
+      userId,
+      { fcmToken },
+      { new: true }
+    ).exec();
+
+    if (!user) {
+      throw new NotFoundException('User not found');
+    }
+
+    return { message: 'FCM token updated successfully' };
+  }
+
+  // Admin methods
 }
