@@ -90,17 +90,15 @@ try {
 $script:foodProviderData = @{
     name = "Test Restaurant $randomSuffix"
     description = "A great test restaurant with amazing food"
-    address = "123 Test Street"
-    city = $script:existingCityId
-    cuisineType = "International"
-    openingHours = @{
-        monday = @{ open = "09:00"; close = "22:00" }
-        tuesday = @{ open = "09:00"; close = "22:00" }
-        wednesday = @{ open = "09:00"; close = "22:00" }
-        thursday = @{ open = "09:00"; close = "22:00" }
-        friday = @{ open = "09:00"; close = "23:00" }
-        saturday = @{ open = "10:00"; close = "23:00" }
-        sunday = @{ open = "10:00"; close = "22:00" }
+    location = $script:existingCityId
+    cuisine_type = "International"
+    operating_hours = @{
+        open = "09:00"
+        close = "22:00"
+    }
+    contact_info = @{
+        phone = "+1234567890"
+        email = "test.restaurant.$randomSuffix@test.com"
     }
 }
 
