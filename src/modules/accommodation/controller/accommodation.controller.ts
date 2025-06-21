@@ -338,7 +338,7 @@ export class AccommodationController {
     description: 'Returns all pending accommodations',
   })
   async getPendingAccommodations() {
-    return this.accommodationService.getPendingAccommodations();
+    return this.accommodationService.findPendingAccommodations();
   }
 
   @Get('admin/all')

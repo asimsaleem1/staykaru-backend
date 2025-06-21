@@ -275,7 +275,7 @@ export class AccommodationService {
       title: acc.title,
       status: acc.approvalStatus,
       isActive: acc.isActive,
-      date: acc.updatedAt,
+      date: new Date(),
     }));
   }
 

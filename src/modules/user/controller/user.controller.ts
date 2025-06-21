@@ -238,8 +238,8 @@ export class UserController {
     description: 'Returns user profile',
   })
   async getProfile(@Request() req: AuthenticatedRequest) {
-    const userId = typeof req.user._id === 'string' ? req.user._id : req.user._id.toString();
-    return this.userService.findById(userId);
+    const userId = req.user._id;
+    return this.userService.findOne(userId);
   }
 
   @Put('profile')
@@ -252,9 +252,9 @@ export class UserController {
   })
   async updateProfile(
     @Request() req: AuthenticatedRequest,
-    @Body() updateData: any
+    @Body() updateData: any,
   ) {
-    const userId = typeof req.user._id === 'string' ? req.user._id : req.user._id.toString();
+    const userId = req.user._id;
     return this.userService.update(userId, updateData);
   }
 
@@ -268,9 +268,9 @@ export class UserController {
   })
   async changeUserPassword(
     @Request() req: AuthenticatedRequest,
-    @Body() changePasswordDto: ChangePasswordDto
+    @Body() changePasswordDto: ChangePasswordDto,
   ) {
-    const userId = typeof req.user._id === 'string' ? req.user._id : req.user._id.toString();
+    const userId = req.user._id;
     return this.userService.changePassword(userId, changePasswordDto);
   }
 
@@ -284,9 +284,9 @@ export class UserController {
   })
   async updateUserFcmToken(
     @Request() req: AuthenticatedRequest,
-    @Body() body: { fcmToken: string }
+    @Body() body: { fcmToken: string },
   ) {
-    const userId = typeof req.user._id === 'string' ? req.user._id : req.user._id.toString();
+    const userId = req.user._id;
     return this.userService.addFcmToken(userId, body.fcmToken);
   }
 
@@ -301,7 +301,7 @@ export class UserController {
     description: 'Returns landlord bookings',
   })
   async getLandlordBookings(@Request() req: AuthenticatedRequest) {
-    const landlordId = typeof req.user._id === 'string' ? req.user._id : req.user._id.toString();
+    const landlordId = req.user._id;
     return this.userService.getLandlordBookings(landlordId);
   }
 
@@ -315,7 +315,7 @@ export class UserController {
     description: 'Returns landlord booking statistics',
   })
   async getLandlordStatistics(@Request() req: AuthenticatedRequest) {
-    const landlordId = typeof req.user._id === 'string' ? req.user._id : req.user._id.toString();
+    const landlordId = req.user._id;
     return this.userService.getLandlordStatistics(landlordId);
   }
 
@@ -329,7 +329,7 @@ export class UserController {
     description: 'Returns landlord revenue analytics',
   })
   async getLandlordRevenue(@Request() req: AuthenticatedRequest) {
-    const landlordId = typeof req.user._id === 'string' ? req.user._id : req.user._id.toString();
+    const landlordId = req.user._id;
     return this.userService.getLandlordRevenue(landlordId);
   }
 
@@ -343,7 +343,7 @@ export class UserController {
     description: 'Returns landlord profile',
   })
   async getLandlordProfile(@Request() req: AuthenticatedRequest) {
-    const landlordId = typeof req.user._id === 'string' ? req.user._id : req.user._id.toString();
+    const landlordId = req.user._id;
     return this.userService.getLandlordProfile(landlordId);
   }
 
@@ -360,7 +360,7 @@ export class UserController {
     @Request() req: AuthenticatedRequest,
     @Body() body: { fcmToken: string }
   ) {
-    const landlordId = typeof req.user._id === 'string' ? req.user._id : req.user._id.toString();
+    const landlordId = req.user._id;
     return this.userService.updateFcmToken(landlordId, body.fcmToken);
   }
 }
