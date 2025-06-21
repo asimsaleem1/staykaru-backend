@@ -11,7 +11,7 @@ import { LoginDto } from '../dto/login.dto';
 import { UserService } from '../../user/services/user.service';
 import { CreateUserDto } from '../../user/dto/create-user.dto';
 import { UpdateUserDto } from '../../user/dto/update-user.dto';
-import { UserRole } from '../../user/schema/user.schema';
+import { UserRole, IdentificationType } from '../../user/schema/user.schema';
 
 @Injectable()
 export class AuthService {
@@ -88,8 +88,12 @@ export class AuthService {
             email: 'assaleemofficial@gmail.com',
             password: await this.hashPassword('Sarim786'),
             role: UserRole.ADMIN,
-            phone: '+92000000000',
+            phone: '0000000000',
+            countryCode: '+92',
             gender: 'male',
+            profileImage: '',
+            identificationType: IdentificationType.CNIC,
+            identificationNumber: 'admin-id',
           };
           adminUser = await this.userService.create(createAdminDto);
         } else if (adminUser.role !== UserRole.ADMIN || !adminUser.password) {
