@@ -19,18 +19,17 @@ import {
 import { MenuItemService } from '../services/menu-item.service';
 import { CreateMenuItemDto } from '../dto/create-menu-item.dto';
 import { UpdateMenuItemDto } from '../dto/update-menu-item.dto';
-import { AuthGuard } from '../../auth/guards/auth.guard';
+import { JwtAuthGuard } from '../../auth/guards/jwt-auth.guard';
 import { FoodProviderGuard } from '../guards/food-provider.guard';
 
 @ApiTags('menu-items')
 @Controller('menu-items')
-// @UseGuards(AuthGuard) // Temporarily disabled for testing
-// @ApiBearerAuth('JWT-auth') // Temporarily disabled for testing
+@ApiBearerAuth('JWT-auth')
 export class MenuItemController {
   constructor(private readonly menuItemService: MenuItemService) {}
 
   @Post()
-  // @UseGuards(FoodProviderGuard) // Temporarily disabled for testing
+  @UseGuards(JwtAuthGuard)
   @ApiOperation({ summary: 'Create a new menu item' })
   @ApiResponse({
     status: 201,
@@ -57,8 +56,7 @@ export class MenuItemController {
     description: 'Forbidden - Only food providers can create menu items',
   })
   async create(@Body() createMenuItemDto: CreateMenuItemDto, @Request() req) {
-    // Temporary fix for testing without auth
-    const userId = req.user?._id || '683700350f8a15197d2abf50'; // Dummy user ID for testing
+    const userId = req.user._id.toString();
     return this.menuItemService.create(createMenuItemDto, userId);
   }
 
@@ -124,7 +122,7 @@ export class MenuItemController {
   }
 
   @Put(':id')
-  // @UseGuards(FoodProviderGuard) // Temporarily disabled for testing
+  @UseGuards(JwtAuthGuard)
   @ApiOperation({ summary: 'Update a menu item (Food Providers only)' })
   @ApiParam({ name: 'id', description: 'Menu Item ID' })
   @ApiResponse({
@@ -148,13 +146,12 @@ export class MenuItemController {
     @Body() updateMenuItemDto: UpdateMenuItemDto,
     @Request() req,
   ) {
-    // Temporary fix for testing without auth
-    const userId = req.user?._id || '683700350f8a15197d2abf50'; // Dummy user ID for testing
+    const userId = req.user._id.toString();
     return this.menuItemService.update(id, updateMenuItemDto, userId);
   }
 
   @Delete(':id')
-  // @UseGuards(FoodProviderGuard) // Temporarily disabled for testing
+  @UseGuards(JwtAuthGuard)
   @ApiOperation({ summary: 'Delete a menu item (Food Providers only)' })
   @ApiParam({ name: 'id', description: 'Menu Item ID' })
   @ApiResponse({
@@ -172,8 +169,7 @@ export class MenuItemController {
   })
   @ApiResponse({ status: 404, description: 'Menu item not found' })
   async remove(@Param('id') id: string, @Request() req) {
-    // Temporary fix for testing without auth
-    const userId = req.user?._id || '683700350f8a15197d2abf50'; // Dummy user ID for testing
+    const userId = req.user._id.toString();
     await this.menuItemService.remove(id, userId);
     return { message: 'Menu item deleted successfully' };
   }

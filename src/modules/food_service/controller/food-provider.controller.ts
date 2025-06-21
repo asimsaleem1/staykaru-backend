@@ -148,7 +148,8 @@ export class FoodProviderController {
   }
 
   @Put(':id')
-  // @UseGuards(FoodProviderGuard) // Temporarily disabled for testing
+  @UseGuards(JwtAuthGuard)
+  @ApiBearerAuth('JWT-auth')
   @ApiOperation({ summary: 'Update a food provider (Owners only)' })
   @ApiParam({ name: 'id', description: 'Food Provider ID' })
   @ApiResponse({
@@ -172,13 +173,13 @@ export class FoodProviderController {
     @Body() updateFoodProviderDto: UpdateFoodProviderDto,
     @Request() req,
   ) {
-    // Temporary fix for testing without auth
-    const userId = req.user?._id || '683700350f8a15197d2abf50'; // Dummy user ID for testing
+    const userId = req.user._id.toString();
     return this.foodProviderService.update(id, updateFoodProviderDto, userId);
   }
 
   @Delete(':id')
-  // @UseGuards(FoodProviderGuard) // Temporarily disabled for testing
+  @UseGuards(JwtAuthGuard)
+  @ApiBearerAuth('JWT-auth')
   @ApiOperation({ summary: 'Delete a food provider (Owners only)' })
   @ApiParam({ name: 'id', description: 'Food Provider ID' })
   @ApiResponse({
@@ -196,8 +197,7 @@ export class FoodProviderController {
   })
   @ApiResponse({ status: 404, description: 'Food provider not found' })
   async remove(@Param('id') id: string, @Request() req) {
-    // Temporary fix for testing without auth
-    const userId = req.user?._id || '683700350f8a15197d2abf50'; // Dummy user ID for testing
+    const userId = req.user._id.toString();
     await this.foodProviderService.remove(id, userId);
     return { message: 'Food provider deleted successfully' };
   }

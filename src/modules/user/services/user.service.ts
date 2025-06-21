@@ -585,18 +585,28 @@ export class UserService {
   }
 
   async getUserProfile(userId: string): Promise<any> {
-    const user = await this.findById(userId);
+    const user = await this.userModel.findById(userId).select('-password').exec();
+    
     if (!user) {
       throw new NotFoundException(`User with ID ${userId} not found`);
     }
+    
     return this.decryptUserData(user);
   }
 
   async updateUserProfile(userId: string, updateUserDto: UpdateUserDto): Promise<any> {
-    const user = await this.findById(userId);
+    const user = await this.userModel.findById(userId).exec();
     
     if (!user) {
       throw new NotFoundException(`User with ID ${userId} not found`);
+    }
+
+    // Validate email if provided
+    if (updateUserDto.email) {
+      const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+      if (!emailRegex.test(updateUserDto.email)) {
+        throw new BadRequestException('Invalid email format');
+      }
     }
 
     // Encrypt sensitive data
@@ -608,13 +618,18 @@ export class UserService {
       encryptedData.address = this.encrypt(updateUserDto.address);
     }
 
-    Object.assign(user, encryptedData);
-    await user.save();
+    // Update using findByIdAndUpdate for better reliability
+    const updatedUser = await this.userModel.findByIdAndUpdate(
+      userId,
+      { $set: encryptedData },
+      { new: true }
+    ).select('-password').exec();
+    
     await this.clearCache(userId);
     
     return {
       message: 'User profile updated successfully',
-      user: this.decryptUserData(user),
+      user: this.decryptUserData(updatedUser),
     };
   }
 
