@@ -2,7 +2,7 @@
 # This script tests all food provider functionality in the StayKaru platform
 # Date: June 21, 2025
 
-$baseUrl = "https://staykaru-backend-60ed08adb2a7.herokuapp.com"
+$baseUrl = "http://localhost:3000"
 
 Write-Host "=== STAYKARU FOOD PROVIDER COMPREHENSIVE TEST ===" -ForegroundColor Cyan
 Write-Host "Running comprehensive test of all food provider functionality" -ForegroundColor Cyan

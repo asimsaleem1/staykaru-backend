@@ -1,12 +1,12 @@
-$baseUrl = "https://staykaru-backend-60ed08adb2a7.herokuapp.com"
+$baseUrl = "http://localhost:3000"
 
 Write-Host "🔍 COMPREHENSIVE ADMIN DASHBOARD TEST" -ForegroundColor Yellow
 Write-Host "=====================================" -ForegroundColor Yellow
 
 # Login as admin to get token
 $loginData = @{
-    email = "assaleemofficial@gmail.com"
-    password = "Sarim786"
+    email = "admin@test.com"
+    password = "Admin123!"
 } | ConvertTo-Json
 
 try {

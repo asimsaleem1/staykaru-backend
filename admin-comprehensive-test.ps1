@@ -1,7 +1,7 @@
 # StayKaru Comprehensive Admin Test Suite
 # Tests all admin functionality after image upload implementation
 
-$baseUrl = "https://staykaru-backend-60ed08adb2a7.herokuapp.com"
+$baseUrl = "http://localhost:3000"
 
 # Initialize test counters
 $global:totalTests = 0

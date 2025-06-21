@@ -2,7 +2,7 @@
 # This script tests all landlord functionality in the StayKaru platform
 # Date: June 21, 2025
 
-$baseUrl = "https://staykaru-backend-60ed08adb2a7.herokuapp.com"
+$baseUrl = "http://localhost:3000"
 
 Write-Host "=== STAYKARU LANDLORD DASHBOARD FINAL TEST ===" -ForegroundColor Cyan
 Write-Host "Running comprehensive test of all landlord functionality" -ForegroundColor Cyan

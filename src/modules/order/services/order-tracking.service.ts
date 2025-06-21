@@ -108,6 +108,7 @@ export class OrderTrackingService {
       }
 
       const trackingInfo: TrackingInfo = {
+        // eslint-disable-next-line @typescript-eslint/no-base-to-string
         orderId: order._id.toString(),
         currentLocation: order.current_location || null,
         status: order.status,
@@ -240,11 +241,15 @@ export class OrderTrackingService {
       return {
         totalRoutes: routes.length,
         routes,
-        totalDistance: routes.reduce((sum, route) => {
+        // eslint-disable-next-line @typescript-eslint/no-unsafe-assignment
+        totalDistance: routes.reduce((sum: number, route: any) => {
+          // eslint-disable-next-line @typescript-eslint/no-unsafe-argument, @typescript-eslint/no-unsafe-call, @typescript-eslint/no-unsafe-member-access
           const distance = parseFloat(route.distance.replace(/[^\d.]/g, ''));
           return sum + (isNaN(distance) ? 0 : distance);
         }, 0),
-        totalDuration: routes.reduce((sum, route) => {
+        // eslint-disable-next-line @typescript-eslint/no-unsafe-assignment
+        totalDuration: routes.reduce((sum: number, route: any) => {
+          // eslint-disable-next-line @typescript-eslint/no-unsafe-argument, @typescript-eslint/no-unsafe-call, @typescript-eslint/no-unsafe-member-access
           const duration = parseFloat(route.duration.replace(/[^\d.]/g, ''));
           return sum + (isNaN(duration) ? 0 : duration);
         }, 0),
