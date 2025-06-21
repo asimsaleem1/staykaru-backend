@@ -206,7 +206,7 @@ export class FoodProviderController {
   // Food Provider Dashboard Endpoints
 
   @Get('owner/my-providers')
-  @UseGuards(AuthGuard, FoodProviderGuard)
+  @UseGuards(JwtAuthGuard, FoodProviderGuard)
   @ApiBearerAuth('JWT-auth')
   @ApiOperation({ summary: 'Get all food providers owned by the user' })
   @ApiResponse({
@@ -220,7 +220,7 @@ export class FoodProviderController {
   }
 
   @Get('owner/dashboard')
-  @UseGuards(AuthGuard, FoodProviderGuard)
+  @UseGuards(JwtAuthGuard, FoodProviderGuard)
   @ApiBearerAuth('JWT-auth')
   @ApiOperation({ summary: 'Get food provider dashboard summary' })
   @ApiResponse({
@@ -234,7 +234,7 @@ export class FoodProviderController {
   }
 
   @Get('owner/menu-items/:providerId')
-  @UseGuards(AuthGuard, FoodProviderGuard)
+  @UseGuards(JwtAuthGuard, FoodProviderGuard)
   @ApiBearerAuth('JWT-auth')
   @ApiOperation({ summary: 'Get all menu items for a specific food provider' })
   @ApiParam({ name: 'providerId', description: 'Food Provider ID' })
@@ -247,7 +247,7 @@ export class FoodProviderController {
   }
 
   @Post('owner/menu-items/:providerId')
-  @UseGuards(AuthGuard, FoodProviderGuard)
+  @UseGuards(JwtAuthGuard, FoodProviderGuard)
   @ApiBearerAuth('JWT-auth')
   @ApiOperation({ summary: 'Add a new menu item to a food provider' })
   @ApiParam({ name: 'providerId', description: 'Food Provider ID' })
@@ -266,7 +266,7 @@ export class FoodProviderController {
   }
 
   @Put('owner/menu-items/:providerId/:itemId')
-  @UseGuards(AuthGuard, FoodProviderGuard)
+  @UseGuards(JwtAuthGuard, FoodProviderGuard)
   @ApiBearerAuth('JWT-auth')
   @ApiOperation({ summary: 'Update a menu item' })
   @ApiParam({ name: 'providerId', description: 'Food Provider ID' })
@@ -289,7 +289,7 @@ export class FoodProviderController {
   }
 
   @Delete('owner/menu-items/:providerId/:itemId')
-  @UseGuards(AuthGuard, FoodProviderGuard)
+  @UseGuards(JwtAuthGuard, FoodProviderGuard)
   @ApiBearerAuth('JWT-auth')
   @ApiOperation({ summary: 'Delete a menu item' })
   @ApiParam({ name: 'providerId', description: 'Food Provider ID' })
@@ -308,7 +308,7 @@ export class FoodProviderController {
   }
 
   @Get('owner/orders/:providerId')
-  @UseGuards(AuthGuard, FoodProviderGuard)
+  @UseGuards(JwtAuthGuard, FoodProviderGuard)
   @ApiBearerAuth('JWT-auth')
   @ApiOperation({ summary: 'Get all orders for a specific food provider' })
   @ApiParam({ name: 'providerId', description: 'Food Provider ID' })
@@ -324,7 +324,7 @@ export class FoodProviderController {
   }
 
   @Get('owner/analytics')
-  @UseGuards(AuthGuard, FoodProviderGuard)
+  @UseGuards(JwtAuthGuard, FoodProviderGuard)
   @ApiBearerAuth('JWT-auth')
   @ApiOperation({
     summary: 'Get analytics for food providers owned by the user',
@@ -419,7 +419,7 @@ export class FoodProviderController {
   }
 
   @Get('admin/:id/details')
-  @UseGuards(AuthGuard, RolesGuard)
+  @UseGuards(JwtAuthGuard, RolesGuard)
   @Roles(UserRole.ADMIN)
   @ApiBearerAuth('JWT-auth')
   @ApiOperation({ summary: 'Get food provider details for admin review' })
