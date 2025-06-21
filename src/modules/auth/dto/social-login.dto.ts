@@ -1,5 +1,5 @@
 import { ApiProperty } from '@nestjs/swagger';
-import { IsString, IsNotEmpty, IsIn, IsOptional } from 'class-validator';
+import { IsString, IsNotEmpty, IsIn } from 'class-validator';
 
 export class SocialLoginDto {
   @ApiProperty({
@@ -19,15 +19,6 @@ export class SocialLoginDto {
   @IsString()
   @IsNotEmpty()
   token: string;
-
-  @ApiProperty({
-    description: 'User role for registration',
-    example: 'student',
-    enum: ['student', 'landlord', 'food_provider'],
-    required: false,
-  })
-  @IsString()
-  @IsOptional()
-  @IsIn(['student', 'landlord', 'food_provider'])
-  role?: string;
+  // Role is automatically set to 'student' for this simplified flow
+  // No need for role selection input
 }

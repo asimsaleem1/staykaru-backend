@@ -20,6 +20,7 @@ import {
 import { SocialAuthService } from './social-auth.service';
 import { FacebookLoginDto } from '../dto/facebook-login.dto';
 import { GoogleLoginDto } from '../dto/google-login.dto';
+import { StudentRegistrationDto } from '../dto/student-registration.dto';
 
 @Injectable()
 export class AuthService {
@@ -437,7 +438,6 @@ export class AuthService {
         email: string;
         type: string;
       };
-      
       if (decoded.type !== 'password-reset') {
         throw new BadRequestException('Invalid token type');
       }
@@ -466,6 +466,91 @@ export class AuthService {
         throw new BadRequestException('Invalid or expired token');
       }
       throw error;
+    }
+  }
+
+  async completeStudentRegistration(
+    userId: string,
+    registrationDto: StudentRegistrationDto,
+  ) {
+    try {
+      // Find the user
+      const user = await this.userService.findById(userId);
+      if (!user) {
+        throw new BadRequestException('User not found');
+      }
+
+      // Check if user is a student
+      if (user.role !== UserRole.STUDENT) {
+        throw new BadRequestException(
+          'Only students can complete registration',
+        );
+      }
+
+      // Check if registration is already complete
+      if (user.registrationComplete) {
+        throw new BadRequestException('Registration already completed');
+      }
+
+      // Update user with registration data
+      const updateUserDto: UpdateUserDto = {
+        phone: registrationDto.phone,
+        countryCode: registrationDto.countryCode,
+        gender: registrationDto.gender,
+        identificationType: registrationDto.identificationType as IdentificationType,
+        identificationNumber: registrationDto.identificationNumber as string,
+        registrationComplete: true,
+      };
+
+      // Add optional fields if provided
+      if (registrationDto.profileImage) {
+        updateUserDto.profileImage = registrationDto.profileImage as string;
+      }
+      if (registrationDto.university) {
+        updateUserDto.university = registrationDto.university;
+      }
+      if (registrationDto.course) {
+        updateUserDto.course = registrationDto.course as string;
+      }
+      if (registrationDto.yearOfStudy) {
+        updateUserDto.yearOfStudy = registrationDto.yearOfStudy;
+      }
+      if (registrationDto.emergencyContact) {
+        updateUserDto.emergencyContact =
+          registrationDto.emergencyContact as string;
+      }
+      if (registrationDto.dietary) {
+        updateUserDto.dietary = registrationDto.dietary as string[];
+      }
+      if (registrationDto.allergies) {
+        updateUserDto.allergies = registrationDto.allergies as string[];
+      }
+
+      const updatedUser = await this.userService.update(userId, updateUserDto);
+
+      return {
+        message: 'Student registration completed successfully',
+        user: {
+          id: updatedUser._id,
+          name: updatedUser.name,
+          email: updatedUser.email,
+          role: updatedUser.role,
+          registrationComplete: Boolean(updatedUser.registrationComplete),
+          phone: updatedUser.phone,
+          university: updatedUser.university
+            ? String(updatedUser.university)
+            : undefined,
+        },
+      };
+    } catch (error) {
+      if (error instanceof BadRequestException) {
+        throw error;
+      }
+      throw new BadRequestException(
+        error instanceof Error
+          ? error.message
+          : 'Registration completion failed',
+      );
     }
   }
 }

@@ -23,6 +23,7 @@ import { GoogleLoginDto } from '../dto/google-login.dto';
 import { SocialLoginDto } from '../dto/social-login.dto';
 import { ForgotPasswordDto } from '../dto/forgot-password.dto';
 import { ResetPasswordDto } from '../dto/reset-password.dto';
+import { StudentRegistrationDto } from '../dto/student-registration.dto';
 import { JwtAuthGuard } from '../guards/jwt-auth.guard';
 import { User } from '../../user/schema/user.schema';
 import { UserService } from '../../user/services/user.service';
@@ -176,11 +177,10 @@ export class AuthController {
   async googleLogin(@Body() googleLoginDto: GoogleLoginDto) {
     return this.authService.googleLogin(googleLoginDto);
   }
-
   @Post('social-login')
   @HttpCode(HttpStatus.OK)
   @ApiOperation({
-    summary: 'Login with social media provider (unified endpoint)',
+    summary: 'Login with social media provider (unified endpoint for students)',
   })
   @ApiResponse({
     status: 200,
@@ -200,7 +200,10 @@ export class AuthController {
           profileImage: 'https://example.com/profile.jpg',
           socialProvider: 'google',
           isEmailVerified: true,
+          isRegistrationComplete: false,
         },
+        needsRegistration: true,
+        redirectTo: '/student/complete-registration',
       },
     },
   })
@@ -211,14 +214,33 @@ export class AuthController {
   @ApiResponse({ status: 401, description: 'Invalid social media token' })
   async socialLogin(@Body() socialLoginDto: SocialLoginDto) {
     const { provider, token } = socialLoginDto;
+    
+    let result;
     switch (provider) {
       case 'google':
-        return this.authService.googleLogin({ idToken: token });
+        result = await this.authService.googleLogin({ idToken: token });
+        break;
       case 'facebook':
-        return this.authService.facebookLogin({ accessToken: token });
+        result = await this.authService.facebookLogin({ accessToken: token });
+        break;
       default:
-        throw new BadRequestException('Invalid social media provider');
+        throw new BadRequestException('Only Google and Facebook login supported for students');
     }
+
+    // Automatically set role as student
+    if (result.user.role !== 'student') {
+      result.user.role = 'student';
+      await this.authService.updateUserRole(String(result.user.id), 'student');
+    }
+
+    // Check if student registration is complete
+    const isRegistrationComplete = result.user.university && result.user.studentId && result.user.phone;
+    
+    return {
+      ...result,
+      needsRegistration: !isRegistrationComplete,
+      redirectTo: isRegistrationComplete ? '/student/dashboard' : '/student/complete-registration',
+    };
   }
 
   @Post('forgot-password')
@@ -284,5 +306,50 @@ export class AuthController {
       changePasswordDto,
     );
     return { message: 'Password changed successfully' };
+  }
+
+  @Post('complete-student-registration')
+  @UseGuards(JwtAuthGuard)
+  @HttpCode(HttpStatus.OK)
+  @ApiOperation({
+    summary: 'Complete student registration after social login',
+  })
+  @ApiResponse({
+    status: 200,
+    description: 'Student registration completed successfully',
+    schema: {
+      example: {
+        message: 'Student registration completed successfully',
+        user: {
+          id: '507f1f77bcf86cd799439011',
+          name: 'John Doe',
+          email: 'john@example.com',
+          role: 'student',
+          university: 'University of California, Berkeley',
+          studentId: 'STU123456',
+          phone: '+1-1234567890',
+          isRegistrationComplete: true,
+        },
+        redirectTo: '/student/dashboard',
+      },
+    },
+  })
+  @ApiResponse({ status: 400, description: 'Invalid input data' })
+  @ApiResponse({ status: 401, description: 'Unauthorized' })
+  async completeStudentRegistration(
+    @Request() req,
+    @Body() studentRegistrationDto: StudentRegistrationDto,
+  ) {
+    const userId = String(req.user.id);
+    const updatedUser = await this.authService.completeStudentRegistration(
+      userId,
+      studentRegistrationDto,
+    );
+
+    return {
+      message: 'Student registration completed successfully',
+      user: updatedUser,
+      redirectTo: '/student/dashboard',
+    };
   }
 }
