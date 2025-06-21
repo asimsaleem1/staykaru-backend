@@ -7,6 +7,7 @@ import { MenuItem } from '../../food_service/schema/menu-item.schema';
 export enum OrderStatus {
   PLACED = 'placed',
   PREPARING = 'preparing',
+  OUT_FOR_DELIVERY = 'out_for_delivery',
   DELIVERED = 'delivered',
   CANCELLED = 'cancelled',
 }
@@ -21,6 +22,39 @@ export class OrderItem {
 
   @Prop({ required: true, min: 1 })
   quantity: number;
+}
+
+export class LocationCoordinates {
+  @Prop({ required: true })
+  latitude: number;
+
+  @Prop({ required: true })
+  longitude: number;
+}
+
+export class DeliveryLocation {
+  @Prop({ type: LocationCoordinates, required: true })
+  coordinates: LocationCoordinates;
+
+  @Prop({ required: true })
+  address: string;
+
+  @Prop()
+  landmark?: string;
+}
+
+export class TrackingHistory {
+  @Prop({ type: LocationCoordinates, required: true })
+  location: LocationCoordinates;
+
+  @Prop({ type: String, enum: OrderStatus, required: true })
+  status: OrderStatus;
+
+  @Prop({ default: Date.now })
+  timestamp: Date;
+
+  @Prop()
+  notes?: string;
 }
 
 @Schema({ timestamps: true })
@@ -43,6 +77,24 @@ export class Order extends Document {
 
   @Prop({ type: String, enum: OrderStatus, default: OrderStatus.PLACED })
   status: OrderStatus;
+
+  @Prop({ type: DeliveryLocation })
+  delivery_location?: DeliveryLocation;
+
+  @Prop({ type: LocationCoordinates })
+  current_location?: LocationCoordinates;
+
+  @Prop({ type: [TrackingHistory], default: [] })
+  tracking_history: TrackingHistory[];
+
+  @Prop()
+  estimated_delivery_time?: Date;
+
+  @Prop()
+  delivery_person_name?: string;
+
+  @Prop()
+  delivery_person_phone?: string;
 }
 
 export const OrderSchema = SchemaFactory.createForClass(Order);
