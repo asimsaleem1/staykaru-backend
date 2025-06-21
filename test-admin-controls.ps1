@@ -7,7 +7,7 @@ Write-Host "==================================" -ForegroundColor Cyan
 # Configuration
 $baseUrl = "https://staykaru-backend-60ed08adb2a7.herokuapp.com"
 $adminEmail = "assaleemofficial@gmail.com"
-$adminPassword = "admin123"
+$adminPassword = "Sarim786"
 $testLandlordEmail = "landlord.test.$(Get-Random)@test.com"
 $testFoodProviderEmail = "foodprovider.test.$(Get-Random)@test.com"
 $testStudentEmail = "student.test.$(Get-Random)@test.com"
@@ -330,10 +330,9 @@ function Test-UserManagement {
     # Test 2: Get User Counts
     Write-Host "Testing get user counts..."
     $countsResponse = Test-APICall -method "GET" -endpoint "/users/admin/count"
-    
-    if ($countsResponse.Success) {
+      if ($countsResponse.Success) {
         Test-Assert -condition $true -message "Get user counts successful"
-        Test-Assert -condition ($countsResponse.Data.totalUsers -ne $null) -message "Total users count exists"
+        Test-Assert -condition ($countsResponse.Data.total -ne $null) -message "Total users count exists"
     } else {
         Test-Assert -condition $false -message "Get user counts failed"
     }
