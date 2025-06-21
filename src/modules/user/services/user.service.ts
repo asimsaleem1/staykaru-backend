@@ -118,6 +118,24 @@ export class UserService {
     return this.decryptUserData(user);
   }
 
+  async findById(userId: string): Promise<User> {
+    const cacheKey = this.getCacheKey(userId);
+    const cached = await this.cacheManager.get<User>(cacheKey);
+
+    if (cached) {
+      return cached;
+    }
+
+    const user = await this.userModel.findById(userId).select('-password').exec();
+
+    if (!user) {
+      throw new NotFoundException(`User with ID ${userId} not found`);
+    }
+
+    await this.cacheManager.set(cacheKey, user);
+    return user;
+  }
+
   async update(id: string, updateUserDto: UpdateUserDto): Promise<User> {
     const encryptedData = {
       ...updateUserDto,
