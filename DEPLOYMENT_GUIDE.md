@@ -154,6 +154,22 @@ heroku logs --tail
 heroku ps
 ```
 
+## Accessing Your Deployed Application
+
+Your backend application should now be accessible at:
+
+```
+https://staykaru-backend-60ed08adb2a7.herokuapp.com/
+```
+
+To access the API documentation, visit:
+
+```
+https://staykaru-backend-60ed08adb2a7.herokuapp.com/api
+```
+
+Remember to update your frontend application to use this URL for API requests.
+
 ## Setting Up Continuous Deployment
 
 ### 1. Connect GitHub to Heroku

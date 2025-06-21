@@ -126,8 +126,9 @@ Create a service to handle API calls:
 ```jsx
 // authService.js
 import axios from 'axios';
+import { API_BASE_URL } from './config';
 
-const API_URL = 'http://localhost:3000/auth';
+const API_URL = `${API_BASE_URL}/auth`;
 
 const register = async (userData) => {
   const response = await axios.post(`${API_URL}/register`, userData);
@@ -1487,3 +1488,29 @@ Add these styles to make your student dashboard look good:
   }
 }
 ```
+
+## Environment Configuration
+
+For better maintainability, consider using environment variables to configure your API endpoints:
+
+```jsx
+// config.js
+export const API_BASE_URL = process.env.REACT_APP_API_URL || 'https://staykaru-backend-60ed08adb2a7.herokuapp.com/api';
+
+// Example usage in authService.js
+import { API_BASE_URL } from './config';
+
+const API_URL = `${API_BASE_URL}/auth`;
+```
+
+Create a `.env` file in your frontend project root:
+
+```
+# .env.development
+REACT_APP_API_URL=http://localhost:3002/api
+
+# .env.production
+REACT_APP_API_URL=https://staykaru-backend-60ed08adb2a7.herokuapp.com/api
+```
+
+This approach allows you to switch between development and production environments seamlessly without changing your code.
