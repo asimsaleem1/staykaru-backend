@@ -1,7 +1,7 @@
 # Enhanced Registration Test - Simple Version
 Write-Host "=== Enhanced Registration Test ===" -ForegroundColor Cyan
 
-$baseUrl = "https://staykaru-backend-c2959b7b2c66.herokuapp.com"
+$baseUrl = "https://staykaru-backend-60ed08adb2a7.herokuapp.com"
 
 # Test data with all new fields
 $testUser = @{
