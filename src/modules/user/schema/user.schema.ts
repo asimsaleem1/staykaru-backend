@@ -8,6 +8,11 @@ export enum UserRole {
   ADMIN = 'admin',
 }
 
+export enum IdentificationType {
+  CNIC = 'cnic',
+  PASSPORT = 'passport',
+}
+
 @Schema({ timestamps: true })
 export class User extends Document {
   @Prop({ required: true })
@@ -25,11 +30,23 @@ export class User extends Document {
   @Prop({ required: true })
   phone: string;
 
+  @Prop({ required: true })
+  countryCode: string; // Country code for phone number
+
   @Prop()
   address: string;
 
   @Prop({ required: true })
   gender: string;
+
+  @Prop()
+  profileImage?: string; // URL to profile image
+
+  @Prop({ enum: IdentificationType })
+  identificationType?: IdentificationType; // CNIC or Passport
+
+  @Prop()
+  identificationNumber?: string; // CNIC or Passport number
 
   @Prop({ type: [String], default: [] })
   fcmTokens: string[]; // Array to support multiple devices per user

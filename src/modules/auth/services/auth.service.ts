@@ -41,7 +41,11 @@ export class AuthService {
         password: hashedPassword, // Store hashed password
         role: registerDto.role,
         phone: registerDto.phone,
+        countryCode: registerDto.countryCode,
         gender: registerDto.gender,
+        profileImage: registerDto.profileImage,
+        identificationType: registerDto.identificationType,
+        identificationNumber: registerDto.identificationNumber,
       };
 
       const user = await this.userService.create(createUserDto);

@@ -4,9 +4,12 @@ import {
   IsString,
   IsEnum,
   MinLength,
+  IsOptional,
+  IsUrl,
+  Matches,
 } from 'class-validator';
 import { ApiProperty } from '@nestjs/swagger';
-import { UserRole } from '../../user/schema/user.schema';
+import { UserRole, IdentificationType } from '../../user/schema/user.schema';
 
 export class RegisterDto {
   @ApiProperty({ example: 'John Doe', description: 'User full name' })
@@ -33,13 +36,55 @@ export class RegisterDto {
   @IsEnum(UserRole)
   role: UserRole;
 
-  @ApiProperty({ example: '+1234567890', description: 'User phone number' })
+  @ApiProperty({
+    example: '1234567890',
+    description: 'Phone number without country code',
+  })
   @IsNotEmpty()
   @IsString()
   phone: string;
+
+  @ApiProperty({
+    example: '+92',
+    description: 'Country code for phone number',
+  })
+  @IsNotEmpty()
+  @IsString()
+  @Matches(/^\+\d{1,4}$/, {
+    message: 'Country code must start with + and contain 1-4 digits',
+  })
+  countryCode: string;
 
   @ApiProperty({ example: 'male', description: 'User gender' })
   @IsNotEmpty()
   @IsString()
   gender: string;
+
+  @ApiProperty({
+    example: 'https://example.com/profile.jpg',
+    description: 'Profile image URL',
+    required: false,
+  })
+  @IsOptional()
+  @IsUrl()
+  profileImage?: string;
+
+  @ApiProperty({
+    example: 'cnic',
+    description: 'Type of identification',
+    enum: IdentificationType,
+    required: false,
+  })
+  @IsOptional()
+  @IsEnum(IdentificationType)
+  identificationType?: IdentificationType;
+
+  @ApiProperty({
+    example: '12345-6789012-3',
+    description: 'CNIC or Passport number',
+    required: false,
+  })
+  @IsOptional()
+  @IsString()
+  identificationNumber?: string;
 }
