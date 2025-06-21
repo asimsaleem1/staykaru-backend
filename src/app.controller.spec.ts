@@ -12,10 +12,12 @@ describe('AppController', () => {
     }).compile();
   });
 
-  describe('getHello', () => {
-    it('should return "Hello World!"', () => {
+  describe('getStatus', () => {
+    it('should return status object', () => {
       const appController = app.get(AppController);
-      expect(appController.getHello()).toBe('Hello World!');
+      const result = appController.getStatus();
+      expect(result).toBeDefined();
+      expect(typeof result).toBe('object');
     });
   });
 });

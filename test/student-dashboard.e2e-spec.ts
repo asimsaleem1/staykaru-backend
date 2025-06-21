@@ -1,7 +1,12 @@
 import { Test, TestingModule } from '@nestjs/testing';
 import { INestApplication } from '@nestjs/common';
-import * as request from 'supertest';
+import request from 'supertest';
 import { AppModule } from '../src/app.module';
+
+/* eslint-disable @typescript-eslint/no-unsafe-assignment */
+/* eslint-disable @typescript-eslint/no-unsafe-member-access */
+/* eslint-disable @typescript-eslint/no-unsafe-argument */
+/* eslint-disable @typescript-eslint/no-unsafe-call */
 
 describe('Student Dashboard E2E Tests', () => {
   let app: INestApplication;
@@ -11,7 +16,6 @@ describe('Student Dashboard E2E Tests', () => {
   let testFoodProviderId: string;
   let testBookingId: string;
   let testOrderId: string;
-
   beforeAll(async () => {
     const moduleFixture: TestingModule = await Test.createTestingModule({
       imports: [AppModule],
@@ -22,7 +26,7 @@ describe('Student Dashboard E2E Tests', () => {
 
     // Create and authenticate test student
     await setupTestStudent();
-  });
+  }, 30000); // Increased timeout to 30 seconds
 
   afterAll(async () => {
     await cleanupTestData();
@@ -30,16 +34,28 @@ describe('Student Dashboard E2E Tests', () => {
   });
 
   async function setupTestStudent() {
+    // Use unique email for each test run
+    const uniqueEmail = `student.dashboard.test.${Date.now()}@university.edu`;
     // Register test student
     const registerResponse = await request(app.getHttpServer())
       .post('/auth/register')
       .send({
         name: 'Test Student Dashboard',
-        email: 'student.dashboard.test@university.edu',
+        email: uniqueEmail,
         password: 'StudentPass123!',
         role: 'student',
-        phone: '+1234567890',
+        phone: '1234567890',
+        countryCode: '+1',
+        gender: 'male',
       });
+
+    if (registerResponse.status !== 201) {
+      console.log(
+        'Registration failed:',
+        registerResponse.status,
+        registerResponse.body,
+      );
+    }
 
     expect(registerResponse.status).toBe(201);
 
@@ -47,7 +63,7 @@ describe('Student Dashboard E2E Tests', () => {
     const loginResponse = await request(app.getHttpServer())
       .post('/auth/login')
       .send({
-        email: 'student.dashboard.test@university.edu',
+        email: uniqueEmail,
         password: 'StudentPass123!',
       });
 

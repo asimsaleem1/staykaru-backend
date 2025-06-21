@@ -1,11 +1,14 @@
 import { INestApplication } from '@nestjs/common';
 import { Test } from '@nestjs/testing';
-import * as request from 'supertest';
-import { App } from 'supertest/types';
+import request from 'supertest';
 import { AppModule } from './../src/app.module';
 
+/* eslint-disable @typescript-eslint/no-unsafe-assignment */
+/* eslint-disable @typescript-eslint/no-unsafe-member-access */
+/* eslint-disable @typescript-eslint/no-unsafe-argument */
+
 describe('AppController (e2e)', () => {
-  let app: INestApplication<App>;
+  let app: INestApplication;
 
   beforeAll(async () => {
     const moduleFixture = await Test.createTestingModule({
@@ -24,6 +27,10 @@ describe('AppController (e2e)', () => {
     return request(app.getHttpServer())
       .get('/')
       .expect(200)
-      .expect('Hello World!');
+      .expect('Content-Type', /html/)
+      .expect((res) => {
+        expect(res.text).toContain('StayKaro');
+        expect(res.text).toContain('Student Accommodation & Food Service Platform');
+      });
   });
 });

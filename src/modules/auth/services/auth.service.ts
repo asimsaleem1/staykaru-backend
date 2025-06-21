@@ -8,6 +8,7 @@ import { ConfigService } from '@nestjs/config';
 import * as bcrypt from 'bcrypt';
 import { RegisterDto } from '../dto/register.dto';
 import { LoginDto } from '../dto/login.dto';
+import { ChangePasswordDto } from '../dto/change-password.dto';
 import { UserService } from '../../user/services/user.service';
 import { CreateUserDto } from '../../user/dto/create-user.dto';
 import { UpdateUserDto } from '../../user/dto/update-user.dto';
@@ -360,6 +361,27 @@ export class AuthService {
 
   async validateUser(userId: string) {
     return this.userService.findOne(userId);
+  }
+
+  async changePassword(userId: string, changePasswordDto: ChangePasswordDto) {
+    const user = await this.userService.findById(userId);
+    if (!user) {
+      throw new BadRequestException('User not found');
+    }
+
+    const isPasswordValid = await bcrypt.compare(
+      changePasswordDto.currentPassword,
+      user.password,
+    );
+
+    if (!isPasswordValid) {
+      throw new BadRequestException('Current password is incorrect');
+    }
+
+    const hashedPassword = await this.hashPassword(
+      changePasswordDto.newPassword,
+    );
+    await this.userService.updatePassword(userId, hashedPassword);
   }
 
   private async hashPassword(password: string): Promise<string> {

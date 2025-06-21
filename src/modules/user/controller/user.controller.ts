@@ -3,7 +3,6 @@ import {
   Get,
   Post,
   Put,
-  Delete,
   Body,
   Param,
   UseGuards,
@@ -35,11 +34,12 @@ export class UserController {
   constructor(private readonly userService: UserService) {}
 
   // Helper method to safely extract user ID
-  private getUserId(req: any): string {
-    console.log('UserController getUserId - req.user:', req.user);
-    console.log('UserController getUserId - req.user._id:', req.user._id);
-    console.log('UserController getUserId - req.user.id:', req.user.id);
-    return req.user._id ? req.user._id.toString() : req.user.id.toString();
+  private getUserId(req: AuthenticatedRequest): string {
+    const userId = req.user._id;
+    if (!userId) {
+      throw new Error('User ID not found in request');
+    }
+    return String(userId);
   }
 
   // Admin endpoints for user management
@@ -70,7 +70,7 @@ export class UserController {
     status: 200,
     description: 'Returns user counts by role',
   })
-  async getUserCounts() {
+  async getUserCounts(): Promise<any> {
     return this.userService.getUserCounts();
   }
 
@@ -189,7 +189,7 @@ export class UserController {
     description: 'Forbidden - Admin access required',
   })
   @Roles(UserRole.ADMIN)
-  async create(@Body() createUserDto: CreateUserDto) {
+  async create(@Body() createUserDto: CreateUserDto): Promise<any> {
     return this.userService.create(createUserDto);
   }
 
@@ -210,7 +210,7 @@ export class UserController {
       ],
     },
   })
-  async findAll() {
+  async findAll(): Promise<any> {
     return this.userService.findAll();
   }
 
@@ -223,7 +223,9 @@ export class UserController {
     status: 200,
     description: 'Food provider profile retrieved successfully',
   })
-  async getFoodProviderProfile(@Request() req: AuthenticatedRequest) {
+  async getFoodProviderProfile(
+    @Request() req: AuthenticatedRequest,
+  ): Promise<any> {
     return this.userService.getUserProfile(this.getUserId(req));
   }
 
@@ -235,7 +237,7 @@ export class UserController {
     status: 200,
     description: 'User profile retrieved successfully',
   })
-  async getUserProfile(@Request() req: AuthenticatedRequest) {
+  async getUserProfile(@Request() req: AuthenticatedRequest): Promise<any> {
     return this.userService.getUserProfile(this.getUserId(req));
   }
 
@@ -259,7 +261,7 @@ export class UserController {
     },
   })
   @ApiResponse({ status: 404, description: 'User not found' })
-  async findOne(@Param('id') id: string) {
+  async findOne(@Param('id') id: string): Promise<any> {
     return this.userService.findOne(id);
   }
 
@@ -274,7 +276,7 @@ export class UserController {
   async updateUserProfile(
     @Request() req: AuthenticatedRequest,
     @Body() updateUserDto: UpdateUserDto,
-  ) {
+  ): Promise<any> {
     return this.userService.updateUserProfile(
       this.getUserId(req),
       updateUserDto,
@@ -292,7 +294,7 @@ export class UserController {
   async patchUserProfile(
     @Request() req: AuthenticatedRequest,
     @Body() updateUserDto: UpdateUserDto,
-  ) {
+  ): Promise<any> {
     return this.userService.updateUserProfile(req.user._id, updateUserDto);
   }
 
@@ -312,7 +314,7 @@ export class UserController {
   async changePassword(
     @Request() req: AuthenticatedRequest,
     @Body() changePasswordDto: ChangePasswordDto,
-  ) {
+  ): Promise<any> {
     return this.userService.changePassword(req.user._id, changePasswordDto);
   }
 
@@ -327,8 +329,8 @@ export class UserController {
   async updateFcmToken(
     @Request() req: AuthenticatedRequest,
     @Body('fcmToken') fcmToken: string,
-  ) {
-    return this.userService.updateFcmToken(req.user._id, fcmToken);
+  ): Promise<any> {
+    return this.userService.updateFcmToken(this.getUserId(req), fcmToken);
   }
 
   // Landlord specific endpoints
@@ -341,7 +343,9 @@ export class UserController {
     status: 200,
     description: 'Returns landlord bookings',
   })
-  async getLandlordBookings(@Request() req: AuthenticatedRequest) {
+  async getLandlordBookings(
+    @Request() req: AuthenticatedRequest,
+  ): Promise<any> {
     const landlordId = req.user._id;
     return this.userService.getLandlordBookings(landlordId);
   }
@@ -355,7 +359,9 @@ export class UserController {
     status: 200,
     description: 'Returns landlord booking statistics',
   })
-  async getLandlordStatistics(@Request() req: AuthenticatedRequest) {
+  async getLandlordStatistics(
+    @Request() req: AuthenticatedRequest,
+  ): Promise<any> {
     const landlordId = req.user._id;
     return this.userService.getLandlordStatistics(landlordId);
   }
@@ -369,7 +375,7 @@ export class UserController {
     status: 200,
     description: 'Returns landlord revenue analytics',
   })
-  async getLandlordRevenue(@Request() req: AuthenticatedRequest) {
+  async getLandlordRevenue(@Request() req: AuthenticatedRequest): Promise<any> {
     const landlordId = req.user._id;
     return this.userService.getLandlordRevenue(landlordId);
   }
@@ -383,7 +389,7 @@ export class UserController {
     status: 200,
     description: 'Returns landlord profile',
   })
-  async getLandlordProfile(@Request() req: AuthenticatedRequest) {
+  async getLandlordProfile(@Request() req: AuthenticatedRequest): Promise<any> {
     const landlordId = req.user._id;
     return this.userService.getLandlordProfile(landlordId);
   }
@@ -400,8 +406,71 @@ export class UserController {
   async updateLandlordFcmToken(
     @Request() req: AuthenticatedRequest,
     @Body() body: { fcmToken: string },
-  ) {
+  ): Promise<any> {
     const landlordId = req.user._id;
     return this.userService.updateFcmToken(landlordId, body.fcmToken);
+  }
+
+  @Get('dashboard')
+  @UseGuards(JwtAuthGuard)
+  @ApiBearerAuth()
+  @ApiOperation({ summary: 'Get student dashboard summary' })
+  @ApiResponse({
+    status: 200,
+    description: 'Returns the student dashboard summary',
+    schema: {
+      example: {
+        totalBookings: 10,
+        totalOrders: 5,
+        activeBookings: 2,
+        pendingOrders: 1,
+        recentTransactions: [],
+      },
+    },
+  })
+  async getDashboard(@Request() req: AuthenticatedRequest): Promise<any> {
+    const userId = this.getUserId(req);
+    return this.userService.getDashboardSummary(userId);
+  }
+
+  @Get('analytics')
+  @UseGuards(JwtAuthGuard)
+  @ApiBearerAuth()
+  @ApiOperation({ summary: 'Get student analytics data' })
+  @ApiResponse({
+    status: 200,
+    description: 'Returns the student analytics data',
+    schema: {
+      example: {
+        monthlySpending: {
+          accommodation: 1000,
+          food: 500,
+        },
+        accommodationSpending: [
+          { month: 'January', amount: 500 },
+          { month: 'February', amount: 500 },
+        ],
+        foodSpending: [
+          { month: 'January', amount: 250 },
+          { month: 'February', amount: 250 },
+        ],
+      },
+    },
+  })
+  async getAnalytics(@Request() req: AuthenticatedRequest): Promise<any> {
+    const userId = this.getUserId(req);
+    return this.userService.getAnalytics(userId);
+  }
+
+  @Post('notifications/clear')
+  @UseGuards(JwtAuthGuard)
+  @ApiBearerAuth('JWT-auth')
+  @ApiOperation({ summary: 'Clear all notifications for user' })
+  @ApiResponse({
+    status: 200,
+    description: 'Notifications cleared successfully',
+  })
+  async clearNotifications(@Request() req: AuthenticatedRequest): Promise<any> {
+    return await this.userService.clearNotifications(this.getUserId(req));
   }
 }

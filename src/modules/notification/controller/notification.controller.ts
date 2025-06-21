@@ -2,6 +2,7 @@ import {
   Controller,
   Get,
   Post,
+  Put,
   Param,
   UseGuards,
   Request,
@@ -27,5 +28,19 @@ export class NotificationController {
   ) {
     await this.notificationService.markAsRead(req.user._id, notificationId);
     return { success: true };
+  }
+
+  @Get('unread-count')
+  async getUnreadCount(@Request() req: AuthenticatedRequest) {
+    const count = await this.notificationService.countUnreadNotifications(
+      req.user._id.toString(),
+    );
+    return { count };
+  }
+
+  @Put('mark-all-read')
+  async markAllAsRead(@Request() req: AuthenticatedRequest) {
+    await this.notificationService.markAllAsRead(req.user._id.toString());
+    return { message: 'All notifications marked as read' };
   }
 }

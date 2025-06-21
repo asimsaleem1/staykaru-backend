@@ -14,7 +14,7 @@ import { RealtimeService } from './services/realtime.service';
     MongooseModule.forFeature([{ name: Booking.name, schema: BookingSchema }]),
     JwtModule.registerAsync({
       imports: [ConfigModule],
-      useFactory: async (configService: ConfigService) => ({
+      useFactory: (configService: ConfigService) => ({
         secret: configService.get<string>('JWT_SECRET'),
         signOptions: { expiresIn: '24h' },
       }),

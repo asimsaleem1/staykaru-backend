@@ -124,4 +124,18 @@ export class NotificationService {
       console.error('Error logging analytics event:', error);
     }
   }
+
+  async countUnreadNotifications(userId: string): Promise<number> {
+    return this.notificationModel.countDocuments({
+      userId,
+      read: false,
+    });
+  }
+
+  async markAllAsRead(userId: string): Promise<void> {
+    await this.notificationModel.updateMany(
+      { userId, read: false },
+      { read: true },
+    );
+  }
 }

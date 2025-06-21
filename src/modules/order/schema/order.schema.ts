@@ -57,8 +57,10 @@ export class TrackingHistory {
   notes?: string;
 }
 
+export type OrderDocument = Order & Document;
+
 @Schema({ timestamps: true })
-export class Order extends Document {
+export class Order {
   @Prop({ type: MongooseSchema.Types.ObjectId, ref: 'User', required: true })
   user: User;
 
@@ -69,32 +71,26 @@ export class Order extends Document {
   })
   food_provider: FoodProvider;
 
-  @Prop({ type: [OrderItem], required: true })
+  @Prop([{ type: OrderItem, required: true }])
   items: OrderItem[];
 
-  @Prop({ required: true, min: 0 })
-  total_price: number;
+  @Prop({ type: DeliveryLocation, required: true })
+  delivery_location: DeliveryLocation;
 
   @Prop({ type: String, enum: OrderStatus, default: OrderStatus.PLACED })
   status: OrderStatus;
 
-  @Prop({ type: DeliveryLocation })
-  delivery_location?: DeliveryLocation;
+  @Prop({ type: [TrackingHistory], default: [] })
+  tracking_history: TrackingHistory[];
 
   @Prop({ type: LocationCoordinates })
   current_location?: LocationCoordinates;
 
-  @Prop({ type: [TrackingHistory], default: [] })
-  tracking_history: TrackingHistory[];
-
   @Prop()
   estimated_delivery_time?: Date;
 
-  @Prop()
-  delivery_person_name?: string;
-
-  @Prop()
-  delivery_person_phone?: string;
+  @Prop({ required: true })
+  total_amount: number;
 }
 
 export const OrderSchema = SchemaFactory.createForClass(Order);

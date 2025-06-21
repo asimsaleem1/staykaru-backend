@@ -22,9 +22,11 @@ import { GoogleLoginDto } from '../dto/google-login.dto';
 import { JwtAuthGuard } from '../guards/jwt-auth.guard';
 import { User } from '../../user/schema/user.schema';
 import { UserService } from '../../user/services/user.service';
+import { ChangePasswordDto } from '../dto/change-password.dto';
+import { Document } from 'mongoose';
 
 interface RequestWithUser extends Request {
-  user: User;
+  user: User & Document;
 }
 
 @ApiTags('auth')
@@ -169,5 +171,31 @@ export class AuthController {
   @ApiResponse({ status: 401, description: 'Invalid Google token' })
   async googleLogin(@Body() googleLoginDto: GoogleLoginDto) {
     return this.authService.googleLogin(googleLoginDto);
+  }
+
+  @Post('change-password')
+  @UseGuards(JwtAuthGuard)
+  @ApiBearerAuth()
+  @ApiOperation({ summary: 'Change user password' })
+  @ApiResponse({
+    status: 200,
+    description: 'Password changed successfully',
+    schema: {
+      example: {
+        message: 'Password changed successfully',
+      },
+    },
+  })
+  @ApiResponse({ status: 400, description: 'Bad Request' })
+  @ApiResponse({ status: 401, description: 'Unauthorized' })
+  async changePassword(
+    @Request() req: RequestWithUser,
+    @Body() changePasswordDto: ChangePasswordDto,
+  ) {
+    await this.authService.changePassword(
+      String(req.user.id),
+      changePasswordDto,
+    );
+    return { message: 'Password changed successfully' };
   }
 }

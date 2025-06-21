@@ -16,13 +16,17 @@ import { User, UserRole } from '../schema/user.schema';
 import { CreateUserDto } from '../dto/create-user.dto';
 import { UpdateUserDto } from '../dto/update-user.dto';
 import { ChangePasswordDto } from '../dto/change-password.dto';
+import { Booking, BookingDocument } from '../../booking/schema/booking.schema';
+import { Order, OrderDocument } from '../../order/schema/order.schema';
 
 @Injectable()
 export class UserService {
   private readonly encryptionKey: string;
 
   constructor(
-    @InjectModel(User.name) private readonly userModel: Model<User>,
+    @InjectModel(User.name) private userModel: Model<User>,
+    @InjectModel(Booking.name) private bookingModel: Model<BookingDocument>,
+    @InjectModel(Order.name) private orderModel: Model<OrderDocument>,
     @Inject(CACHE_MANAGER) private cacheManager: Cache,
     private configService: ConfigService,
   ) {
@@ -764,5 +768,132 @@ export class UserService {
     return {
       message: 'FCM token updated successfully',
     };
+  }
+
+  async updatePassword(userId: string, hashedPassword: string) {
+    return this.userModel.findByIdAndUpdate(
+      userId,
+      { password: hashedPassword },
+      { new: true },
+    );
+  }
+
+  async getDashboardSummary(userId: string) {
+    // Get counts from relevant collections
+    const totalBookings = await this.bookingModel.countDocuments({ user: userId });
+    const totalOrders = await this.orderModel.countDocuments({ user: userId });
+    const activeBookings = await this.bookingModel.countDocuments({
+      user: userId,
+      status: 'active',
+    });
+    const pendingOrders = await this.orderModel.countDocuments({
+      user: userId,
+      status: 'pending',
+    });
+
+    // Get recent transactions (both bookings and orders)
+    const recentTransactions = await Promise.all([
+      this.bookingModel
+        .find({ user: userId })
+        .sort({ createdAt: -1 })
+        .limit(5)
+        .populate('accommodation'),
+      this.orderModel
+        .find({ user: userId })
+        .sort({ createdAt: -1 })
+        .limit(5)
+        .populate('food_provider'),
+    ]);
+
+    return {
+      totalBookings,
+      totalOrders,
+      activeBookings,
+      pendingOrders,
+      recentTransactions: [
+        ...recentTransactions[0],
+        ...recentTransactions[1],
+      ].sort((a, b) => ((b._id as any).getTimestamp() as Date).getTime() - ((a._id as any).getTimestamp() as Date).getTime()),
+    };
+  }
+
+  async getAnalytics(userId: string) {
+    const now = new Date();
+    const startOfYear = new Date(now.getFullYear(), 0, 1);
+
+    // Get all bookings and orders for the year
+    const [yearBookings, yearOrders] = await Promise.all([
+      this.bookingModel.find({
+        user: userId,
+        createdAt: { $gte: startOfYear },
+      }),
+      this.orderModel.find({
+        user: userId,
+        createdAt: { $gte: startOfYear },
+      }),
+    ]);
+
+    // Calculate monthly totals
+    const monthlyTotals = Array(12).fill({ accommodation: 0, food: 0 });
+
+    yearBookings.forEach((booking) => {
+      const month = new Date((booking._id as any).getTimestamp()).getMonth();
+      monthlyTotals[month].accommodation += booking.total_amount || 0;
+    });
+
+    yearOrders.forEach((order) => {
+      const month = new Date((order._id as any).getTimestamp()).getMonth();
+      monthlyTotals[month].food += order.total_amount || 0;
+    });
+
+    // Format data for response
+    const months = [
+      'January',
+      'February',
+      'March',
+      'April',
+      'May',
+      'June',
+      'July',
+      'August',
+      'September',
+      'October',
+      'November',
+      'December',
+    ];
+
+    return {
+      monthlySpending: {
+        accommodation: yearBookings.reduce(
+          (sum, booking) => sum + (booking.total_amount || 0),
+          0,
+        ),
+        food: yearOrders.reduce(
+          (sum, order) => sum + (order.total_amount || 0),
+          0,
+        ),
+      },
+      accommodationSpending: monthlyTotals.map((total, index) => ({
+        month: months[index],
+        amount: total.accommodation,
+      })),
+      foodSpending: monthlyTotals.map((total, index) => ({
+        month: months[index],
+        amount: total.food,
+      })),
+    };
+  }
+
+  async clearNotifications(userId: string): Promise<User> {
+    const user = await this.userModel.findById(userId);
+    if (!user) {
+      throw new NotFoundException('User not found');
+    }
+
+    user.notifications = [];
+    await user.save();
+    await this.clearCache(userId);
+
+    return user;
   }
 }
