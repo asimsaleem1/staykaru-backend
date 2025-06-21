@@ -625,8 +625,16 @@ export class UserService {
       throw new NotFoundException(`User with ID ${userId} not found`);
     }
 
-    user.fcmToken = fcmToken;
-    await user.save();
+    // Add the token to the array if it doesn't already exist
+    if (!user.fcmTokens) {
+      user.fcmTokens = [];
+    }
+    
+    if (!user.fcmTokens.includes(fcmToken)) {
+      user.fcmTokens.push(fcmToken);
+    }
+    
+    await this.userModel.findByIdAndUpdate(userId, { fcmTokens: user.fcmTokens });
     await this.clearCache(userId);
     
     return {
