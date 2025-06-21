@@ -165,11 +165,16 @@ export class FoodProviderService {
     return menuItems;
   }
 
-  async createMenuItem(providerId: string, menuItemDto: any): Promise<MenuItem> {
+  async createMenuItem(
+    providerId: string,
+    menuItemDto: any,
+  ): Promise<MenuItem> {
     // Verify provider exists and user owns it
     const provider = await this.foodProviderModel.findById(providerId);
     if (!provider) {
-      throw new NotFoundException(`Food provider with ID ${providerId} not found`);
+      throw new NotFoundException(
+        `Food provider with ID ${providerId} not found`,
+      );
     }
 
     const menuItem = new this.menuItemModel({
@@ -182,36 +187,44 @@ export class FoodProviderService {
     return savedMenuItem;
   }
 
-  async updateMenuItem(itemId: string, providerId: string, menuItemDto: any): Promise<MenuItem> {
+  async updateMenuItem(
+    itemId: string,
+    providerId: string,
+    menuItemDto: any,
+  ): Promise<MenuItem> {
     const menuItem = await this.menuItemModel.findById(itemId);
-    
+
     if (!menuItem) {
       throw new NotFoundException(`Menu item with ID ${itemId} not found`);
     }
-    
+
     if (menuItem.provider.toString() !== providerId) {
-      throw new ForbiddenException('You can only update menu items for your own food provider');
+      throw new ForbiddenException(
+        'You can only update menu items for your own food provider',
+      );
     }
-    
+
     const updated = await this.menuItemModel
       .findByIdAndUpdate(itemId, menuItemDto, { new: true })
       .exec();
-      
+
     await this.cacheManager.del(`menu-items:provider:${providerId}`);
     return updated;
   }
 
   async deleteMenuItem(itemId: string, providerId: string): Promise<void> {
     const menuItem = await this.menuItemModel.findById(itemId);
-    
+
     if (!menuItem) {
       throw new NotFoundException(`Menu item with ID ${itemId} not found`);
     }
-    
+
     if (menuItem.provider.toString() !== providerId) {
-      throw new ForbiddenException('You can only delete menu items for your own food provider');
+      throw new ForbiddenException(
+        'You can only delete menu items for your own food provider',
+      );
     }
-    
+
     await this.menuItemModel.findByIdAndDelete(itemId).exec();
     await this.cacheManager.del(`menu-items:provider:${providerId}`);
   }
@@ -222,14 +235,14 @@ export class FoodProviderService {
       .populate(['user', 'food_provider'])
       .sort({ createdAt: -1 })
       .exec();
-      
+
     return orders;
   }
 
   async getProviderDashboard(ownerId: string) {
     // Get all food providers owned by this user
     const providers = await this.findByOwner(ownerId);
-    
+
     if (providers.length === 0) {
       return {
         totalProviders: 0,
@@ -239,31 +252,31 @@ export class FoodProviderService {
         recentOrders: [],
       };
     }
-    
-    const providerIds = providers.map(provider => provider._id);
-    
+
+    const providerIds = providers.map((provider) => provider._id);
+
     // Get total orders for all providers
     const totalOrders = await this.orderModel.countDocuments({
-      food_provider: { $in: providerIds }
+      food_provider: { $in: providerIds },
     });
-    
+
     // Get active orders (placed or preparing status)
     const activeOrders = await this.orderModel.countDocuments({
       food_provider: { $in: providerIds },
-      status: { $in: [OrderStatus.PLACED, OrderStatus.PREPARING] }
+      status: { $in: [OrderStatus.PLACED, OrderStatus.PREPARING] },
     });
-    
+
     // Get order statistics by status
     const ordersByStatus = await this.orderModel.aggregate([
       { $match: { food_provider: { $in: providerIds } } },
-      { $group: { _id: '$status', count: { $sum: 1 } } }
+      { $group: { _id: '$status', count: { $sum: 1 } } },
     ]);
-    
+
     // Get total menu items
     const totalMenuItems = await this.menuItemModel.countDocuments({
-      provider: { $in: providerIds }
+      provider: { $in: providerIds },
     });
-    
+
     // Get recent orders
     const recentOrders = await this.orderModel
       .find({ food_provider: { $in: providerIds } })
@@ -271,7 +284,7 @@ export class FoodProviderService {
       .limit(5)
       .populate(['user', 'food_provider'])
       .exec();
-    
+
     return {
       totalProviders: providers.length,
       totalOrders,
@@ -282,18 +295,18 @@ export class FoodProviderService {
         return acc;
       }, {}),
       recentOrders,
-      providers: providers.map(provider => ({
+      providers: providers.map((provider) => ({
         _id: provider._id,
         name: provider.name,
         location: provider.location,
-      }))
+      })),
     };
   }
 
   async getProviderAnalytics(ownerId: string, days = 30) {
     // Get all food providers owned by this user
     const providers = await this.findByOwner(ownerId);
-    
+
     if (providers.length === 0) {
       return {
         totalOrders: 0,
@@ -302,54 +315,54 @@ export class FoodProviderService {
         timeframe: {
           start: new Date().toISOString(),
           end: new Date().toISOString(),
-          days
-        }
+          days,
+        },
       };
     }
-    
-    const providerIds = providers.map(provider => provider._id);
-    
+
+    const providerIds = providers.map((provider) => provider._id);
+
     // Calculate date range
     const endDate = new Date();
     const startDate = new Date();
     startDate.setDate(startDate.getDate() - days);
-    
+
     // Get orders within date range
     const orders = await this.orderModel
       .find({
         food_provider: { $in: providerIds },
-        createdAt: { $gte: startDate, $lte: endDate }
+        createdAt: { $gte: startDate, $lte: endDate },
       })
       .exec();
-    
+
     // Group orders by date
     const ordersByDate = {};
-    orders.forEach(order => {
+    orders.forEach((order) => {
       const dateStr = order['createdAt'].toISOString().split('T')[0];
       if (!ordersByDate[dateStr]) {
         ordersByDate[dateStr] = 0;
       }
       ordersByDate[dateStr]++;
     });
-    
+
     // Group orders by provider
     const ordersByProvider = await this.orderModel.aggregate([
       { $match: { food_provider: { $in: providerIds } } },
-      { $group: { _id: '$food_provider', count: { $sum: 1 } } }
+      { $group: { _id: '$food_provider', count: { $sum: 1 } } },
     ]);
-    
+
     // Get provider details for each ID
     const providerDetails = await Promise.all(
-      ordersByProvider.map(async item => {
+      ordersByProvider.map(async (item) => {
         const provider = await this.foodProviderModel.findById(item._id);
         return {
           _id: provider._id,
           name: provider.name,
-          orders: item.count
+          orders: item.count,
         };
-      })
+      }),
     );
-    
+
     return {
       totalOrders: orders.length,
       ordersByDate,
@@ -357,8 +370,8 @@ export class FoodProviderService {
       timeframe: {
         start: startDate.toISOString(),
         end: endDate.toISOString(),
-        days
-      }
+        days,
+      },
     };
   }
 }

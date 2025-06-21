@@ -201,9 +201,8 @@ export class FoodProviderController {
     description: 'Returns all food providers owned by the user',
   })
   async getMyProviders(@Request() req) {
-    const ownerId = typeof req.user._id === 'string'
-      ? req.user._id
-      : req.user._id.toString();
+    const ownerId =
+      typeof req.user._id === 'string' ? req.user._id : req.user._id.toString();
     return this.foodProviderService.findByOwner(ownerId);
   }
 
@@ -216,9 +215,8 @@ export class FoodProviderController {
     description: 'Returns food provider dashboard summary',
   })
   async getProviderDashboard(@Request() req) {
-    const ownerId = typeof req.user._id === 'string'
-      ? req.user._id
-      : req.user._id.toString();
+    const ownerId =
+      typeof req.user._id === 'string' ? req.user._id : req.user._id.toString();
     return this.foodProviderService.getProviderDashboard(ownerId);
   }
 
@@ -247,11 +245,10 @@ export class FoodProviderController {
   async createMenuItem(
     @Param('providerId') providerId: string,
     @Body() menuItemDto: any,
-    @Request() req
+    @Request() req,
   ) {
-    const ownerId = typeof req.user._id === 'string'
-      ? req.user._id
-      : req.user._id.toString();
+    const ownerId =
+      typeof req.user._id === 'string' ? req.user._id : req.user._id.toString();
     return this.foodProviderService.createMenuItem(providerId, menuItemDto);
   }
 
@@ -269,9 +266,13 @@ export class FoodProviderController {
     @Param('providerId') providerId: string,
     @Param('itemId') itemId: string,
     @Body() menuItemDto: any,
-    @Request() req
+    @Request() req,
   ) {
-    return this.foodProviderService.updateMenuItem(itemId, providerId, menuItemDto);
+    return this.foodProviderService.updateMenuItem(
+      itemId,
+      providerId,
+      menuItemDto,
+    );
   }
 
   @Delete('owner/menu-items/:providerId/:itemId')
@@ -287,7 +288,7 @@ export class FoodProviderController {
   async deleteMenuItem(
     @Param('providerId') providerId: string,
     @Param('itemId') itemId: string,
-    @Request() req
+    @Request() req,
   ) {
     await this.foodProviderService.deleteMenuItem(itemId, providerId);
     return { message: 'Menu item deleted successfully' };
@@ -302,26 +303,27 @@ export class FoodProviderController {
     status: 200,
     description: 'Returns all orders for the specified food provider',
   })
-  async getProviderOrders(@Param('providerId') providerId: string, @Request() req) {
+  async getProviderOrders(
+    @Param('providerId') providerId: string,
+    @Request() req,
+  ) {
     return this.foodProviderService.getProviderOrders(providerId);
   }
 
   @Get('owner/analytics')
   @UseGuards(AuthGuard, FoodProviderGuard)
   @ApiBearerAuth('JWT-auth')
-  @ApiOperation({ summary: 'Get analytics for food providers owned by the user' })
+  @ApiOperation({
+    summary: 'Get analytics for food providers owned by the user',
+  })
   @ApiResponse({
     status: 200,
     description: 'Returns analytics for food providers owned by the user',
   })
   @ApiQuery({ name: 'days', required: false, type: Number })
-  async getProviderAnalytics(
-    @Request() req,
-    @Query('days') days?: number,
-  ) {
-    const ownerId = typeof req.user._id === 'string'
-      ? req.user._id
-      : req.user._id.toString();
+  async getProviderAnalytics(@Request() req, @Query('days') days?: number) {
+    const ownerId =
+      typeof req.user._id === 'string' ? req.user._id : req.user._id.toString();
     return this.foodProviderService.getProviderAnalytics(ownerId, days);
   }
 }

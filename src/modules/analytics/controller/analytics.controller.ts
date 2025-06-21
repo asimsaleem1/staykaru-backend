@@ -77,7 +77,10 @@ export class AnalyticsController {
 
   @Get('dashboard')
   @ApiOperation({ summary: 'Get admin dashboard summary' })
-  @ApiResponse({ status: 200, description: 'Return admin dashboard summary data' })
+  @ApiResponse({
+    status: 200,
+    description: 'Return admin dashboard summary data',
+  })
   async getDashboardSummary() {
     try {
       return await this.analyticsService.getDashboardSummary();

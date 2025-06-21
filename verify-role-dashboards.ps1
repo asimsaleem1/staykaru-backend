@@ -216,7 +216,8 @@ if ($studentResponse.access_token) {
             "Authorization" = "Bearer $studentToken"
         } -ErrorAction Stop
         Write-Host "❌ Role-based protection failed: Student can access food provider dashboard" -ForegroundColor Red
-    } catch {        if ($_.Exception.Response.StatusCode.value__ -eq 403) {
+    } catch {
+        if ($_.Exception.Response.StatusCode.value__ -eq 403) {
             Write-Host "✅ Role-based protection working: Student cannot access food provider dashboard (403 Forbidden)" -ForegroundColor Green
         } else {
             Write-Host "❓ Unexpected error when student tries to access food provider dashboard: $_" -ForegroundColor Yellow

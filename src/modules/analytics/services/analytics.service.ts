@@ -95,7 +95,7 @@ export class AnalyticsService {
 
   async getReviewAnalytics() {
     const totalReviews = await this.reviewModel.countDocuments();
-    
+
     const averageRating = await this.reviewModel.aggregate([
       {
         $group: {
@@ -124,9 +124,8 @@ export class AnalyticsService {
 
     return {
       totalReviews,
-      averageRating: averageRating.length > 0 
-        ? averageRating[0].averageRating 
-        : 0,
+      averageRating:
+        averageRating.length > 0 ? averageRating[0].averageRating : 0,
       reviewsByTargetType: reviewsByTargetType.map((item) => ({
         targetType: item._id,
         count: item.count,
@@ -142,7 +141,7 @@ export class AnalyticsService {
     const totalBookings = await this.bookingModel.countDocuments();
     const totalOrders = await this.orderModel.countDocuments();
     const totalReviews = await this.reviewModel.countDocuments();
-    
+
     // Get revenue summary
     const totalRevenue = await this.paymentModel.aggregate([
       {
@@ -229,13 +228,14 @@ export class AnalyticsService {
 
   async generateUserReport() {
     const users = await this.userModel.find().select('-password');
-    
+
     const userStats = {
       total: users.length,
       byRole: {
         students: users.filter((u) => u.role === UserRole.STUDENT).length,
         landlords: users.filter((u) => u.role === UserRole.LANDLORD).length,
-        foodProviders: users.filter((u) => u.role === UserRole.FOOD_PROVIDER).length,
+        foodProviders: users.filter((u) => u.role === UserRole.FOOD_PROVIDER)
+          .length,
         admins: users.filter((u) => u.role === UserRole.ADMIN).length,
       },
     };
@@ -256,27 +256,34 @@ export class AnalyticsService {
 
   async generateBookingReport(days?: number) {
     let query = {};
-    
+
     if (days) {
       const startDate = new Date();
       startDate.setDate(startDate.getDate() - days);
       query = { createdAt: { $gte: startDate } };
     }
-    
+
     const bookings = await this.bookingModel
       .find(query)
       .populate('user', 'name email')
       .populate('accommodation', 'title location price');
-    
+
     const bookingStats = {
       total: bookings.length,
       byStatus: {
-        pending: bookings.filter(b => b.status === BookingStatus.PENDING).length,
-        confirmed: bookings.filter(b => b.status === BookingStatus.CONFIRMED).length,
-        cancelled: bookings.filter(b => b.status === BookingStatus.CANCELLED).length,
-        completed: bookings.filter(b => b.status === BookingStatus.CONFIRMED).length, // Use CONFIRMED instead of COMPLETED
+        pending: bookings.filter((b) => b.status === BookingStatus.PENDING)
+          .length,
+        confirmed: bookings.filter((b) => b.status === BookingStatus.CONFIRMED)
+          .length,
+        cancelled: bookings.filter((b) => b.status === BookingStatus.CANCELLED)
+          .length,
+        completed: bookings.filter((b) => b.status === BookingStatus.CONFIRMED)
+          .length, // Use CONFIRMED instead of COMPLETED
       },
-      totalRevenue: bookings.reduce((sum, booking: any) => sum + booking.total_price, 0),
+      totalRevenue: bookings.reduce(
+        (sum, booking: any) => sum + booking.total_price,
+        0,
+      ),
     };
 
     return {
@@ -298,13 +305,13 @@ export class AnalyticsService {
 
   async generateRevenueReport(days?: number) {
     let query = {};
-    
+
     if (days) {
       const startDate = new Date();
       startDate.setDate(startDate.getDate() - days);
       query = { createdAt: { $gte: startDate } };
     }
-    
+
     const payments = await this.paymentModel
       .find(query)
       .populate('user', 'name email')
@@ -315,7 +322,7 @@ export class AnalyticsService {
           select: 'title location',
         },
       });
-    
+
     // Monthly revenue data
     const monthlyRevenue = await this.paymentModel.aggregate([
       {
@@ -353,7 +360,10 @@ export class AnalyticsService {
       },
     ]);
 
-    const totalRevenue = payments.reduce((sum, payment) => sum + payment.amount, 0);
+    const totalRevenue = payments.reduce(
+      (sum, payment) => sum + payment.amount,
+      0,
+    );
     const averagePayment = totalRevenue / (payments.length || 1);
 
     return {
@@ -380,9 +390,10 @@ export class AnalyticsService {
         id: payment._id,
         amount: payment.amount,
         sourceType: payment.source_type,
-        sourceName: payment.source_type === 'booking' 
-          ? payment.source?.accommodation?.title || 'Unknown' 
-          : 'Food Order',
+        sourceName:
+          payment.source_type === 'booking'
+            ? payment.source?.accommodation?.title || 'Unknown'
+            : 'Food Order',
         user: payment.user?.name || 'Unknown',
         status: payment.status,
         createdAt: payment.createdAt,

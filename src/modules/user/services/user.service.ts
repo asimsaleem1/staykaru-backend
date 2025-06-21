@@ -65,12 +65,12 @@ export class UserService {
   }
 
   async findAll(role?: UserRole, search?: string): Promise<User[]> {
-    let query: any = {};
-    
+    const query: any = {};
+
     if (role) {
       query.role = role;
     }
-    
+
     if (search) {
       query.$or = [
         { name: { $regex: search, $options: 'i' } },
@@ -78,22 +78,24 @@ export class UserService {
         { phone: { $regex: search, $options: 'i' } },
       ];
     }
-    
+
     // Get users from cache or database
-    const cacheKey = 'users:all' + (role ? `:${role}` : '') + (search ? `:${search}` : '');
+    const cacheKey =
+      'users:all' + (role ? `:${role}` : '') + (search ? `:${search}` : '');
     const cached = await this.cacheManager.get<User[]>(cacheKey);
-    
+
     if (cached) {
       return cached.map((user) => this.decryptUserData(user));
     }
-    
-    const users = await this.userModel.find(query)
+
+    const users = await this.userModel
+      .find(query)
       .select('-password')
       .sort({ createdAt: -1 })
       .exec();
-      
+
     await this.cacheManager.set(cacheKey, users, 60 * 5); // Cache for 5 minutes
-    
+
     const decryptedUsers = users.map((user) => this.decryptUserData(user));
     return decryptedUsers;
   }
@@ -301,11 +303,11 @@ export class UserService {
   async getUserCounts(): Promise<any> {
     const cacheKey = 'users:counts';
     const cachedCounts = await this.cacheManager.get(cacheKey);
-    
+
     if (cachedCounts) {
       return cachedCounts;
     }
-    
+
     const totalUsers = await this.userModel.countDocuments();
     const students = await this.userModel.countDocuments({
       role: UserRole.STUDENT,
@@ -339,45 +341,45 @@ export class UserService {
         inactive: inactiveUsers,
       },
     };
-    
+
     await this.cacheManager.set(cacheKey, counts, 60 * 5); // Cache for 5 minutes
-    
+
     return counts;
   }
 
   async updateUserRole(id: string, role: UserRole): Promise<User> {
     const user = await this.userModel.findById(id);
-    
+
     if (!user) {
       throw new NotFoundException('User not found');
     }
-    
+
     user.role = role;
     const updatedUser = await user.save();
-    
+
     // Clear cache
     await this.clearCache(id);
     await this.cacheManager.del('users:all');
     await this.cacheManager.del('users:counts');
-    
+
     return updatedUser;
   }
 
   async updateUserStatus(id: string, isActive: boolean): Promise<User> {
     const user = await this.userModel.findById(id);
-    
+
     if (!user) {
       throw new NotFoundException('User not found');
     }
-    
+
     user.isActive = isActive;
     const updatedUser = await user.save();
-    
+
     // Clear cache
     await this.clearCache(id);
     await this.cacheManager.del('users:all');
     await this.cacheManager.del('users:counts');
-    
+
     return updatedUser;
   }
 }

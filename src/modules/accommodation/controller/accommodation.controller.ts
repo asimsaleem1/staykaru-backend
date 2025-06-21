@@ -291,9 +291,8 @@ export class AccommodationController {
     description: 'Returns all accommodations owned by the landlord',
   })
   async getMyAccommodations(@Request() req: RequestWithUser) {
-    const landlordId = typeof req.user._id === 'string'
-      ? req.user._id
-      : req.user._id.toString();
+    const landlordId =
+      typeof req.user._id === 'string' ? req.user._id : req.user._id.toString();
     return this.accommodationService.findByLandlord(landlordId);
   }
 
@@ -306,31 +305,34 @@ export class AccommodationController {
     description: 'Returns landlord dashboard summary',
   })
   async getLandlordDashboard(@Request() req: RequestWithUser) {
-    const landlordId = typeof req.user._id === 'string'
-      ? req.user._id
-      : req.user._id.toString();
+    const landlordId =
+      typeof req.user._id === 'string' ? req.user._id : req.user._id.toString();
     return this.accommodationService.getLandlordDashboard(landlordId);
   }
 
   @Get('landlord/bookings')
   @UseGuards(AuthGuard, LandlordGuard)
   @ApiBearerAuth('JWT-auth')
-  @ApiOperation({ summary: 'Get all bookings for accommodations owned by the landlord' })
+  @ApiOperation({
+    summary: 'Get all bookings for accommodations owned by the landlord',
+  })
   @ApiResponse({
     status: 200,
-    description: 'Returns all bookings for accommodations owned by the landlord',
+    description:
+      'Returns all bookings for accommodations owned by the landlord',
   })
   async getMyBookings(@Request() req: RequestWithUser) {
-    const landlordId = typeof req.user._id === 'string'
-      ? req.user._id
-      : req.user._id.toString();
+    const landlordId =
+      typeof req.user._id === 'string' ? req.user._id : req.user._id.toString();
     return this.accommodationService.getLandlordBookings(landlordId);
   }
 
   @Get('landlord/analytics')
   @UseGuards(AuthGuard, LandlordGuard)
   @ApiBearerAuth('JWT-auth')
-  @ApiOperation({ summary: 'Get analytics for accommodations owned by the landlord' })
+  @ApiOperation({
+    summary: 'Get analytics for accommodations owned by the landlord',
+  })
   @ApiResponse({
     status: 200,
     description: 'Returns analytics for accommodations owned by the landlord',
@@ -340,9 +342,8 @@ export class AccommodationController {
     @Request() req: RequestWithUser,
     @Query('days') days?: number,
   ) {
-    const landlordId = typeof req.user._id === 'string'
-      ? req.user._id
-      : req.user._id.toString();
+    const landlordId =
+      typeof req.user._id === 'string' ? req.user._id : req.user._id.toString();
     return this.accommodationService.getLandlordAnalytics(landlordId, days);
   }
 }

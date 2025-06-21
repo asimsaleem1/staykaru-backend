@@ -75,10 +75,7 @@ export class UserController {
     description: 'User role updated successfully',
   })
   @ApiParam({ name: 'id', description: 'User ID' })
-  async updateUserRole(
-    @Param('id') id: string,
-    @Body('role') role: UserRole,
-  ) {
+  async updateUserRole(@Param('id') id: string, @Body('role') role: UserRole) {
     return this.userService.updateUserRole(id, role);
   }
 
