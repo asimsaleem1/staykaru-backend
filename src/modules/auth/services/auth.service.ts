@@ -400,4 +400,72 @@ export class AuthService {
       return false;
     }
   }
+
+  async forgotPassword(email: string): Promise<void> {
+    try {
+      // Check if user exists
+      const user = await this.userService.findByEmail(email);
+      if (!user) {
+        // Don't reveal if email exists or not for security
+        return;
+      }
+
+      // Generate reset token (in production, you'd want to store this in database)
+      const resetToken = this.jwtService.sign(
+        { email: user.email, type: 'password-reset' },
+        { expiresIn: '15m' }, // Token expires in 15 minutes
+      );
+
+      // TODO: Send email with reset token
+      // For now, we'll just log it (in production, implement email service)
+      console.log(`Password reset token for ${email}: ${resetToken}`);
+      // In a real implementation, you would:
+      // 1. Store the reset token in the database with expiration
+      // 2. Send email with reset link containing the token
+      // TODO: Implement email service for password reset
+      // await this.emailService.sendPasswordResetEmail(email, resetToken);
+    } catch (error) {
+      // Log error but don't throw to avoid revealing if email exists
+      console.error('Error in forgotPassword:', error);
+    }
+  }
+
+  async resetPassword(token: string, newPassword: string): Promise<void> {
+    try {
+      // Verify and decode the reset token
+      const decoded = this.jwtService.verify(token) as {
+        email: string;
+        type: string;
+      };
+      
+      if (decoded.type !== 'password-reset') {
+        throw new BadRequestException('Invalid token type');
+      }
+
+      // Find user by email from token
+      const user = await this.userService.findByEmail(decoded.email);
+      if (!user) {
+        throw new BadRequestException('User not found');
+      }
+
+      // Hash new password
+      const hashedPassword = await this.hashPassword(newPassword);
+
+      // Update user password
+      const updateUserDto: UpdateUserDto = {
+        password: hashedPassword,
+      };
+
+      await this.userService.update(user._id as string, updateUserDto);
+    } catch (error) {
+      if (
+        error instanceof Error &&
+        (error.name === 'JsonWebTokenError' ||
+          error.name === 'TokenExpiredError')
+      ) {
+        throw new BadRequestException('Invalid or expired token');
+      }
+      throw error;
+    }
+  }
 }

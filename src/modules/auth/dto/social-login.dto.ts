@@ -1,0 +1,33 @@
+import { ApiProperty } from '@nestjs/swagger';
+import { IsString, IsNotEmpty, IsIn, IsOptional } from 'class-validator';
+
+export class SocialLoginDto {
+  @ApiProperty({
+    description: 'Social media provider',
+    example: 'google',
+    enum: ['google', 'facebook'],
+  })
+  @IsString()
+  @IsNotEmpty()
+  @IsIn(['google', 'facebook'])
+  provider: string;
+
+  @ApiProperty({
+    description: 'Access token or ID token from the social provider',
+    example: 'eyJhbGciOiJSUzI1NiIsImtpZCI6IjdkY...',
+  })
+  @IsString()
+  @IsNotEmpty()
+  token: string;
+
+  @ApiProperty({
+    description: 'User role for registration',
+    example: 'student',
+    enum: ['student', 'landlord', 'food_provider'],
+    required: false,
+  })
+  @IsString()
+  @IsOptional()
+  @IsIn(['student', 'landlord', 'food_provider'])
+  role?: string;
+}

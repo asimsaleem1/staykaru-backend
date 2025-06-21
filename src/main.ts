@@ -26,6 +26,9 @@ async function bootstrap() {
 
   app.useGlobalPipes(new ValidationPipe());
 
+  // Set global prefix for API routes
+  app.setGlobalPrefix('api');
+
   const config = new DocumentBuilder()
     .setTitle('StayKaro API')
     .setDescription('The StayKaro API documentation')

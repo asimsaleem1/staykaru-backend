@@ -7,6 +7,7 @@ import {
   Request,
   HttpCode,
   HttpStatus,
+  BadRequestException,
 } from '@nestjs/common';
 import {
   ApiTags,
@@ -19,6 +20,9 @@ import { RegisterDto } from '../dto/register.dto';
 import { LoginDto } from '../dto/login.dto';
 import { FacebookLoginDto } from '../dto/facebook-login.dto';
 import { GoogleLoginDto } from '../dto/google-login.dto';
+import { SocialLoginDto } from '../dto/social-login.dto';
+import { ForgotPasswordDto } from '../dto/forgot-password.dto';
+import { ResetPasswordDto } from '../dto/reset-password.dto';
 import { JwtAuthGuard } from '../guards/jwt-auth.guard';
 import { User } from '../../user/schema/user.schema';
 import { UserService } from '../../user/services/user.service';
@@ -171,6 +175,89 @@ export class AuthController {
   @ApiResponse({ status: 401, description: 'Invalid Google token' })
   async googleLogin(@Body() googleLoginDto: GoogleLoginDto) {
     return this.authService.googleLogin(googleLoginDto);
+  }
+
+  @Post('social-login')
+  @HttpCode(HttpStatus.OK)
+  @ApiOperation({
+    summary: 'Login with social media provider (unified endpoint)',
+  })
+  @ApiResponse({
+    status: 200,
+    description: 'Social login successful',
+    schema: {
+      example: {
+        message: 'Social login successful',
+        access_token: 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9...',
+        user: {
+          id: '507f1f77bcf86cd799439011',
+          name: 'John Doe',
+          email: 'john@example.com',
+          role: 'student',
+          phone: '1234567890',
+          countryCode: '+1',
+          gender: 'male',
+          profileImage: 'https://example.com/profile.jpg',
+          socialProvider: 'google',
+          isEmailVerified: true,
+        },
+      },
+    },
+  })
+  @ApiResponse({
+    status: 400,
+    description: 'Invalid provider or missing required fields',
+  })
+  @ApiResponse({ status: 401, description: 'Invalid social media token' })
+  async socialLogin(@Body() socialLoginDto: SocialLoginDto) {
+    const { provider, token } = socialLoginDto;
+    switch (provider) {
+      case 'google':
+        return this.authService.googleLogin({ idToken: token });
+      case 'facebook':
+        return this.authService.facebookLogin({ accessToken: token });
+      default:
+        throw new BadRequestException('Invalid social media provider');
+    }
+  }
+
+  @Post('forgot-password')
+  @HttpCode(HttpStatus.OK)
+  @ApiOperation({ summary: 'Request password reset' })
+  @ApiResponse({
+    status: 200,
+    description: 'Password reset email sent successfully',
+    schema: {
+      example: {
+        message: 'Password reset email sent successfully',
+      },
+    },
+  })
+  @ApiResponse({ status: 404, description: 'User not found' })
+  async forgotPassword(@Body() forgotPasswordDto: ForgotPasswordDto) {
+    await this.authService.forgotPassword(forgotPasswordDto.email);
+    return { message: 'Password reset email sent successfully' };
+  }
+
+  @Post('reset-password')
+  @HttpCode(HttpStatus.OK)
+  @ApiOperation({ summary: 'Reset password with token' })
+  @ApiResponse({
+    status: 200,
+    description: 'Password reset successfully',
+    schema: {
+      example: {
+        message: 'Password reset successfully',
+      },
+    },
+  })
+  @ApiResponse({ status: 400, description: 'Invalid or expired token' })
+  async resetPassword(@Body() resetPasswordDto: ResetPasswordDto) {
+    await this.authService.resetPassword(
+      resetPasswordDto.token,
+      resetPasswordDto.newPassword,
+    );
+    return { message: 'Password reset successfully' };
   }
 
   @Post('change-password')
