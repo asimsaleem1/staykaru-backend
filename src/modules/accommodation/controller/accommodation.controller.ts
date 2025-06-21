@@ -242,9 +242,8 @@ export class AccommodationController {
   @ApiResponse({
     status: 200,
     description: 'Returns all pending accommodations',
-  })
-  async findPending() {
-    return this.accommodationService.findPending();
+  })  async findPending() {
+    return this.accommodationService.findPendingAccommodations();
   }
 
   @Get('admin/all')
@@ -257,7 +256,7 @@ export class AccommodationController {
     description: 'Returns all accommodations',
   })
   async findAllForAdmin() {
-    return this.accommodationService.findAllForAdmin();
+    return this.accommodationService.getAllForAdmin();
   }
 
   @Get('admin/:id/details')
@@ -271,7 +270,7 @@ export class AccommodationController {
     description: 'Returns accommodation details for admin',
   })
   async getAdminAccommodationDetails(@Param('id') id: string) {
-    return this.accommodationService.getAdminAccommodationDetails(id);
+    return this.accommodationService.getAccommodationForAdmin(id);
   }
 
   // Generic :id route MUST come after all specific routes
