@@ -9,6 +9,8 @@ import * as bcrypt from 'bcrypt';
 import { RegisterDto } from '../dto/register.dto';
 import { LoginDto } from '../dto/login.dto';
 import { ChangePasswordDto } from '../dto/change-password.dto';
+import { SendVerificationDto } from '../dto/send-verification.dto';
+import { VerifyEmailDto } from '../dto/verify-email.dto';
 import { UserService } from '../../user/services/user.service';
 import { CreateUserDto } from '../../user/dto/create-user.dto';
 import { UpdateUserDto } from '../../user/dto/update-user.dto';
@@ -18,6 +20,8 @@ import {
   SocialProvider,
 } from '../../user/schema/user.schema';
 import { SocialAuthService } from './social-auth.service';
+import { OtpService } from './otp.service';
+import { EmailService } from '../../email/email.service';
 import { FacebookLoginDto } from '../dto/facebook-login.dto';
 import { GoogleLoginDto } from '../dto/google-login.dto';
 import { StudentRegistrationDto } from '../dto/student-registration.dto';
@@ -36,6 +40,8 @@ export class AuthService {
     private userService: UserService,
     private jwtService: JwtService,
     private socialAuthService: SocialAuthService,
+    private otpService: OtpService,
+    private emailService: EmailService,
   ) {}
 
   async register(registerDto: RegisterDto) {
@@ -51,7 +57,7 @@ export class AuthService {
       // Hash password
       const hashedPassword = await this.hashPassword(registerDto.password);
 
-      // Create user with hashed password
+      // Create user with hashed password and email verification required
       const createUserDto: CreateUserDto = {
         name: registerDto.name,
         email: registerDto.email,
@@ -63,18 +69,26 @@ export class AuthService {
         profileImage: registerDto.profileImage,
         identificationType: registerDto.identificationType,
         identificationNumber: registerDto.identificationNumber,
+        isEmailVerified: false, // Require email verification
       };
 
       const user = await this.userService.create(createUserDto);
 
+      // Generate and send verification email
+      const otp = this.otpService.generateOtp();
+      await this.otpService.storeOtp(user.email, otp, 'email_verification');
+      await this.emailService.sendEmailVerification(user.email, otp);
+
       return {
-        message: 'Registration successful',
+        message: 'Registration successful. Please check your email to verify your account before logging in.',
         user: {
           id: user._id,
           name: user.name,
           email: user.email,
           role: user.role,
+          isEmailVerified: false,
         },
+        requiresEmailVerification: true,
       };
     } catch (error) {
       if (error instanceof BadRequestException) {
@@ -158,6 +172,11 @@ export class AuthService {
         loginDto.email !== 'assaleemofficial@gmail.com'
       ) {
         throw new UnauthorizedException('Unauthorized admin access');
+      }
+
+      // Check email verification for non-admin users
+      if (user.role !== UserRole.ADMIN && !user.isEmailVerified) {
+        throw new UnauthorizedException('Please verify your email address before logging in. Check your email for the verification code.');
       }
 
       // Compare passwords using bcrypt
@@ -419,20 +438,14 @@ export class AuthService {
         return;
       }
 
-      // Generate reset token (in production, you'd want to store this in database)
+      // Generate reset token
       const resetToken = this.jwtService.sign(
         { email: user.email, type: 'password-reset' },
         { expiresIn: '15m' }, // Token expires in 15 minutes
       );
 
-      // TODO: Send email with reset token
-      // For now, we'll just log it (in production, implement email service)
-      console.log(`Password reset token for ${email}: ${resetToken}`);
-      // In a real implementation, you would:
-      // 1. Store the reset token in the database with expiration
-      // 2. Send email with reset link containing the token
-      // TODO: Implement email service for password reset
-      // await this.emailService.sendPasswordResetEmail(email, resetToken);
+      // Send password reset email
+      await this.emailService.sendPasswordResetEmail(user.email, resetToken);
     } catch (error) {
       // Log error but don't throw to avoid revealing if email exists
       console.error('Error in forgotPassword:', error);
@@ -752,5 +765,106 @@ export class AuthService {
         error instanceof Error ? error.message : 'Failed to update user role',
       );
     }
+  }
+
+  /**
+   * Send email verification OTP
+   */
+  async sendEmailVerification(sendVerificationDto: SendVerificationDto): Promise<{ message: string; remainingTime?: number }> {
+    try {
+      const { email } = sendVerificationDto;
+
+      // Check if user exists
+      const user = await this.userService.findByEmail(email);
+      if (!user) {
+        throw new BadRequestException('User not found');
+      }
+
+      // Check if email is already verified
+      if (user.isEmailVerified) {
+        throw new BadRequestException('Email is already verified');
+      }
+
+      // Check if there's already a valid OTP
+      const hasValidOtp = await this.otpService.hasValidOtp(email, 'email_verification');
+      if (hasValidOtp) {
+        const remainingTime = await this.otpService.getRemainingTime(email, 'email_verification');
+        return {
+          message: `Verification code already sent. Please wait ${Math.ceil(remainingTime / 60)} minutes before requesting a new code.`,
+          remainingTime,
+        };
+      }
+
+      // Generate and send new OTP
+      const otp = this.otpService.generateOtp();
+      await this.otpService.storeOtp(email, otp, 'email_verification');
+      await this.emailService.sendEmailVerification(email, otp);
+
+      return {
+        message: 'Verification code sent to your email. Please check your inbox.',
+      };
+    } catch (error) {
+      if (error instanceof BadRequestException) {
+        throw error;
+      }
+      throw new BadRequestException('Failed to send verification email');
+    }
+  }
+
+  /**
+   * Verify email with OTP
+   */
+  async verifyEmail(verifyEmailDto: VerifyEmailDto): Promise<{ message: string; user: any }> {
+    try {
+      const { email, otp } = verifyEmailDto;
+
+      // Check if user exists
+      const user = await this.userService.findByEmail(email);
+      if (!user) {
+        throw new BadRequestException('User not found');
+      }
+
+      // Check if email is already verified
+      if (user.isEmailVerified) {
+        throw new BadRequestException('Email is already verified');
+      }
+
+      // Verify OTP
+      await this.otpService.verifyOtp(email, otp, 'email_verification');
+
+      // Update user's email verification status
+      const updateUserDto: UpdateUserDto = {
+        isEmailVerified: true,
+      };
+      await this.userService.update(user._id as string, updateUserDto);
+
+      // Send welcome email
+      await this.emailService.sendWelcomeEmail(user.email, user.name, user.role);
+
+      return {
+        message: 'Email verified successfully! You can now log in to your account.',
+        user: {
+          id: user._id,
+          name: user.name,
+          email: user.email,
+          role: user.role,
+          isEmailVerified: true,
+        },
+      };
+    } catch (error) {
+      if (error instanceof BadRequestException) {
+        throw error;
+      }
+      throw new BadRequestException('Failed to verify email');
+    }
+  }
+
+  /**
+   * Resend verification email
+   */
+  async resendVerificationEmail(email: string): Promise<{ message: string }> {
+    const sendVerificationDto: SendVerificationDto = { email };
+    const result = await this.sendEmailVerification(sendVerificationDto);
+    return result;
   }
 }

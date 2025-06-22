@@ -24,6 +24,8 @@ import { SocialLoginDto } from '../dto/social-login.dto';
 import { ForgotPasswordDto } from '../dto/forgot-password.dto';
 import { ResetPasswordDto } from '../dto/reset-password.dto';
 import { StudentRegistrationDto } from '../dto/student-registration.dto';
+import { SendVerificationDto } from '../dto/send-verification.dto';
+import { VerifyEmailDto } from '../dto/verify-email.dto';
 import { JwtAuthGuard } from '../guards/jwt-auth.guard';
 import { User } from '../../user/schema/user.schema';
 import { UserService } from '../../user/services/user.service';
@@ -71,7 +73,6 @@ export class AuthController {
   async register(@Body() registerDto: RegisterDto) {
     return this.authService.register(registerDto);
   }
-
   @Post('login')
   @HttpCode(HttpStatus.OK)
   @ApiOperation({ summary: 'Login with email and password' })
@@ -100,6 +101,59 @@ export class AuthController {
   @ApiResponse({ status: 401, description: 'Unauthorized' })
   async login(@Body() loginDto: LoginDto) {
     return this.authService.login(loginDto);
+  }
+
+  @Post('send-verification')
+  @HttpCode(HttpStatus.OK)
+  @ApiOperation({ summary: 'Send email verification code' })
+  @ApiResponse({
+    status: 200,
+    description: 'Verification code sent successfully',
+    schema: {
+      example: {
+        message: 'Verification code sent to your email. Please check your inbox.',
+      },
+    },
+  })
+  @ApiResponse({ status: 400, description: 'Bad Request' })
+  async sendEmailVerification(@Body() sendVerificationDto: SendVerificationDto) {
+    return this.authService.sendEmailVerification(sendVerificationDto);
+  }
+
+  @Post('verify-email')
+  @HttpCode(HttpStatus.OK)
+  @ApiOperation({ summary: 'Verify email with OTP code' })
+  @ApiResponse({
+    status: 200,
+    description: 'Email verified successfully',
+    schema: {
+      example: {
+        message: 'Email verified successfully! You can now log in to your account.',
+        user: {
+          id: '507f1f77bcf86cd799439011',
+          name: 'John Doe',
+          email: 'john@example.com',
+          role: 'student',
+          isEmailVerified: true,
+        },
+      },
+    },
+  })
+  @ApiResponse({ status: 400, description: 'Invalid OTP or email' })
+  async verifyEmail(@Body() verifyEmailDto: VerifyEmailDto) {
+    return this.authService.verifyEmail(verifyEmailDto);
+  }
+
+  @Post('resend-verification')
+  @HttpCode(HttpStatus.OK)
+  @ApiOperation({ summary: 'Resend email verification code' })
+  @ApiResponse({
+    status: 200,
+    description: 'Verification code resent successfully',
+  })
+  @ApiResponse({ status: 400, description: 'Bad Request' })
+  async resendVerificationEmail(@Body() body: { email: string }) {
+    return this.authService.resendVerificationEmail(body.email);
   }
 
   @Get('profile')
@@ -234,7 +288,6 @@ export class AuthController {
     // Set the selected role
     const userId = String(result.user?.id || result.user?._id);
     const currentRole = result.user?.role;
-    
     if (currentRole !== role) {
       await this.authService.updateUserRole(userId, role);
       // Update the result object
