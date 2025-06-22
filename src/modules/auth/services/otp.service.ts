@@ -84,7 +84,7 @@ export class OtpService {
    */
   async cleanExpiredOtps(): Promise<void> {
     await this.otpModel.deleteMany({
-      expiresAt: { $lt: new Date() }
+      expiresAt: { $lt: new Date() },
     });
   }
 

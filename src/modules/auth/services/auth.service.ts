@@ -80,7 +80,8 @@ export class AuthService {
       await this.emailService.sendEmailVerification(user.email, otp);
 
       return {
-        message: 'Registration successful. Please check your email to verify your account before logging in.',
+        message:
+          'Registration successful. Please check your email to verify your account before logging in.',
         user: {
           id: user._id,
           name: user.name,
@@ -176,7 +177,9 @@ export class AuthService {
 
       // Check email verification for non-admin users
       if (user.role !== UserRole.ADMIN && !user.isEmailVerified) {
-        throw new UnauthorizedException('Please verify your email address before logging in. Check your email for the verification code.');
+        throw new UnauthorizedException(
+          'Please verify your email address before logging in. Check your email for the verification code.',
+        );
       }
 
       // Compare passwords using bcrypt
@@ -770,7 +773,9 @@ export class AuthService {
   /**
    * Send email verification OTP
    */
-  async sendEmailVerification(sendVerificationDto: SendVerificationDto): Promise<{ message: string; remainingTime?: number }> {
+  async sendEmailVerification(
+    sendVerificationDto: SendVerificationDto,
+  ): Promise<{ message: string; remainingTime?: number }> {
     try {
       const { email } = sendVerificationDto;
 
@@ -786,9 +791,15 @@ export class AuthService {
       }
 
       // Check if there's already a valid OTP
-      const hasValidOtp = await this.otpService.hasValidOtp(email, 'email_verification');
+      const hasValidOtp = await this.otpService.hasValidOtp(
+        email,
+        'email_verification',
+      );
       if (hasValidOtp) {
-        const remainingTime = await this.otpService.getRemainingTime(email, 'email_verification');
+        const remainingTime = await this.otpService.getRemainingTime(
+          email,
+          'email_verification',
+        );
         return {
           message: `Verification code already sent. Please wait ${Math.ceil(remainingTime / 60)} minutes before requesting a new code.`,
           remainingTime,
@@ -801,7 +812,8 @@ export class AuthService {
       await this.emailService.sendEmailVerification(email, otp);
 
       return {
-        message: 'Verification code sent to your email. Please check your inbox.',
+        message:
+          'Verification code sent to your email. Please check your inbox.',
       };
     } catch (error) {
       if (error instanceof BadRequestException) {
@@ -814,7 +826,9 @@ export class AuthService {
   /**
    * Verify email with OTP
    */
-  async verifyEmail(verifyEmailDto: VerifyEmailDto): Promise<{ message: string; user: any }> {
+  async verifyEmail(
+    verifyEmailDto: VerifyEmailDto,
+  ): Promise<{ message: string; user: any }> {
     try {
       const { email, otp } = verifyEmailDto;
 
@@ -839,10 +853,15 @@ export class AuthService {
       await this.userService.update(user._id as string, updateUserDto);
 
       // Send welcome email
-      await this.emailService.sendWelcomeEmail(user.email, user.name, user.role);
+      await this.emailService.sendWelcomeEmail(
+        user.email,
+        user.name,
+        user.role,
+      );
 
       return {
-        message: 'Email verified successfully! You can now log in to your account.',
+        message:
+          'Email verified successfully! You can now log in to your account.',
         user: {
           id: user._id,
           name: user.name,

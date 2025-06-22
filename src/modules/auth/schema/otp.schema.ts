@@ -11,10 +11,10 @@ export class Otp extends Document {
   @Prop({ required: true })
   otp: string;
 
-  @Prop({ 
-    required: true, 
+  @Prop({
+    required: true,
     enum: ['email_verification', 'password_reset'],
-    default: 'email_verification'
+    default: 'email_verification',
   })
   purpose: string;
 

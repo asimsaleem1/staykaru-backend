@@ -39,7 +39,10 @@ export class EmailService {
       await this.transporter.sendMail(mailOptions);
       this.logger.log(`Email verification sent to ${email}`);
     } catch (error) {
-      this.logger.error(`Failed to send email verification to ${email}:`, error);
+      this.logger.error(
+        `Failed to send email verification to ${email}:`,
+        error,
+      );
       throw new Error('Failed to send verification email');
     }
   }
@@ -47,10 +50,13 @@ export class EmailService {
   /**
    * Send password reset email
    */
-  async sendPasswordResetEmail(email: string, resetToken: string): Promise<void> {
+  async sendPasswordResetEmail(
+    email: string,
+    resetToken: string,
+  ): Promise<void> {
     try {
       const resetUrl = `${this.configService.get<string>('FRONTEND_URL', 'http://localhost:3001')}/reset-password?token=${resetToken}`;
-      
+
       const mailOptions = {
         from: `"StayKaru" <${this.configService.get<string>('EMAIL_FROM', 'noreply@staykaru.com')}>`,
         to: email,
@@ -61,7 +67,10 @@ export class EmailService {
       await this.transporter.sendMail(mailOptions);
       this.logger.log(`Password reset email sent to ${email}`);
     } catch (error) {
-      this.logger.error(`Failed to send password reset email to ${email}:`, error);
+      this.logger.error(
+        `Failed to send password reset email to ${email}:`,
+        error,
+      );
       throw new Error('Failed to send password reset email');
     }
   }
@@ -69,7 +78,11 @@ export class EmailService {
   /**
    * Send welcome email after successful verification
    */
-  async sendWelcomeEmail(email: string, name: string, role: string): Promise<void> {
+  async sendWelcomeEmail(
+    email: string,
+    name: string,
+    role: string,
+  ): Promise<void> {
     try {
       const mailOptions = {
         from: `"StayKaru" <${this.configService.get<string>('EMAIL_FROM', 'noreply@staykaru.com')}>`,

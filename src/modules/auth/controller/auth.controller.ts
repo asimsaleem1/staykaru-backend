@@ -111,12 +111,15 @@ export class AuthController {
     description: 'Verification code sent successfully',
     schema: {
       example: {
-        message: 'Verification code sent to your email. Please check your inbox.',
+        message:
+          'Verification code sent to your email. Please check your inbox.',
       },
     },
   })
   @ApiResponse({ status: 400, description: 'Bad Request' })
-  async sendEmailVerification(@Body() sendVerificationDto: SendVerificationDto) {
+  async sendEmailVerification(
+    @Body() sendVerificationDto: SendVerificationDto,
+  ) {
     return this.authService.sendEmailVerification(sendVerificationDto);
   }
 
@@ -128,7 +131,8 @@ export class AuthController {
     description: 'Email verified successfully',
     schema: {
       example: {
-        message: 'Email verified successfully! You can now log in to your account.',
+        message:
+          'Email verified successfully! You can now log in to your account.',
         user: {
           id: '507f1f77bcf86cd799439011',
           name: 'John Doe',
@@ -271,14 +275,48 @@ export class AuthController {
   async socialLogin(@Body() socialLoginDto: SocialLoginDto) {
     const { provider, token, role } = socialLoginDto;
 
-    let result;
+    type AuthResult = {
+      token: string;
+      user: {
+        id?: string;
+        _id?: string;
+        role?: string;
+        university?: string;
+        studentId?: string;
+        phone?: string;
+        address?: string;
+        identificationType?: string;
+        identificationNumber?: string;
+        businessName?: string;
+        [key: string]: any;
+      };
+      [key: string]: any;
+    };
+
+    let result: AuthResult;
     switch (provider) {
-      case 'google':
-        result = await this.authService.googleLogin({ idToken: token });
+      case 'google': {
+        const googleResponse = await this.authService.googleLogin({
+          idToken: token,
+        });
+        result = {
+          token: googleResponse.access_token,
+          user: googleResponse.user,
+          ...googleResponse,
+        };
         break;
-      case 'facebook':
-        result = await this.authService.facebookLogin({ accessToken: token });
+      }
+      case 'facebook': {
+        const facebookResponse = await this.authService.facebookLogin({
+          accessToken: token,
+        });
+        result = {
+          token: facebookResponse.access_token,
+          user: facebookResponse.user,
+          ...facebookResponse,
+        };
         break;
+      }
       default:
         throw new BadRequestException(
           'Only Google and Facebook login supported',
@@ -340,7 +378,7 @@ export class AuthController {
       default:
         throw new BadRequestException('Invalid role selected');
     }
-    
+
     return {
       token: result.token,
       user: result.user,
@@ -548,7 +586,7 @@ export class AuthController {
   getOAuthStatus() {
     const googleConfigured = Boolean(process.env.GOOGLE_CLIENT_ID);
     const facebookConfigured = Boolean(process.env.FACEBOOK_APP_ID);
-    
+
     return {
       google: { configured: googleConfigured },
       facebook: { configured: facebookConfigured },

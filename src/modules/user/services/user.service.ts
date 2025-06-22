@@ -5,7 +5,7 @@ import {
   ForbiddenException,
 } from '@nestjs/common';
 import { InjectModel } from '@nestjs/mongoose';
-import { Model } from 'mongoose';
+import { Model, Types } from 'mongoose';
 import { Inject } from '@nestjs/common';
 import { CACHE_MANAGER } from '@nestjs/cache-manager';
 import { Cache } from 'cache-manager';
@@ -780,7 +780,9 @@ export class UserService {
 
   async getDashboardSummary(userId: string) {
     // Get counts from relevant collections
-    const totalBookings = await this.bookingModel.countDocuments({ user: userId });
+    const totalBookings = await this.bookingModel.countDocuments({
+      user: userId,
+    });
     const totalOrders = await this.orderModel.countDocuments({ user: userId });
     const activeBookings = await this.bookingModel.countDocuments({
       user: userId,
@@ -813,7 +815,15 @@ export class UserService {
       recentTransactions: [
         ...recentTransactions[0],
         ...recentTransactions[1],
-      ].sort((a, b) => ((b._id as any).getTimestamp() as Date).getTime() - ((a._id as any).getTimestamp() as Date).getTime()),
+      ].sort((a, b) => {
+        const bTimestamp = (b._id as import('mongoose').Types.ObjectId)
+          .getTimestamp()
+          .getTime();
+        const aTimestamp = (a._id as import('mongoose').Types.ObjectId)
+          .getTimestamp()
+          .getTime();
+        return bTimestamp - aTimestamp;
+      }),
     };
   }
 
@@ -834,15 +844,24 @@ export class UserService {
     ]);
 
     // Calculate monthly totals
-    const monthlyTotals = Array(12).fill({ accommodation: 0, food: 0 });
+    const monthlyTotals: { accommodation: number; food: number }[] = Array.from(
+      { length: 12 },
+      () => ({ accommodation: 0, food: 0 }),
+    );
+
+    // import { Types } from 'mongoose'; // Moved to top-level imports
 
     yearBookings.forEach((booking) => {
-      const month = new Date((booking._id as any).getTimestamp()).getMonth();
+      const objectId = booking._id as Types.ObjectId;
+      const month = objectId.getTimestamp().getMonth();
       monthlyTotals[month].accommodation += booking.total_amount || 0;
     });
 
     yearOrders.forEach((order) => {
-      const month = new Date((order._id as any).getTimestamp()).getMonth();
+      // Explicitly type _id as Types.ObjectId for safe getTimestamp call
+      const month = (order._id as import('mongoose').Types.ObjectId)
+        .getTimestamp()
+        .getMonth();
       monthlyTotals[month].food += order.total_amount || 0;
     });
 
