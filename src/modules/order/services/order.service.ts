@@ -20,30 +20,33 @@ export class OrderService {
   ) {}
 
   async create(createOrderDto: CreateOrderDto, userId: string): Promise<Order> {
-    // Calculate total price and validate menu items
-    let totalPrice = 0;
-    const validatedItems = await Promise.all(
-      createOrderDto.items.map(async (item) => {
-        const menuItem = await this.menuItemModel.findById(item.menu_item);
-        if (!menuItem) {
-          throw new NotFoundException(`Menu item ${item.menu_item} not found`);
-        }
-        if (menuItem.provider.toString() !== createOrderDto.food_provider) {
-          throw new BadRequestException(
-            'All items must be from the same food provider',
-          );
-        }
-        totalPrice += menuItem.price * item.quantity;
-        return item;
-      }),
-    );
+    // Calculate total price from items if not provided
+    let calculatedTotal = 0;
+    
+    // For simplified orders, just use the provided items and total
+    const validatedItems = createOrderDto.items.map((item) => {
+      calculatedTotal += item.price * item.quantity;
+      return {
+        name: item.name,
+        quantity: item.quantity,
+        price: item.price,
+        special_instructions: item.specialInstructions || '',
+        menu_item: item.menu_item || null, // Optional menu item reference
+      };
+    });
+
+    // Use provided total or calculated total
+    const finalTotal = createOrderDto.totalAmount || calculatedTotal;
 
     const order = new this.orderModel({
-      ...createOrderDto,
+      food_provider: createOrderDto.foodProvider,
       items: validatedItems,
-      total_price: totalPrice,
+      total_price: finalTotal,
       user: userId,
       status: OrderStatus.PLACED,
+      delivery_address: createOrderDto.deliveryAddress || '',
+      payment_method: createOrderDto.paymentMethod || 'card',
+      delivery_instructions: createOrderDto.deliveryInstructions || '',
     });
 
     const savedOrder = await (
@@ -55,9 +58,9 @@ export class OrderService {
       await this.orderModel.db.collection('order_analytics').insertOne({
         orderId: savedOrder._id.toString(),
         userId: userId,
-        providerId: createOrderDto.food_provider,
+        providerId: createOrderDto.foodProvider,
         status: savedOrder.status,
-        totalAmount: totalPrice,
+        totalAmount: finalTotal,
         itemCount: createOrderDto.items.length,
         createdAt: new Date(),
       });
@@ -69,8 +72,8 @@ export class OrderService {
     try {
       await this.orderModel.db.collection('order_notifications').insertOne({
         order_id: savedOrder._id.toString(),
-        user_id: savedOrder.food_provider.owner.toString(),
-        message: `New order received worth ${totalPrice}`,
+        user_id: createOrderDto.foodProvider, // Use food provider ID
+        message: `New order received worth $${finalTotal}`,
         createdAt: new Date(),
         read: false,
       });

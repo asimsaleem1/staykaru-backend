@@ -29,25 +29,36 @@ export class BookingService {
       createBookingDto.accommodation,
     );
 
-    const isAvailable = accommodation.availability.some(
-      (date) =>
-        date.toISOString().split('T')[0] === createBookingDto.start_date,
-    );
+    // Check availability if accommodation has availability array
+    if (accommodation.availability && accommodation.availability.length > 0) {
+      const isAvailable = accommodation.availability.some(
+        (date) =>
+          date.toISOString().split('T')[0] === createBookingDto.checkInDate,
+      );
 
-    if (!isAvailable) {
-      throw new BadRequestException('Selected dates are not available');
+      if (!isAvailable) {
+        throw new BadRequestException('Selected dates are not available');
+      }
     }
 
+    const checkInDate = new Date(createBookingDto.checkInDate);
+    const checkOutDate = new Date(createBookingDto.checkOutDate);
+    const durationDays = Math.ceil(
+      (checkOutDate.getTime() - checkInDate.getTime()) / (1000 * 60 * 60 * 24),
+    );
+
     const booking = new this.bookingModel({
-      ...createBookingDto,
+      accommodation: createBookingDto.accommodation,
       user: userId,
+      start_date: createBookingDto.checkInDate,
+      end_date: createBookingDto.checkOutDate,
+      total_guests: createBookingDto.guests || 1,
+      total_amount: createBookingDto.totalAmount || accommodation.price * durationDays,
+      payment_method: createBookingDto.paymentMethod || 'card',
+      special_requests: createBookingDto.specialRequests || '',
       status: BookingStatus.PENDING,
-      total_price: accommodation.price,
-      duration_days: Math.ceil(
-        (new Date(createBookingDto.end_date).getTime() -
-          new Date(createBookingDto.start_date).getTime()) /
-          (1000 * 60 * 60 * 24),
-      ),
+      total_price: createBookingDto.totalAmount || accommodation.price * durationDays,
+      duration_days: durationDays,
     });
 
     const savedBooking = await (
@@ -72,7 +83,7 @@ export class BookingService {
         createdAt: new Date(),
         startDate: savedBooking.start_date,
         endDate: savedBooking.end_date,
-        totalPrice: accommodation.price,
+        totalPrice: savedBooking.total_amount,
       });
     } catch (error) {
       console.error('Error logging booking analytics:', error);
