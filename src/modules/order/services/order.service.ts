@@ -20,34 +20,47 @@ export class OrderService {
   ) {}
 
   async create(createOrderDto: CreateOrderDto, userId: string): Promise<Order> {
-    // Calculate total price from items if not provided
-    let calculatedTotal = 0;
+    // Simplified order creation that doesn't require complex menu item validation
     
-    // For simplified orders, just use the provided items and total
-    const validatedItems = createOrderDto.items.map((item) => {
+    // Validate that food provider exists (if we have a FoodProvider model/service)
+    // For now, we'll just trust the provided foodProvider ID
+    
+    // Calculate total from provided item prices
+    let calculatedTotal = 0;
+    const orderItems = createOrderDto.items.map((item) => {
       calculatedTotal += item.price * item.quantity;
       return {
-        name: item.name,
+        // Use a simplified structure that doesn't require menu_item references
         quantity: item.quantity,
+        // Store item details directly in the order for simplicity
+        name: item.name,
         price: item.price,
         special_instructions: item.specialInstructions || '',
-        menu_item: item.menu_item || null, // Optional menu item reference
       };
     });
 
     // Use provided total or calculated total
     const finalTotal = createOrderDto.totalAmount || calculatedTotal;
 
-    const order = new this.orderModel({
+    // Create order with simplified structure
+    const orderData = {
       food_provider: createOrderDto.foodProvider,
-      items: validatedItems,
-      total_price: finalTotal,
       user: userId,
+      total_price: finalTotal,
       status: OrderStatus.PLACED,
-      delivery_address: createOrderDto.deliveryAddress || '',
-      payment_method: createOrderDto.paymentMethod || 'card',
-      delivery_instructions: createOrderDto.deliveryInstructions || '',
-    });
+      // Store items as a simplified array rather than complex references
+      items: orderItems,
+      // Create a simple delivery location from the address
+      delivery_location: {
+        address: createOrderDto.deliveryAddress || 'No address provided',
+        coordinates: {
+          latitude: 0, // Default coordinates for testing
+          longitude: 0
+        }
+      }
+    };
+
+    const order = new this.orderModel(orderData);
 
     const savedOrder = await (
       await order.save()

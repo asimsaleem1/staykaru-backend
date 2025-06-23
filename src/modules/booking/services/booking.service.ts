@@ -25,11 +25,16 @@ export class BookingService {
     createBookingDto: CreateBookingDto,
     userId: string,
   ): Promise<Booking> {
+    // Get accommodation for validation and pricing
     const accommodation = await this.accommodationService.findOne(
       createBookingDto.accommodation,
     );
 
-    // Check availability if accommodation has availability array
+    if (!accommodation) {
+      throw new NotFoundException(`Accommodation with ID ${createBookingDto.accommodation} not found`);
+    }
+
+    // Simple availability check - if accommodation has availability array, check it
     if (accommodation.availability && accommodation.availability.length > 0) {
       const isAvailable = accommodation.availability.some(
         (date) =>
@@ -43,23 +48,31 @@ export class BookingService {
 
     const checkInDate = new Date(createBookingDto.checkInDate);
     const checkOutDate = new Date(createBookingDto.checkOutDate);
+    
+    // Validate dates
+    if (checkInDate >= checkOutDate) {
+      throw new BadRequestException('Check-out date must be after check-in date');
+    }
+    
+    if (checkInDate < new Date()) {
+      throw new BadRequestException('Check-in date cannot be in the past');
+    }
+
     const durationDays = Math.ceil(
       (checkOutDate.getTime() - checkInDate.getTime()) / (1000 * 60 * 60 * 24),
     );
 
-    const booking = new this.bookingModel({
+    // Create booking with proper schema field names
+    const bookingData = {
       accommodation: createBookingDto.accommodation,
       user: userId,
-      start_date: createBookingDto.checkInDate,
-      end_date: createBookingDto.checkOutDate,
-      total_guests: createBookingDto.guests || 1,
+      start_date: checkInDate,
+      end_date: checkOutDate,
       total_amount: createBookingDto.totalAmount || accommodation.price * durationDays,
-      payment_method: createBookingDto.paymentMethod || 'card',
-      special_requests: createBookingDto.specialRequests || '',
       status: BookingStatus.PENDING,
-      total_price: createBookingDto.totalAmount || accommodation.price * durationDays,
-      duration_days: durationDays,
-    });
+    };
+
+    const booking = new this.bookingModel(bookingData);
 
     const savedBooking = await (
       await booking.save()
