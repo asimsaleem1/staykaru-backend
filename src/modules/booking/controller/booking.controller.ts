@@ -7,6 +7,7 @@ import {
   Param,
   UseGuards,
   Request,
+  Query,
 } from '@nestjs/common';
 import {
   ApiTags,
@@ -18,14 +19,13 @@ import {
 import { BookingService } from '../services/booking.service';
 import { CreateBookingDto } from '../dto/create-booking.dto';
 import { UpdateBookingStatusDto } from '../dto/update-booking-status.dto';
-import { AuthGuard } from '../../auth/guards/auth.guard';
 import { JwtAuthGuard } from '../../auth/guards/jwt-auth.guard';
-import { LandlordGuard } from '../../accommodation/guards/landlord.guard';
+import { RoleBasedAccessGuard } from '../../auth/guards/role-based-access.guard';
 
 @ApiTags('bookings')
 @Controller('bookings')
-// @UseGuards(JwtAuthGuard) // Temporarily disabled for testing
-// @ApiBearerAuth('JWT-auth') // Temporarily disabled for testing
+@UseGuards(JwtAuthGuard, RoleBasedAccessGuard)
+@ApiBearerAuth('JWT-auth')
 export class BookingController {
   constructor(private readonly bookingService: BookingService) {}
 
@@ -91,7 +91,7 @@ export class BookingController {
   }
 
   @Get('my-bookings')
-  @ApiOperation({ summary: "Get current user's bookings" })
+  @ApiOperation({ summary: "Get current user's bookings (Students only)" })
   @ApiResponse({
     status: 200,
     description: "Return user's bookings",
@@ -114,9 +114,19 @@ export class BookingController {
     },
   })
   async findMyBookings(@Request() req) {
-    // Temporary fix for testing without auth
-    const userId = req.user?._id || '683700350f8a15197d2abf50'; // Dummy user ID for testing
+    const userId = req.user._id.toString();
     return this.bookingService.findByUser(userId);
+  }
+
+  @Get('landlord/bookings')
+  @ApiOperation({ summary: "Get landlord's property bookings (Landlords only)" })
+  @ApiResponse({
+    status: 200,
+    description: "Return landlord's property bookings",
+  })
+  async findLandlordBookings(@Request() req) {
+    const landlordId = req.user._id.toString();
+    return this.bookingService.findByLandlord(landlordId);
   }
 
   @Get('landlord')
@@ -185,16 +195,6 @@ export class BookingController {
       ],
     },
   })
-  @ApiResponse({
-    status: 403,
-    description: 'Forbidden - Landlord access required',
-  })
-  async findLandlordBookings(@Request() req) {
-    // Temporary fix for testing without auth
-    const userId = req.user?._id || '683700350f8a15197d2abf50'; // Dummy user ID for testing
-    return this.bookingService.findByLandlord(userId);
-  }
-
   @Get(':id')
   @ApiOperation({ summary: 'Get a booking by ID' })
   @ApiParam({ name: 'id', description: 'Booking ID' })

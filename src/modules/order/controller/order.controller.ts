@@ -8,16 +8,18 @@ import {
   UseGuards,
   Request,
 } from '@nestjs/common';
-import { ApiTags, ApiOperation, ApiResponse } from '@nestjs/swagger';
+import { ApiTags, ApiOperation, ApiResponse, ApiBearerAuth } from '@nestjs/swagger';
 import { OrderService } from '../services/order.service';
 import { CreateOrderDto } from '../dto/create-order.dto';
 import { UpdateOrderStatusDto } from '../dto/update-order-status.dto';
 import { JwtAuthGuard } from '../../auth/guards/jwt-auth.guard';
+import { RoleBasedAccessGuard } from '../../auth/guards/role-based-access.guard';
 import { AuthenticatedRequest } from '../../../interfaces/request.interface';
 
 @ApiTags('orders')
 @Controller('orders')
-@UseGuards(JwtAuthGuard)
+@UseGuards(JwtAuthGuard, RoleBasedAccessGuard)
+@ApiBearerAuth('JWT-auth')
 export class OrderController {
   constructor(private readonly orderService: OrderService) {}
 
@@ -40,7 +42,7 @@ export class OrderController {
   }
 
   @Get('my-orders')
-  @ApiOperation({ summary: "Get user's orders" })
+  @ApiOperation({ summary: "Get user's orders (Students only)" })
   @ApiResponse({ status: 200, description: "Return user's orders" })
   async findMyOrders(@Request() req: AuthenticatedRequest) {
     const userId = req.user._id;
@@ -48,11 +50,11 @@ export class OrderController {
   }
 
   @Get('provider-orders')
-  @ApiOperation({ summary: "Get food provider's orders" })
+  @ApiOperation({ summary: "Get food provider's orders (Food Providers only)" })
   @ApiResponse({ status: 200, description: "Return food provider's orders" })
   async findProviderOrders(@Request() req: AuthenticatedRequest) {
-    const userId = req.user._id;
-    return this.orderService.findByFoodProvider(userId);
+    const providerId = req.user._id;
+    return this.orderService.findByFoodProvider(providerId);
   }
 
   @Get(':id')

@@ -13,12 +13,6 @@ export enum IdentificationType {
   PASSPORT = 'passport',
 }
 
-export enum SocialProvider {
-  EMAIL = 'email',
-  FACEBOOK = 'facebook',
-  GOOGLE = 'google',
-}
-
 @Schema({ timestamps: true })
 export class User extends Document {
   @Prop({ required: true })
@@ -113,16 +107,6 @@ export class User extends Document {
 
   @Prop()
   operatingHours?: string; // Operating hours
-
-  // Social login fields
-  @Prop()
-  facebookId?: string; // Facebook user ID
-
-  @Prop()
-  googleId?: string; // Google user ID
-
-  @Prop({ enum: SocialProvider, default: SocialProvider.EMAIL })
-  socialProvider: SocialProvider; // Login method used
 
   @Prop({ default: false })
   isEmailVerified: boolean; // Email verification status

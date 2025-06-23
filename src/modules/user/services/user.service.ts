@@ -203,38 +203,6 @@ export class UserService {
     return null;
   }
 
-  async findByFacebookId(facebookId: string): Promise<User | null> {
-    const cacheKey = `user:facebook:${facebookId}`;
-    const cached = await this.cacheManager.get<User>(cacheKey);
-
-    if (cached) {
-      return this.decryptUserData(cached);
-    }
-
-    const user = await this.userModel.findOne({ facebookId }).exec();
-    if (user) {
-      await this.cacheManager.set(cacheKey, user);
-      return this.decryptUserData(user);
-    }
-    return null;
-  }
-
-  async findByGoogleId(googleId: string): Promise<User | null> {
-    const cacheKey = `user:google:${googleId}`;
-    const cached = await this.cacheManager.get<User>(cacheKey);
-
-    if (cached) {
-      return this.decryptUserData(cached);
-    }
-
-    const user = await this.userModel.findOne({ googleId }).exec();
-    if (user) {
-      await this.cacheManager.set(cacheKey, user);
-      return this.decryptUserData(user);
-    }
-    return null;
-  }
-
   private decryptUserData(user: User): User {
     try {
       const userObject = user.toObject() as Record<string, any>;
