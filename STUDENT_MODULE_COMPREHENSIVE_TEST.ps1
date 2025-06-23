@@ -213,12 +213,12 @@ function Test-StudentModule {
         if ($accommodationId) {
             $bookingData = @{
                 accommodation = $accommodationId
-                checkInDate = (Get-Date).AddDays(14).ToString("yyyy-MM-dd")
-                checkOutDate = (Get-Date).AddDays(21).ToString("yyyy-MM-dd")
+                start_date = "2025-06-01T00:00:00.000Z"
+                end_date = "2025-06-02T00:00:00.000Z"
+                payment_method = "card"
+                total_amount = 500
                 guests = 2
-                totalAmount = 450.00
-                paymentMethod = "card"
-                specialRequests = "Late check-in preferred after 6 PM"
+                special_requests = "Test booking request"
             } | ConvertTo-Json
             
             $createBookingTest = Invoke-ApiRequest -Url "$BaseUrl/bookings" -Method "POST" -Headers $studentHeaders -Body $bookingData -TestName "Create Accommodation Booking"
@@ -241,26 +241,25 @@ function Test-StudentModule {
         
         if ($foodProviderId) {
             $orderData = @{
-                foodProvider = $foodProviderId
+                food_provider = $foodProviderId
+                total_amount = 42.48
                 items = @(
                     @{
-                        name = "Chicken Biryani"
+                        menu_item = "68371dfe492f35a187f47446"  # Get a valid menu item from menu items response
                         quantity = 2
-                        price = 15.99
-                        specialInstructions = "Extra spicy, no onions"
-                    },
-                    @{
-                        name = "Garlic Naan"
-                        quantity = 3
-                        price = 3.50
-                        specialInstructions = "Well done"
+                        special_instructions = "Extra spicy"
                     }
                 )
-                deliveryAddress = "123 University Ave, Dorm Room 205, Test City"
-                totalAmount = 42.48
-                paymentMethod = "card"
-                deliveryInstructions = "Call when you arrive, building entrance code is 1234"
-            } | ConvertTo-Json -Depth 3
+                delivery_location = @{
+                    coordinates = @{
+                        latitude = 12.9716
+                        longitude = 77.5946
+                    }
+                    address = "123 University Ave, Room 123"
+                    landmark = "Near Test Landmark"
+                }
+                delivery_instructions = "Call when you arrive"
+            } | ConvertTo-Json -Depth 4
             
             $createOrderTest = Invoke-ApiRequest -Url "$BaseUrl/orders" -Method "POST" -Headers $studentHeaders -Body $orderData -TestName "Create Food Order"
             Add-TestResult -Module "Student" -TestName "Create Food Order" -Endpoint "/orders" -Success $createOrderTest.Success -StatusCode $createOrderTest.StatusCode -Details $(if ($createOrderTest.Success) { "Order created successfully with ID: $($createOrderTest.Data.id)" } else { $createOrderTest.Error }) -ResponseTime $createOrderTest.ResponseTime

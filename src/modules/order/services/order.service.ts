@@ -20,81 +20,81 @@ export class OrderService {
   ) {}
 
   async create(createOrderDto: CreateOrderDto, userId: string): Promise<Order> {
-    // Simplified order creation that doesn't require complex menu item validation
-    
-    // Validate that food provider exists (if we have a FoodProvider model/service)
-    // For now, we'll just trust the provided foodProvider ID
-    
-    // Calculate total from provided item prices
-    let calculatedTotal = 0;
-    const orderItems = createOrderDto.items.map((item) => {
-      calculatedTotal += item.price * item.quantity;
-      return {
-        // Use a simplified structure that doesn't require menu_item references
-        quantity: item.quantity,
-        // Store item details directly in the order for simplicity
-        name: item.name,
-        price: item.price,
-        special_instructions: item.specialInstructions || '',
-      };
-    });
+    try {
+      // Validate menu items exist and belong to the food provider
+      const menuItemIds = createOrderDto.items.map(item => item.menu_item);
+      const menuItems = await this.menuItemModel
+        .find({
+          _id: { $in: menuItemIds },
+          food_provider: createOrderDto.food_provider,
+        })
+        .exec();
 
-    // Use provided total or calculated total
-    const finalTotal = createOrderDto.totalAmount || calculatedTotal;
-
-    // Create order with simplified structure
-    const orderData = {
-      food_provider: createOrderDto.foodProvider,
-      user: userId,
-      total_price: finalTotal,
-      status: OrderStatus.PLACED,
-      // Store items as a simplified array rather than complex references
-      items: orderItems,
-      // Create a simple delivery location from the address
-      delivery_location: {
-        address: createOrderDto.deliveryAddress || 'No address provided',
-        coordinates: {
-          latitude: 0, // Default coordinates for testing
-          longitude: 0
-        }
+      if (menuItems.length !== menuItemIds.length) {
+        throw new BadRequestException('One or more menu items are invalid or do not belong to the specified food provider');
       }
-    };
 
-    const order = new this.orderModel(orderData);
-
-    const savedOrder = await (
-      await order.save()
-    ).populate(['user', 'food_provider', 'items.menu_item']);
-
-    // Log order analytics using MongoDB
-    try {
-      await this.orderModel.db.collection('order_analytics').insertOne({
-        orderId: savedOrder._id.toString(),
-        userId: userId,
-        providerId: createOrderDto.foodProvider,
-        status: savedOrder.status,
-        totalAmount: finalTotal,
-        itemCount: createOrderDto.items.length,
-        createdAt: new Date(),
+      // Calculate total based on actual menu item prices
+      let calculatedTotal = 0;
+      const orderItems = createOrderDto.items.map((item) => {
+        const menuItem = menuItems.find(mi => mi._id.toString() === item.menu_item);
+        calculatedTotal += menuItem.price * item.quantity;
+        
+        return {
+          menu_item: item.menu_item,
+          quantity: item.quantity,
+          price: menuItem.price,
+          special_instructions: item.special_instructions,
+        };
       });
-    } catch (error) {
-      console.error('Error logging order analytics:', error);
-    }
 
-    // Notify food provider about the new order using MongoDB
-    try {
-      await this.orderModel.db.collection('order_notifications').insertOne({
-        order_id: savedOrder._id.toString(),
-        user_id: createOrderDto.foodProvider, // Use food provider ID
-        message: `New order received worth $${finalTotal}`,
-        createdAt: new Date(),
-        read: false,
-      });
-    } catch (error) {
-      console.error('Error creating order notification:', error);
-    }
+      // Create order with all required fields
+      const orderData = {
+        food_provider: createOrderDto.food_provider,
+        user: userId,
+        items: orderItems,
+        delivery_location: {
+          coordinates: {
+            latitude: createOrderDto.delivery_location.coordinates.latitude,
+            longitude: createOrderDto.delivery_location.coordinates.longitude,
+          },
+          address: createOrderDto.delivery_location.address,
+          landmark: createOrderDto.delivery_location.landmark,
+        },
+        total_price: calculatedTotal,
+        status: OrderStatus.PLACED,
+        delivery_instructions: createOrderDto.delivery_instructions,
+        tracking_history: [{
+          location: {
+            latitude: 0, // Will be updated by delivery service
+            longitude: 0,
+          },
+          status: OrderStatus.PLACED,
+          timestamp: new Date(),
+        }],
+      };
 
-    return savedOrder;
+      console.log('Creating order with data:', JSON.stringify(orderData, null, 2));
+
+      const order = new this.orderModel(orderData);
+      const savedOrder = await order.save();
+
+      console.log('Order saved successfully:', savedOrder._id);
+
+      // Populate and return
+      const populatedOrder = await this.orderModel
+        .findById(savedOrder._id)
+        .populate(['user', 'food_provider', 'items.menu_item'])
+        .exec();
+
+      return populatedOrder || savedOrder;
+    } catch (error) {
+      console.error('Error creating order:', error);
+      if (error.name === 'ValidationError') {
+        throw new BadRequestException(error.message);
+      }
+      throw error;
+    }
   }
 
   async findAll(): Promise<Order[]> {

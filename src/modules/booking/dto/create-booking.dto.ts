@@ -4,21 +4,28 @@ import {
   IsNumber, 
   IsString, 
   IsOptional, 
-  Min 
+  Min,
+  IsNotEmpty
 } from 'class-validator';
 import { ApiProperty, ApiPropertyOptional } from '@nestjs/swagger';
+import { Transform } from 'class-transformer';
 
 export class CreateBookingDto {
-  @ApiProperty({ example: '507f1f77bcf86cd799439011' })
+  @ApiProperty({ example: '507f1f77bcf86cd799439011', description: 'Accommodation ID' })
+  @IsNotEmpty()
   @IsMongoId()
   accommodation: string;
 
-  @ApiProperty({ example: '2024-03-20' })
+  @ApiProperty({ example: '2024-03-20T00:00:00.000Z' })
+  @IsNotEmpty()
   @IsDateString()
+  @Transform(({ value }) => new Date(value).toISOString())
   checkInDate: string;
 
-  @ApiProperty({ example: '2024-03-25' })
+  @ApiProperty({ example: '2024-03-25T00:00:00.000Z' })
+  @IsNotEmpty()
   @IsDateString()
+  @Transform(({ value }) => new Date(value).toISOString())
   checkOutDate: string;
 
   @ApiPropertyOptional({ example: 2 })
@@ -31,15 +38,15 @@ export class CreateBookingDto {
   @IsOptional()
   @IsNumber()
   @Min(0)
-  totalAmount?: number;
+  total_amount?: number;
 
   @ApiPropertyOptional({ example: 'card' })
   @IsOptional()
   @IsString()
-  paymentMethod?: string;
+  payment_method?: string;
 
   @ApiPropertyOptional({ example: 'Late check-in preferred after 6 PM' })
   @IsOptional()
   @IsString()
-  specialRequests?: string;
+  special_requests?: string;
 }

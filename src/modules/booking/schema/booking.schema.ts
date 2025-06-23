@@ -23,10 +23,10 @@ export class Booking {
   accommodation: Accommodation;
 
   @Prop({ required: true })
-  start_date: Date;
+  checkInDate: Date;
 
   @Prop({ required: true })
-  end_date: Date;
+  checkOutDate: Date;
 
   @Prop({ type: String, enum: BookingStatus, default: BookingStatus.PENDING })
   status: BookingStatus;

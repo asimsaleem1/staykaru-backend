@@ -25,84 +25,94 @@ export class BookingService {
     createBookingDto: CreateBookingDto,
     userId: string,
   ): Promise<Booking> {
-    // Get accommodation for validation and pricing
-    const accommodation = await this.accommodationService.findOne(
-      createBookingDto.accommodation,
-    );
+    console.log('Creating booking with DTO:', JSON.stringify(createBookingDto, null, 2));
+    console.log('User ID:', userId);
 
-    if (!accommodation) {
-      throw new NotFoundException(`Accommodation with ID ${createBookingDto.accommodation} not found`);
-    }
-
-    // Simple availability check - if accommodation has availability array, check it
-    if (accommodation.availability && accommodation.availability.length > 0) {
-      const isAvailable = accommodation.availability.some(
-        (date) =>
-          date.toISOString().split('T')[0] === createBookingDto.checkInDate,
+    try {
+      // Get accommodation for validation and pricing
+      const accommodation = await this.accommodationService.findOne(
+        createBookingDto.accommodation,
       );
 
-      if (!isAvailable) {
-        throw new BadRequestException('Selected dates are not available');
+      if (!accommodation) {
+        throw new NotFoundException(`Accommodation with ID ${createBookingDto.accommodation} not found`);
       }
-    }
 
-    const checkInDate = new Date(createBookingDto.checkInDate);
-    const checkOutDate = new Date(createBookingDto.checkOutDate);
-    
-    // Validate dates
-    if (checkInDate >= checkOutDate) {
-      throw new BadRequestException('Check-out date must be after check-in date');
-    }
-    
-    if (checkInDate < new Date()) {
-      throw new BadRequestException('Check-in date cannot be in the past');
-    }
+      console.log('Found accommodation:', accommodation.title);
 
-    const durationDays = Math.ceil(
-      (checkOutDate.getTime() - checkInDate.getTime()) / (1000 * 60 * 60 * 24),
-    );
+      const startDate = new Date(createBookingDto.start_date);
+      const endDate = new Date(createBookingDto.end_date);
+      
+      // Validate dates
+      if (startDate >= endDate) {
+        throw new BadRequestException('End date must be after start date');
+      }
 
-    // Create booking with proper schema field names
-    const bookingData = {
-      accommodation: createBookingDto.accommodation,
-      user: userId,
-      start_date: checkInDate,
-      end_date: checkOutDate,
-      total_amount: createBookingDto.totalAmount || accommodation.price * durationDays,
-      status: BookingStatus.PENDING,
-    };
+      const durationDays = Math.ceil(
+        (endDate.getTime() - startDate.getTime()) / (1000 * 60 * 60 * 24),
+      );
 
-    const booking = new this.bookingModel(bookingData);
+      // Calculate total amount if not provided
+      const totalAmount = createBookingDto.total_amount || (accommodation.price || 100) * durationDays;
 
-    const savedBooking = await (
-      await booking.save()
-    ).populate(['user', 'accommodation']);
+      // Create booking with proper schema field names
+      const bookingData = {
+        accommodation: createBookingDto.accommodation,
+        user: userId,
+        start_date: startDate,
+        end_date: endDate,
+        total_amount: totalAmount,
+        status: BookingStatus.PENDING,
+        payment_method: createBookingDto.payment_method,
+        special_requests: createBookingDto.special_requests,
+        guests: createBookingDto.guests || 1,
+      };
 
-    await this.realtimeService.broadcastBookingUpdate(
-      savedBooking._id.toString(),
-      {
-        status: savedBooking.status,
-        user_id: userId,
-      },
-    );
+      console.log('Creating booking with data:', JSON.stringify(bookingData, null, 2));
 
-    // Analytics tracking is now handled through MongoDB
-    try {
-      await this.bookingModel.db.collection('booking_analytics').insertOne({
-        bookingId: savedBooking._id.toString(),
-        userId: userId,
-        accommodationId: accommodation._id.toString(),
-        status: savedBooking.status,
-        createdAt: new Date(),
-        startDate: savedBooking.start_date,
-        endDate: savedBooking.end_date,
-        totalPrice: savedBooking.total_amount,
-      });
+      const booking = new this.bookingModel(bookingData);
+      const savedBooking = await booking.save();
+
+      console.log('Booking saved successfully:', savedBooking._id);
+
+      // Skip realtime service for now
+      // await this.realtimeService.broadcastBookingUpdate(
+      //   savedBooking._id.toString(),
+      //   {
+      //     status: savedBooking.status,
+      //     user_id: userId,
+      //   },
+      // );
+
+      // Simplified analytics tracking
+      try {
+        await this.bookingModel.db.collection('booking_analytics').insertOne({
+          bookingId: savedBooking._id.toString(),
+          userId: userId,
+          accommodationId: createBookingDto.accommodation,
+          status: savedBooking.status,
+          createdAt: new Date(),
+          startDate: savedBooking.start_date,
+          endDate: savedBooking.end_date,
+          totalPrice: savedBooking.total_amount,
+        });
+      } catch (error) {
+        console.error('Error logging booking analytics:', error);
+      }
+
+      // Populate and return
+      const populatedBooking = await this.bookingModel
+        .findById(savedBooking._id)
+        .populate(['user', 'accommodation']);
+
+      return populatedBooking || savedBooking;
     } catch (error) {
-      console.error('Error logging booking analytics:', error);
+      console.error('Error creating booking:', error);
+      if (error.name === 'ValidationError') {
+        throw new BadRequestException(error.message);
+      }
+      throw error;
     }
-
-    return savedBooking;
   }
 
   async findAll(): Promise<Booking[]> {

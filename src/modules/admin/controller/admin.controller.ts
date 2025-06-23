@@ -136,6 +136,31 @@ export class AdminController {
     return this.adminService.rejectFoodService(id, body.reason);
   }
 
+  // Food Providers (alias for food-services)
+  @Get('food-providers')
+  @Roles('admin')
+  @ApiOperation({ summary: 'Get all food providers' })
+  @ApiResponse({ status: 200, description: 'Food providers retrieved successfully' })
+  async getAllFoodProviders(@Query() filters: any) {
+    return this.adminService.getFoodProviders(filters);
+  }
+
+  @Get('food-providers/statistics')
+  @Roles('admin')
+  @ApiOperation({ summary: 'Get food provider statistics' })
+  @ApiResponse({ status: 200, description: 'Food provider statistics retrieved successfully' })
+  async getFoodProviderStatistics() {
+    return this.adminService.getFoodProviderStatistics();
+  }
+
+  @Get('food-providers/analytics')
+  @Roles('admin')
+  @ApiOperation({ summary: 'Get food provider analytics' })
+  @ApiResponse({ status: 200, description: 'Food provider analytics retrieved successfully' })
+  async getFoodProviderAnalytics() {
+    return this.adminService.getFoodProviderAnalytics();
+  }
+
   // Booking Management
   @Get('bookings')
   @Roles('admin')
@@ -231,33 +256,152 @@ export class AdminController {
     return this.adminService.getBookingAnalytics(period || 'month');
   }
 
-  // Reports
-  @Get('reports/users')
+  @Get('analytics/performance')
   @Roles('admin')
-  @ApiOperation({ summary: 'Generate users report' })
-  @ApiResponse({ status: 200, description: 'Users report generated successfully' })
-  @ApiQuery({ name: 'format', required: false, enum: ['json', 'csv'] })
-  async generateUsersReport(@Query('format') format?: string) {
-    return this.adminService.generateUsersReport(format || 'json');
+  @ApiOperation({ summary: 'Get performance metrics' })
+  @ApiResponse({ status: 200, description: 'Performance metrics retrieved successfully' })
+  async getPerformanceMetrics() {
+    return this.adminService.getPerformanceMetrics();
   }
 
-  @Get('reports/revenue')
+  // Missing Analytics Endpoints
+  @Get('analytics/orders')
   @Roles('admin')
-  @ApiOperation({ summary: 'Generate revenue report' })
-  @ApiResponse({ status: 200, description: 'Revenue report generated successfully' })
-  @ApiQuery({ name: 'format', required: false, enum: ['json', 'csv'] })
-  @ApiQuery({ name: 'startDate', required: false, type: String })
-  @ApiQuery({ name: 'endDate', required: false, type: String })
-  async generateRevenueReport(
-    @Query('format') format?: string,
-    @Query('startDate') startDate?: string,
-    @Query('endDate') endDate?: string,
+  @ApiOperation({ summary: 'Get order analytics' })
+  @ApiResponse({ status: 200, description: 'Order analytics retrieved successfully' })
+  @ApiQuery({ name: 'period', required: false, enum: ['day', 'week', 'month', 'year'] })
+  async getOrderAnalytics(@Query('period') period?: string) {
+    return this.adminService.getOrderAnalytics(period || 'month');
+  }
+
+  // Missing User Statistics
+  @Get('users/statistics')
+  @Roles('admin')
+  @ApiOperation({ summary: 'Get user statistics' })
+  @ApiResponse({ status: 200, description: 'User statistics retrieved successfully' })
+  async getUserStatistics() {
+    return this.adminService.getUserStatistics();
+  }
+
+  // Missing Accommodation Statistics
+  @Get('accommodations/statistics')
+  @Roles('admin')
+  @ApiOperation({ summary: 'Get accommodation statistics' })
+  @ApiResponse({ status: 200, description: 'Accommodation statistics retrieved successfully' })
+  async getAccommodationStatistics() {
+    return this.adminService.getAccommodationStatistics();
+  }
+
+  // Missing Food Service Statistics
+  @Get('food-services/statistics')
+  @Roles('admin')
+  @ApiOperation({ summary: 'Get food service statistics' })
+  @ApiResponse({ status: 200, description: 'Food service statistics retrieved successfully' })
+  async getFoodServiceStatistics() {
+    return this.adminService.getFoodServiceStatistics();
+  }
+
+  // Missing Food Service Reports
+  @Get('food-services/reports')
+  @Roles('admin')
+  @ApiOperation({ summary: 'Get food service reports' })
+  @ApiResponse({ status: 200, description: 'Food service reports retrieved successfully' })
+  async getFoodServiceReports() {
+    return this.adminService.getFoodServiceReports();
+  }
+
+  // Missing Content Moderation Endpoints
+  @Get('content/reports')
+  @Roles('admin')
+  @ApiOperation({ summary: 'Get content reports' })
+  @ApiResponse({ status: 200, description: 'Content reports retrieved successfully' })
+  async getContentReports() {
+    return this.adminService.getContentReports();
+  }
+
+  @Get('content/review-queue')
+  @Roles('admin')
+  @ApiOperation({ summary: 'Get review queue' })
+  @ApiResponse({ status: 200, description: 'Review queue retrieved successfully' })
+  async getReviewQueue() {
+    return this.adminService.getReviewQueue();
+  }
+
+  @Get('content/statistics')
+  @Roles('admin')
+  @ApiOperation({ summary: 'Get moderation statistics' })
+  @ApiResponse({ status: 200, description: 'Moderation statistics retrieved successfully' })
+  async getModerationStatistics() {
+    return this.adminService.getModerationStatistics();
+  }
+
+  // Missing Financial Management Endpoints
+  @Get('transactions')
+  @Roles('admin')
+  @ApiOperation({ summary: 'Get all transactions' })
+  @ApiResponse({ status: 200, description: 'Transactions retrieved successfully' })
+  @ApiQuery({ name: 'page', required: false, type: Number })
+  @ApiQuery({ name: 'limit', required: false, type: Number })
+  @ApiQuery({ name: 'type', required: false, enum: ['booking', 'order', 'refund'] })
+  async getAllTransactions(
+    @Query('page') page?: number,
+    @Query('limit') limit?: number,
+    @Query('type') type?: string,
   ) {
-    return this.adminService.generateRevenueReport({
-      format: format || 'json',
-      startDate,
-      endDate,
-    });
+    return this.adminService.getAllTransactions({ page, limit, type });
+  }
+
+  @Get('payments/statistics')
+  @Roles('admin')
+  @ApiOperation({ summary: 'Get payment statistics' })
+  @ApiResponse({ status: 200, description: 'Payment statistics retrieved successfully' })
+  async getPaymentStatistics() {
+    return this.adminService.getPaymentStatistics();
+  }
+
+  @Get('commissions')
+  @Roles('admin')
+  @ApiOperation({ summary: 'Get commission reports' })
+  @ApiResponse({ status: 200, description: 'Commission reports retrieved successfully' })
+  async getCommissionReports() {
+    return this.adminService.getCommissionReports();
+  }
+
+  // System Performance Endpoint
+  @Get('system/performance')
+  @Roles('admin')
+  @ApiOperation({ summary: 'Get system performance metrics' })
+  @ApiResponse({ status: 200, description: 'Performance metrics retrieved successfully' })
+  async getSystemPerformanceMetrics() {
+    return this.adminService.getSystemPerformanceMetrics();
+  }
+
+  // Missing Data Export Endpoints
+  @Get('export/users')
+  @Roles('admin')
+  @ApiOperation({ summary: 'Export users data' })
+  @ApiResponse({ status: 200, description: 'Users data exported successfully' })
+  @ApiQuery({ name: 'format', required: false, enum: ['json', 'csv'] })
+  async exportUsers(@Query('format') format?: string) {
+    return this.adminService.exportUsers(format || 'json');
+  }
+
+  @Get('export/bookings')
+  @Roles('admin')
+  @ApiOperation({ summary: 'Export bookings data' })
+  @ApiResponse({ status: 200, description: 'Bookings data exported successfully' })
+  @ApiQuery({ name: 'format', required: false, enum: ['json', 'csv'] })
+  async exportBookings(@Query('format') format?: string) {
+    return this.adminService.exportBookings(format || 'json');
+  }
+
+  @Get('export/transactions')
+  @Roles('admin')
+  @ApiOperation({ summary: 'Export transactions data' })
+  @ApiResponse({ status: 200, description: 'Transactions data exported successfully' })
+  @ApiQuery({ name: 'format', required: false, enum: ['json', 'csv'] })
+  async exportTransactions(@Query('format') format?: string) {
+    return this.adminService.exportTransactions(format || 'json');
   }
 
   // System Management
@@ -332,5 +476,13 @@ export class AdminController {
     },
   ) {
     return this.adminService.sendTargetedNotification(body);
+  }
+
+  @Get('users/activity-report')
+  @Roles('admin')
+  @ApiOperation({ summary: 'Get user activity report' })
+  @ApiResponse({ status: 200, description: 'User activity report retrieved successfully' })
+  async getUserActivityReport() {
+    return this.adminService.getUserActivityReport();
   }
 }
