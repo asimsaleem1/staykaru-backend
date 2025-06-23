@@ -1250,4 +1250,17 @@ export class AdminService {
       },
     };
   }
+
+  // Food Provider Methods
+  async getFoodProviders(filters: any) {
+    return this.getAllFoodServices(filters);
+  }
+
+  async getFoodProviderStatistics() {
+    return this.getFoodServiceStatistics();
+  }
+
+  async getFoodProviderAnalytics() {
+    return this.getFoodServiceStatistics();
+  }
 }

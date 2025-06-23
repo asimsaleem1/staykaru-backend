@@ -40,8 +40,8 @@ export class BookingService {
 
       console.log('Found accommodation:', accommodation.title);
 
-      const startDate = new Date(createBookingDto.start_date);
-      const endDate = new Date(createBookingDto.end_date);
+      const startDate = new Date(createBookingDto.checkInDate);
+      const endDate = new Date(createBookingDto.checkOutDate);
       
       // Validate dates
       if (startDate >= endDate) {
@@ -92,8 +92,8 @@ export class BookingService {
           accommodationId: createBookingDto.accommodation,
           status: savedBooking.status,
           createdAt: new Date(),
-          startDate: savedBooking.start_date,
-          endDate: savedBooking.end_date,
+          startDate: savedBooking.checkInDate,
+          endDate: savedBooking.checkOutDate,
           totalPrice: savedBooking.total_amount,
         });
       } catch (error) {

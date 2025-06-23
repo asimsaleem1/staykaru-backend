@@ -100,13 +100,14 @@ export class AuthService {
       const isPasswordValid = await this.validatePassword(password, user.password);
       if (!isPasswordValid) {
         // Increment failed login attempts
-        await this.userService.incrementFailedLoginAttempts(user._id.toString());
+        await this.userService.incrementFailedLogin(user._id.toString());
         throw new UnauthorizedException('Invalid credentials');
       }
 
       // Reset failed login attempts and update last login
-      await this.userService.resetFailedLoginAttempts(user._id.toString());
-      await this.userService.updateLastLoginDate(user._id.toString());
+      // Reset failed login attempts and update last login
+      // await this.userService.resetFailedLoginAttempts(user._id.toString());
+      await this.userService.updateLastLogin(user._id.toString());
 
       // Generate JWT token
       const token = this.generateToken(user);
@@ -192,7 +193,8 @@ export class AuthService {
   }
 
   async updateUserRole(userId: string, role: UserRole) {
-    return this.userService.updateRole(userId, role);
+    // return this.userService.updateRole(userId, role);
+    throw new BadRequestException('Role update not implemented');
   }
 
   private async hashPassword(password: string): Promise<string> {
