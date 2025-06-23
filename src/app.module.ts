@@ -18,6 +18,7 @@ import { NotificationModule } from './modules/notification/notification.module';
 import { AnalyticsModule } from './modules/analytics/analytics.module';
 import { FileUploadModule } from './modules/file-upload/file-upload.module';
 import { DashboardModule } from './modules/dashboard/dashboard.module';
+import { AdminModule } from './modules/admin/admin.module';
 import databaseConfig from './config/database.config';
 import jwtConfig from './config/jwt.config';
 import cacheConfig from './config/cache.config';
@@ -59,6 +60,7 @@ import cacheConfig from './config/cache.config';
     NotificationModule,
     AnalyticsModule,
     DashboardModule,
+    AdminModule,
   ],
   controllers: [AppController],
   providers: [AppService],
