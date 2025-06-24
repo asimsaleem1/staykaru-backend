@@ -49,4 +49,6 @@ export class CreateBookingDto {
   @IsOptional()
   @IsString()
   special_requests?: string;
+  start_date: string | number | Date;
+  end_date: string | number | Date;
 }

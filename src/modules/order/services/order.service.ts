@@ -26,7 +26,7 @@ export class OrderService {
       const menuItems = await this.menuItemModel
         .find({
           _id: { $in: menuItemIds },
-          food_provider: createOrderDto.food_provider,
+          provider: createOrderDto.food_provider,
         })
         .exec();
 
@@ -61,7 +61,7 @@ export class OrderService {
           address: createOrderDto.delivery_location.address,
           landmark: createOrderDto.delivery_location.landmark,
         },
-        total_price: calculatedTotal,
+        total_amount: calculatedTotal,
         status: OrderStatus.PLACED,
         delivery_instructions: createOrderDto.delivery_instructions,
         tracking_history: [{

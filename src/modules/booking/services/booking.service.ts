@@ -59,8 +59,8 @@ export class BookingService {
       const bookingData = {
         accommodation: createBookingDto.accommodation,
         user: userId,
-        start_date: startDate,
-        end_date: endDate,
+        checkInDate: startDate,
+        checkOutDate: endDate,
         total_amount: totalAmount,
         status: BookingStatus.PENDING,
         payment_method: createBookingDto.payment_method,

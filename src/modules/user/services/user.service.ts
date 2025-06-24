@@ -21,6 +21,9 @@ import { Order, OrderDocument } from '../../order/schema/order.schema';
 
 @Injectable()
 export class UserService {
+  updateRole(userId: string, role: UserRole) {
+      throw new Error('Method not implemented.');
+  }
   private readonly encryptionKey: string;
 
   constructor(

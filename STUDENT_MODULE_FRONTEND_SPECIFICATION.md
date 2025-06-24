@@ -18,7 +18,8 @@ The StayKaru Student Module provides comprehensive functionality for student use
 10. [Chat & Support](#chat--support)
 11. [Integration Requirements](#integration-requirements)
 12. [Non-Functional Requirements](#non-functional-requirements)
-13. [Appendix: API Reference](#appendix-api-reference)
+13. [Technical Implementation](#technical-implementation)
+14. [Appendix: API Reference](#appendix-api-reference)
 
 ## Design System
 
@@ -73,11 +74,30 @@ Develop consistent reusable components:
 
 **Requirements:**
 - Email/phone and password fields with validation
-- "Remember me" option
+- "Remember me" option with secure storage
 - Forgot password link
 - "Sign up as a student" link
 - OAuth login options (Google, Facebook, Apple)
-- Error handling for invalid credentials
+- Password strength indicator on registration
+- Two-factor authentication support (optional)
+
+**Error Handling:**
+- Specific error messages for different scenarios:
+  - Invalid credentials
+  - Account locked due to multiple attempts
+  - Unverified email address
+  - Network connectivity issues
+  - Server errors
+- Appropriate UI feedback:
+  - Form validation errors with inline messages
+  - Toast notifications for transient errors
+  - Modal dialogs for critical errors
+  - Offline mode detection with automatic retry
+- Security considerations:
+  - Rate limiting for failed login attempts
+  - Throttling protection with exponential back-off
+  - Generic error messages for security (production)
+  - Detailed error messages for debugging (development)
 
 **API Integration:**
 ```javascript
@@ -85,6 +105,37 @@ POST /api/auth/login
 {
   "email": "student@example.com",
   "password": "securepassword"
+}
+
+// Example response handling
+try {
+  const response = await api.post('/api/auth/login', credentials);
+  // Store tokens securely
+  secureStorage.setItem('accessToken', response.data.accessToken);
+  secureStorage.setItem('refreshToken', response.data.refreshToken);
+  // Navigate to dashboard
+  navigate('/dashboard');
+} catch (error) {
+  if (!navigator.onLine) {
+    setError('You are currently offline. Please check your connection and try again.');
+  } else if (error.response) {
+    switch (error.response.status) {
+      case 401:
+        setError('Invalid email or password. Please try again.');
+        break;
+      case 403:
+        setError('Your account has been temporarily locked. Please try again later or reset your password.');
+        break;
+      case 423:
+        setError('Your email address is not verified. Please check your inbox or request a new verification email.');
+        setShowResendVerification(true);
+        break;
+      default:
+        setError('Unable to log in. Please try again later.');
+    }
+  } else {
+    setError('A connection error occurred. Please try again.');
+  }
 }
 ```
 
@@ -208,11 +259,120 @@ POST /api/auth/verify-email
 - Payment due reminders
 - University events (if integrated)
 
+#### 7. Dashboard Error States & Offline Support
+
+**Error State Requirements:**
+- Skeleton loaders during initial data fetch
+- Empty state designs for each component when no data is available
+- Error state displays with retry options
+- Partial loading states when some API calls succeed and others fail
+- Fall-back content when primary data is unavailable
+
+**Implementation Example:**
+```jsx
+function DashboardSection({ title, endpoint, renderContent, fallbackContent }) {
+  const { data, error, isLoading, refetch } = useQuery(
+    ['dashboard', endpoint],
+    () => api.get(`/api/${endpoint}`),
+    {
+      retry: 2,
+      staleTime: 1000 * 60 * 5, // 5 minutes
+      refetchOnWindowFocus: true
+    }
+  );
+
+  if (isLoading) {
+    return <SkeletonLoader type="dashboard-section" />;
+  }
+
+  if (error) {
+    return (
+      <ErrorState
+        title={`Could not load ${title}`}
+        message="We're having trouble fetching your data"
+        action={() => refetch()}
+        actionText="Try Again"
+      >
+        {fallbackContent && (
+          <div className="fallback-content">
+            {fallbackContent}
+          </div>
+        )}
+      </ErrorState>
+    );
+  }
+
+  return (
+    <div className="dashboard-section">
+      <h2>{title}</h2>
+      {data?.data?.length === 0 ? (
+        <EmptyState
+          title={`No ${title} to show`}
+          message={`When you have ${title.toLowerCase()}, they will appear here.`}
+        />
+      ) : (
+        renderContent(data.data)
+      )}
+    </div>
+  );
+}
+```
+
+**Offline Support:**
+- Offline detection and status indicator
+- Service worker for caching essential dashboard data
+- Background sync for pending actions when connection restores
+- Optimistic UI updates with offline queueing
+- Last-known-good data display with timestamp
+- Local storage persistence for critical user data
+
+**Implementation Example:**
+```javascript
+// Network status monitoring
+function useNetworkStatus() {
+  const [isOnline, setIsOnline] = useState(navigator.onLine);
+  const [offlineSince, setOfflineSince] = useState(null);
+  
+  useEffect(() => {
+    const handleOnline = () => {
+      setIsOnline(true);
+      setOfflineSince(null);
+      
+      // Process any pending offline actions
+      offlineQueue.processQueue();
+      
+      toast.success('You are back online! Syncing your data...');
+    };
+    
+    const handleOffline = () => {
+      setIsOnline(false);
+      setOfflineSince(new Date());
+      
+      toast.warning('You are offline. Limited features are available.', {
+        autoClose: false,
+        toastId: 'offline-warning'
+      });
+    };
+    
+    window.addEventListener('online', handleOnline);
+    window.addEventListener('offline', handleOffline);
+    
+    return () => {
+      window.removeEventListener('online', handleOnline);
+      window.removeEventListener('offline', handleOffline);
+    };
+  }, []);
+  
+  return { isOnline, offlineSince };
+}
+```
+
 **API Integration:**
 ```javascript
-GET /api/dashboard
-GET /api/dashboard/student/accommodations
-GET /api/dashboard/student/food-options
+GET /api/dashboard/summary
+GET /api/dashboard/upcoming-bookings
+GET /api/dashboard/recent-orders
+GET /api/dashboard/notifications
 ```
 
 ## Accommodation Module
@@ -256,23 +416,110 @@ GET /api/accommodations/nearby?lat=40.7128&lng=-74.0060&radius=10
 
 **Requirements:**
 - Image gallery with lightbox
-- Property overview section
-- Price breakdown
-- Amenities list with icons
-- Location with interactive map
-- Availability calendar
-- Reviews and ratings section
-- Similar properties carousel
-- Book now button/form
-- Contact landlord option
-- Virtual tour integration (if available)
-- Share property button (social/email)
+- Property overview section with key details and features
+- Dynamic price breakdown based on selected dates and options
+- Comprehensive amenities list with icons and descriptions
+- Location with interactive map showing:
+  - Nearby points of interest
+  - Transport links
+  - Distance to university
+- Real-time availability calendar with:
+  - Color-coded date ranges
+  - Minimum stay indicators
+  - Price variations by season/date
+  - Live availability updates
+- Reviews and ratings section with:
+  - Verified renter badges
+  - Photo reviews
+  - Sortable by rating/date
+  - Response from landlord
+- Similar properties carousel based on matching criteria
+- Book now button/form with real-time validation
+- Contact landlord option with instant messaging
+- Virtual tour integration (360° views where available)
+- Share property button (social/email/messaging apps)
+- Save/favorite functionality
 
 **API Integration:**
 ```javascript
 GET /api/accommodations/{id}
 GET /api/accommodations/{id}/reviews
-GET /api/accommodations/{id}/availability
+GET /api/accommodations/{id}/availability?start_date=2025-06-01&end_date=2025-08-31
+```
+
+**Real-time Availability Implementation:**
+```javascript
+function AccommodationDetail() {
+  const [selectedDates, setSelectedDates] = useState({ startDate: null, endDate: null });
+  const [availability, setAvailability] = useState([]);
+  const [isCheckingAvailability, setIsCheckingAvailability] = useState(false);
+  const [currentViewers, setCurrentViewers] = useState(0);
+  
+  // Initial availability data load
+  useEffect(() => {
+    loadAvailabilityData();
+  }, [accommodationId]);
+  
+  // Real-time updates for availability and current viewers
+  useEffect(() => {
+    socket.emit('join-accommodation-room', { accommodationId });
+    
+    socket.on('availability-changed', (data) => {
+      // Update availability calendar with new data
+      setAvailability(prev => 
+        prev.map(day => {
+          const updatedDay = data.updatedDays.find(d => d.date === day.date);
+          return updatedDay || day;
+        })
+      );
+      
+      // If user has selected dates that are no longer available
+      if (selectedDates.startDate && selectedDates.endDate) {
+        checkIfSelectedDatesAreStillAvailable();
+      }
+    });
+    
+    socket.on('current-viewers-update', (data) => {
+      setCurrentViewers(data.count);
+    });
+    
+    // Booking urgency indicators
+    socket.on('booking-created', (data) => {
+      if (data.accommodationId === accommodationId) {
+        toast.info('Someone just booked this accommodation for dates in your search period!', {
+          autoClose: 5000
+        });
+        loadAvailabilityData(); // Refresh availability data
+      }
+    });
+    
+    return () => {
+      socket.emit('leave-accommodation-room', { accommodationId });
+      socket.off('availability-changed');
+      socket.off('current-viewers-update');
+      socket.off('booking-created');
+    };
+  }, [accommodationId, selectedDates]);
+  
+  // Check real-time availability when dates are selected
+  const checkAvailability = async () => {
+    setIsCheckingAvailability(true);
+    try {
+      const response = await api.get(`/api/accommodations/${accommodationId}/check-availability`, {
+        params: {
+          start_date: formatDate(selectedDates.startDate),
+          end_date: formatDate(selectedDates.endDate)
+        }
+      });
+      return response.data.available;
+    } catch (error) {
+      toast.error('Could not verify availability. Please try again.');
+      return false;
+    } finally {
+      setIsCheckingAvailability(false);
+    }
+  };
+}
 ```
 
 #### 3. Map View
@@ -492,21 +739,125 @@ POST /api/orders
 #### 4. Order Tracking
 
 **Requirements:**
-- Order status indicators:
-  - Confirmed
+- Real-time order status tracking with live updates
+- Order status indicators with time stamps:
+  - Order Placed
+  - Order Confirmed
   - Preparing
-  - Out for delivery
+  - Ready for Pickup
+  - Out for Delivery
+  - Nearby (within 500m)
   - Delivered
-- Estimated delivery time
-- Delivery person details (when assigned)
-- Interactive map with delivery tracking
-- Restaurant and order details
-- Support chat/call options
-- Rating prompt on delivery
+- Accurate estimated delivery time with dynamic updates
+- Delivery person details when assigned:
+  - Name and photo
+  - Contact options (call, text)
+  - Rating
+- Interactive map with real-time delivery tracking:
+  - Live location updates (15-second intervals)
+  - Estimated route visualization
+  - Geofence-based notifications
+- Restaurant and order details with ability to:
+  - View itemized receipt
+  - Contact restaurant directly
+  - Report issues
+- Support chat/call options with:
+  - In-app messaging
+  - Call integration
+  - Automated support options
+- Rating and feedback prompt on delivery
+- Push notifications for status changes
+- Order issue reporting workflow
 
 **API Integration:**
 ```javascript
 GET /api/orders/{id}/track
+```
+
+**Real-time Implementation:**
+```javascript
+// WebSocket setup for order tracking
+function OrderTrackingScreen({ orderId }) {
+  const [order, setOrder] = useState(null);
+  const [driverLocation, setDriverLocation] = useState(null);
+  const [estimatedTime, setEstimatedTime] = useState(null);
+  
+  // Initial data fetch
+  useEffect(() => {
+    const fetchOrderDetails = async () => {
+      try {
+        const response = await api.get(`/api/orders/${orderId}/track`);
+        setOrder(response.data);
+        setDriverLocation(response.data.currentLocation);
+        setEstimatedTime(response.data.estimatedDeliveryTime);
+      } catch (error) {
+        handleError(error);
+      }
+    };
+    
+    fetchOrderDetails();
+  }, [orderId]);
+  
+  // WebSocket connection for real-time updates
+  useEffect(() => {
+    // Connect to order tracking socket
+    socket.emit('join-order-tracking', { orderId });
+    
+    // Listen for order status changes
+    socket.on('order-status-changed', (data) => {
+      setOrder(prev => ({...prev, status: data.newStatus}));
+      
+      // Show push notification
+      if (document.hidden) {
+        showPushNotification({
+          title: 'Order Update',
+          body: `Your order is now ${data.newStatus}`,
+          icon: '/icons/order-status.png'
+        });
+      }
+    });
+    
+    // Listen for driver location updates
+    socket.on('driver-location-update', (data) => {
+      setDriverLocation(data.location);
+      setEstimatedTime(data.estimatedArrival);
+    });
+    
+    // Listen for estimated time changes
+    socket.on('estimated-time-update', (data) => {
+      setEstimatedTime(data.estimatedTime);
+    });
+    
+    return () => {
+      socket.off('order-status-changed');
+      socket.off('driver-location-update');
+      socket.off('estimated-time-update');
+      socket.emit('leave-order-tracking', { orderId });
+    };
+  }, [orderId]);
+  
+  // Fallback for offline or disconnected state
+  useEffect(() => {
+    const pollInterval = setInterval(async () => {
+      if (!socket.connected) {
+        try {
+          const response = await api.get(`/api/orders/${orderId}/track`);
+          setOrder(response.data);
+          setDriverLocation(response.data.currentLocation);
+          setEstimatedTime(response.data.estimatedDeliveryTime);
+        } catch (error) {
+          console.log('Polling fallback error:', error);
+        }
+      }
+    }, 30000); // 30 second polling as fallback
+    
+    return () => clearInterval(pollInterval);
+  }, [orderId, socket.connected]);
+  
+  return (
+    // Rendering UI with real-time data
+  );
+}
 ```
 
 #### 5. My Orders Screen
@@ -596,38 +947,162 @@ POST /api/users/payment-methods
 #### 1. Notification Center
 
 **Requirements:**
-- Real-time notifications
+- Real-time notifications with WebSocket integration
+- Message persistence across sessions
 - Notification categories:
-  - Booking related
-  - Order related
-  - Account related
-  - Promotional
+  - Booking related (confirmations, cancellations, reminders)
+  - Order related (status changes, delivery updates)
+  - Account related (profile updates, payment confirmations)
+  - Promotional (deals, discounts, special offers)
 - Mark as read functionality
 - Clear all option
 - Filter by type
-- Notification preference settings
+- Pagination or infinite scroll
+- Unread notifications counter
+- Notification preference settings by category
+- Search within notifications
 
 **API Integration:**
 ```javascript
-GET /api/notifications
+GET /api/notifications?page=1&limit=20
+GET /api/notifications/unread/count
 PUT /api/notifications/{id}/read
+PUT /api/notifications/mark-all-read
+GET /api/notifications/preferences
+PUT /api/notifications/preferences
 ```
 
-#### 2. Notification Modals
+**WebSocket Implementation:**
+```javascript
+// Listening for new notifications
+socket.on('new-notification', (notification) => {
+  // Add notification to state
+  dispatch(addNotification(notification));
+  
+  // Update unread count
+  dispatch(incrementUnreadCount());
+  
+  // Show toast for high priority notifications
+  if (notification.priority === 'high') {
+    showToast({
+      type: notification.type,
+      message: notification.message,
+      actions: notification.actions
+    });
+  }
+});
+
+// Subscribe to notification channels on login
+useEffect(() => {
+  if (isAuthenticated) {
+    socket.emit('subscribe-notifications', {
+      userId: currentUser.id
+    });
+  }
+  
+  return () => {
+    socket.emit('unsubscribe-notifications');
+  };
+}, [isAuthenticated, currentUser]);
+```
+
+#### 2. Notification Modals and Toasts
 
 **Requirements:**
-- Important notification pop-ups
+- Important notification pop-ups with priority levels
+- Contextual styling based on notification type
 - Action buttons within notifications
-- Dismissible design
-- Don't show again option
+- Dismissible design with animation
+- Don't show again option with preference storage
+- Toast notifications for non-intrusive updates
+- Sound alerts for high-priority notifications (toggleable)
+- Stacked notification handling for multiple alerts
+
+**Implementation Example:**
+```jsx
+function NotificationToast({ notification, onDismiss, onAction }) {
+  const { type, title, message, actions } = notification;
+  
+  return (
+    <div className={`notification-toast notification-${type}`}>
+      <div className="notification-icon">
+        {getIconForType(type)}
+      </div>
+      <div className="notification-content">
+        <h4>{title}</h4>
+        <p>{message}</p>
+      </div>
+      {actions && (
+        <div className="notification-actions">
+          {actions.map(action => (
+            <button 
+              key={action.id} 
+              className={`btn-${action.style || 'default'}`}
+              onClick={() => onAction(action.id, notification.id)}
+            >
+              {action.label}
+            </button>
+          ))}
+        </div>
+      )}
+      <button className="notification-close" onClick={onDismiss}>
+        <span className="sr-only">Dismiss</span>
+        <CloseIcon />
+      </button>
+    </div>
+  );
+}
+```
 
 #### 3. Push Notifications
 
 **Requirements:**
-- Browser push notification integration
-- Mobile push notification support
-- Quiet hours setting
-- Notification grouping
+- Browser push notification integration using Web Push API
+- Mobile push notification support with deep linking
+- Permission request flow with fallbacks
+- Quiet hours setting with time zone awareness
+- Notification grouping by category and source
+- Rich notifications with images and action buttons
+- Background notifications when app is closed
+- Offline queue for missed notifications
+
+**Implementation Example:**
+```javascript
+// Request notification permission
+async function setupPushNotifications() {
+  try {
+    if (!('Notification' in window)) {
+      console.log('This browser does not support notifications');
+      return false;
+    }
+    
+    const permission = await Notification.requestPermission();
+    
+    if (permission === 'granted') {
+      const registration = await navigator.serviceWorker.getRegistration();
+      const subscription = await registration.pushManager.subscribe({
+        userVisibleOnly: true,
+        applicationServerKey: urlBase64ToUint8Array(PUBLIC_VAPID_KEY)
+      });
+      
+      // Register subscription with server
+      await api.post('/api/notifications/devices', {
+        type: 'web',
+        token: JSON.stringify(subscription),
+        userId: currentUser.id
+      });
+      
+      return true;
+    } else {
+      // Store user preference to not ask again
+      localStorage.setItem('notification_permission_denied', 'true');
+      return false;
+    }
+  } catch (error) {
+    console.error('Failed to register push notifications:', error);
+    return false;
+  }
+}
 
 ## Chat & Support
 
@@ -753,6 +1228,376 @@ POST /api/support/tickets
 - Performance monitoring
 - A/B testing capability
 
+## Technical Implementation
+
+### State Management
+
+#### 1. Global State Architecture
+
+**Recommended Solution:**
+- Redux Toolkit or Context API with React Query
+- Centralized store with modular slices by feature
+- Persist critical user data in local storage
+
+**Key Considerations:**
+- Separation of UI state from server state
+- Cache invalidation strategies
+- Performance optimization for large state trees
+
+#### 2. Real-time Data Management
+
+**WebSocket Integration:**
+- Connection to `/api/socket` endpoint for real-time events
+- Socket.IO client configuration:
+```javascript
+import { io } from "socket.io-client";
+
+const socket = io(API_BASE_URL, {
+  transports: ['websocket'],
+  reconnection: true,
+  reconnectionAttempts: 5,
+  reconnectionDelay: 1000,
+  auth: {
+    token: () => localStorage.getItem('accessToken')
+  }
+});
+```
+
+**Event Handling Strategy:**
+- Topic-based channel subscriptions:
+  - `booking-updates`: For booking status changes
+  - `order-updates`: For food order status changes
+  - `notifications`: For system notifications
+  - `chat-messages`: For direct messages
+
+**Implementation Example:**
+```javascript
+// In component mount
+useEffect(() => {
+  // Join relevant rooms based on user ID
+  socket.emit('join-room', `user-${userId}`);
+  
+  // Listen for specific events
+  socket.on('order-status-changed', handleOrderStatusChange);
+  socket.on('new-notification', handleNewNotification);
+  socket.on('booking-update', handleBookingUpdate);
+  
+  return () => {
+    // Clean up listeners
+    socket.off('order-status-changed');
+    socket.off('new-notification');
+    socket.off('booking-update');
+  };
+}, [userId]);
+```
+
+#### 3. Progressive Data Loading
+
+**Implementation Approaches:**
+- Pagination with cursor-based implementation
+- Infinite scroll with intersection observer
+- Data prefetching for common user flows
+
+**Example Implementation:**
+```javascript
+const fetchAccommodations = async (pageParam = 0) => {
+  const response = await api.get(`/api/accommodations`, {
+    params: { limit: 10, offset: pageParam * 10, ...filterParams }
+  });
+  return response.data;
+};
+
+// Using React Query for infinite scroll
+const {
+  data,
+  fetchNextPage,
+  hasNextPage,
+  isFetchingNextPage,
+  status
+} = useInfiniteQuery(
+  ['accommodations', filterParams],
+  ({ pageParam = 0 }) => fetchAccommodations(pageParam),
+  {
+    getNextPageParam: (lastPage, allPages) => {
+      return lastPage.hasMore ? allPages.length : undefined;
+    },
+    staleTime: 1000 * 60 * 5, // 5 minutes
+  }
+);
+```
+
+### Error Handling
+
+#### 1. Comprehensive Error Management Strategy
+
+**Error Categorization:**
+- Network errors (offline, timeouts)
+- API errors (4xx, 5xx responses)
+- Validation errors (form submissions)
+- Authentication errors (expired tokens)
+- Business logic errors (e.g., booking conflicts)
+
+**Error Handling Architecture:**
+- Centralized error interceptors for API calls
+- Global error boundary components
+- Custom error handling hooks
+
+**Implementation Example:**
+```javascript
+// API Error Interceptor
+api.interceptors.response.use(
+  response => response,
+  error => {
+    // Handle based on error type
+    if (error.response) {
+      // Server responded with error status
+      switch (error.response.status) {
+        case 401:
+          // Unauthorized - handle token refresh or redirect to login
+          return handleUnauthorizedError(error);
+        case 403:
+          // Forbidden - handle permission issues
+          return handleForbiddenError(error);
+        case 404:
+          // Not found
+          return handleNotFoundError(error);
+        case 422:
+          // Validation errors
+          return Promise.reject({
+            type: 'VALIDATION_ERROR',
+            errors: error.response.data.errors,
+            message: 'Please check the form for errors'
+          });
+        case 500:
+          // Server error
+          return Promise.reject({
+            type: 'SERVER_ERROR',
+            message: 'Something went wrong. Please try again later.'
+          });
+      }
+    } else if (error.request) {
+      // Network error
+      return Promise.reject({
+        type: 'NETWORK_ERROR',
+        message: 'Unable to connect to server. Please check your internet connection.'
+      });
+    }
+    
+    return Promise.reject(error);
+  }
+);
+```
+
+#### 2. User-Facing Error Feedback
+
+**UI Components:**
+- Toast notifications for transient errors
+- Modal dialogs for blocking errors
+- Inline form validation feedback
+- Empty states for failed data loads
+- Error boundaries for component-level failures
+
+**Implementation Example:**
+```jsx
+// Form error handling example
+const submitForm = async (values) => {
+  setSubmitting(true);
+  setErrors({});
+  
+  try {
+    await api.post('/api/bookings', values);
+    toast.success('Booking confirmed successfully!');
+    navigate('/bookings');
+  } catch (error) {
+    if (error.type === 'VALIDATION_ERROR') {
+      setErrors(error.errors);
+      toast.error('Please correct the errors in the form.');
+    } else if (error.type === 'NETWORK_ERROR') {
+      toast.error(
+        'Connection issue detected. Your booking is saved locally and will be submitted when you're back online.',
+        { duration: 5000 }
+      );
+      addToOfflineQueue('booking', values);
+    } else {
+      toast.error('Unable to complete your booking. Please try again.');
+    }
+  } finally {
+    setSubmitting(false);
+  }
+};
+```
+
+#### 3. Offline Support & Recovery
+
+**Strategies:**
+- Offline queue for critical actions
+- Local storage for pending changes
+- Background sync when connection restores
+- Service worker for offline caching
+
+**Example Implementation:**
+```javascript
+// Offline queue manager
+const offlineQueueManager = {
+  async addToQueue(actionType, payload) {
+    const queue = JSON.parse(localStorage.getItem('offlineQueue') || '[]');
+    queue.push({
+      id: Date.now(),
+      actionType,
+      payload,
+      timestamp: new Date().toISOString()
+    });
+    localStorage.setItem('offlineQueue', JSON.stringify(queue));
+  },
+  
+  async processQueue() {
+    const queue = JSON.parse(localStorage.getItem('offlineQueue') || '[]');
+    if (queue.length === 0) return;
+    
+    const newQueue = [...queue];
+    
+    for (let i = 0; i < queue.length; i++) {
+      const item = queue[i];
+      try {
+        switch(item.actionType) {
+          case 'booking':
+            await api.post('/api/bookings', item.payload);
+            break;
+          case 'order':
+            await api.post('/api/orders', item.payload);
+            break;
+          // Add other action types
+        }
+        // Remove from queue if successful
+        newQueue.splice(newQueue.findIndex(q => q.id === item.id), 1);
+        toast.success(`Your ${item.actionType} has been synchronized.`);
+      } catch (error) {
+        console.error('Failed to process offline item', error);
+        // Keep in queue for next attempt
+      }
+    }
+    
+    localStorage.setItem('offlineQueue', JSON.stringify(newQueue));
+  },
+  
+  // Initialize listener for online status
+  init() {
+    window.addEventListener('online', this.processQueue);
+  }
+};
+```
+
+### Performance Optimization
+
+#### 1. Lazy Loading & Code Splitting
+
+**Implementation Strategy:**
+- Route-based code splitting
+- Component-level lazy loading
+- Critical CSS path optimization
+- Asset preloading for common user journeys
+
+**Example:**
+```javascript
+// Route-based code splitting
+const Dashboard = lazy(() => import('./pages/Dashboard'));
+const AccommodationDetail = lazy(() => import('./pages/AccommodationDetail'));
+
+function App() {
+  return (
+    <Suspense fallback={<SkeletonLoader />}>
+      <Routes>
+        <Route path="/dashboard" element={<Dashboard />} />
+        <Route path="/accommodations/:id" element={<AccommodationDetail />} />
+        {/* Other routes */}
+      </Routes>
+    </Suspense>
+  );
+}
+```
+
+#### 2. Advanced Caching Strategies
+
+**Implementation Approach:**
+- API response caching with TTL
+- Resource prioritization for critical paths
+- Background data prefetching
+- Stale-while-revalidate pattern
+
+**Example Implementation:**
+```javascript
+// Using React Query for data fetching with caching
+export function useAccommodation(id) {
+  return useQuery(
+    ['accommodation', id],
+    () => api.get(`/api/accommodations/${id}`),
+    {
+      staleTime: 1000 * 60 * 10, // 10 minutes
+      cacheTime: 1000 * 60 * 30, // 30 minutes
+      refetchOnWindowFocus: false,
+      refetchOnMount: true,
+      retry: 2,
+      onError: (error) => handleAccommodationError(error)
+    }
+  );
+}
+```
+
+### Accessibility & Internationalization
+
+#### 1. Accessibility Implementation
+
+**Key Requirements:**
+- ARIA attributes for interactive elements
+- Keyboard navigation support
+- Screen reader compatibility
+- Focus management
+- Color contrast compliance
+
+**Component Example:**
+```jsx
+// Accessible accordion component
+function AccessibleAccordion({ title, children }) {
+  const [isOpen, setIsOpen] = useState(false);
+  const contentId = useId();
+  const headerId = useId();
+  
+  return (
+    <div className="accordion">
+      <button
+        id={headerId}
+        aria-expanded={isOpen}
+        aria-controls={contentId}
+        className="accordion-header"
+        onClick={() => setIsOpen(!isOpen)}
+      >
+        {title}
+        <span className="sr-only">{isOpen ? 'Collapse' : 'Expand'}</span>
+        <ChevronIcon className={isOpen ? 'rotate-180' : ''} />
+      </button>
+      <div
+        id={contentId}
+        role="region"
+        aria-labelledby={headerId}
+        className={`accordion-content ${isOpen ? 'open' : ''}`}
+        hidden={!isOpen}
+      >
+        {children}
+      </div>
+    </div>
+  );
+}
+```
+
+#### 2. Internationalization Framework
+
+**Implementation Strategy:**
+- i18next integration
+- Locale-based formatting for dates, currencies
+- RTL layout support
+- Language detection and persistence
+- Lazy loading of translation files
+
 ## Appendix: API Reference
 
 ### Authentication Endpoints
@@ -835,6 +1680,22 @@ PUT /api/notifications/settings
 
 ## Conclusion
 
-This comprehensive specification document outlines all the required screens, components, and functionality for the StayKaru Student Module frontend. Development teams should follow this document closely to ensure consistent implementation of all requirements while maintaining flexibility for design creativity and user experience enhancements.
+This comprehensive specification document outlines all the required screens, components, and functionality for the StayKaru Student Module frontend. With enhanced focus on real-time data fetching, robust error handling, and offline support, the Student Module is designed to provide a seamless and resilient user experience across all features.
+
+Key highlights of this specification include:
+
+1. **Real-time Data Architecture** - Utilizing WebSocket connections for immediate updates to critical information like order tracking, accommodation availability, and notifications without requiring page refreshes.
+
+2. **Comprehensive Error Management** - Implementing a multi-layered approach to error handling with specific strategies for network errors, API responses, form validation, and business logic failures.
+
+3. **Offline Capabilities** - Ensuring core functionality remains accessible during connectivity issues with intelligent data caching, request queueing, and background synchronization when connection is restored.
+
+4. **User-Focused Feedback** - Providing clear, contextual error messages and loading states to keep users informed throughout their journey and minimize frustration.
+
+5. **Performance Optimization** - Employing strategies like lazy loading, code splitting, and progressive data loading to maintain fast response times even on slower connections.
+
+Development teams should follow this document closely to ensure consistent implementation of all requirements while maintaining flexibility for design creativity and user experience enhancements.
 
 Regular reviews against this specification should be conducted throughout the development process to ensure alignment with project goals and user needs. Any deviations or enhancements should be documented and approved before implementation.
+
+Frontend engineers should pay particular attention to the Technical Implementation section, which provides concrete examples and best practices for implementing real-time features, error handling, and state management.

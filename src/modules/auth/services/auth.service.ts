@@ -85,19 +85,37 @@ export class AuthService {
     const { email, password } = loginDto;
 
     try {
+      console.log('🔍 AUTH DEBUG: Login attempt for email:', email);
+      
       // Find user by email
       const user = await this.userService.findByEmail(email);
+      console.log('🔍 AUTH DEBUG: User found:', !!user);
+      if (user) {
+        console.log('🔍 AUTH DEBUG: User details:', {
+          id: user._id,
+          email: user.email,
+          role: user.role,
+          isActive: user.isActive,
+          hasPassword: !!user.password
+        });
+      }
+      
       if (!user) {
+        console.log('❌ AUTH DEBUG: User not found');
         throw new UnauthorizedException('Invalid credentials');
       }
 
       // Check if user is active
       if (!user.isActive) {
+        console.log('❌ AUTH DEBUG: User is not active');
         throw new UnauthorizedException('Account is deactivated');
       }
 
       // Validate password
+      console.log('🔍 AUTH DEBUG: Validating password...');
       const isPasswordValid = await this.validatePassword(password, user.password);
+      console.log('🔍 AUTH DEBUG: Password validation result:', isPasswordValid);
+      
       if (!isPasswordValid) {
         // Increment failed login attempts
         await this.userService.incrementFailedLogin(user._id.toString());
