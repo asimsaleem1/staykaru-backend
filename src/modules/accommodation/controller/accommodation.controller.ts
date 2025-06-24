@@ -429,4 +429,138 @@ export class AccommodationController {
   async toggleAccommodationStatus(@Param('id') id: string) {
     return this.accommodationService.toggleActiveStatus(id);
   }
+
+  @Get('types')
+  @ApiOperation({ summary: 'Get available accommodation types' })
+  @ApiResponse({
+    status: 200,
+    description: 'Accommodation types retrieved successfully',
+  })
+  async getAccommodationTypes() {
+    return {
+      success: true,
+      accommodationTypes: [
+        {
+          id: 'room',
+          name: 'Single Room',
+          description: 'Private room in a shared property',
+          icon: 'bed',
+          features: ['Private bedroom', 'Shared common areas'],
+          avgPrice: '8000-15000',
+          popular: true,
+        },
+        {
+          id: 'shared_room',
+          name: 'Shared Room',
+          description: 'Shared bedroom with other students',
+          icon: 'users',
+          features: [
+            'Shared bedroom',
+            'Cost-effective',
+            'Social environment',
+          ],
+          avgPrice: '4000-8000',
+          popular: true,
+        },
+        {
+          id: 'apartment',
+          name: 'Full Apartment',
+          description: 'Complete apartment for rent',
+          icon: 'home',
+          features: [
+            'Private apartment',
+            'Kitchen included',
+            'Living room',
+          ],
+          avgPrice: '20000-40000',
+          popular: false,
+        },
+        {
+          id: 'hostel',
+          name: 'Hostel',
+          description: 'Dormitory-style accommodation',
+          icon: 'building',
+          features: [
+            'Multiple beds',
+            'Shared facilities',
+            'Budget-friendly',
+          ],
+          avgPrice: '3000-6000',
+          popular: true,
+        },
+        {
+          id: 'pg',
+          name: 'Paying Guest (PG)',
+          description: 'Room with meals and services',
+          icon: 'utensils',
+          features: ['Meals included', 'Housekeeping', 'All utilities'],
+          avgPrice: '12000-25000',
+          popular: true,
+        },
+        {
+          id: 'studio',
+          name: 'Studio Apartment',
+          description: 'Single room with kitchenette',
+          icon: 'square',
+          features: ['Compact living', 'Kitchenette', 'Private bathroom'],
+          avgPrice: '15000-30000',
+          popular: false,
+        },
+        {
+          id: 'house',
+          name: 'House',
+          description: 'Full house for rent',
+          icon: 'home-lg-alt',
+          features: ['Multiple rooms', 'Garden/yard', 'Family-style'],
+          avgPrice: '40000-80000',
+          popular: false,
+        },
+        {
+          id: 'flat',
+          name: 'Flat',
+          description: 'Independent flat in a building',
+          icon: 'building-o',
+          features: ['Independent entrance', 'Multiple rooms', 'Balcony'],
+          avgPrice: '18000-35000',
+          popular: false,
+        },
+        {
+          id: 'villa',
+          name: 'Villa',
+          description: 'Luxury villa accommodation',
+          icon: 'star',
+          features: ['Luxury amenities', 'Large space', 'Premium location'],
+          avgPrice: '60000-150000',
+          popular: false,
+        },
+        {
+          id: 'townhouse',
+          name: 'Townhouse',
+          description: 'Multi-story townhouse',
+          icon: 'building-columns',
+          features: ['Multiple floors', 'Private entrance', 'Modern design'],
+          avgPrice: '35000-70000',
+          popular: false,
+        },
+        {
+          id: 'penthouse',
+          name: 'Penthouse',
+          description: 'Top-floor luxury apartment',
+          icon: 'crown',
+          features: ['Top floor', 'City views', 'Premium amenities'],
+          avgPrice: '80000-200000',
+          popular: false,
+        },
+        {
+          id: 'loft',
+          name: 'Loft',
+          description: 'Open-plan loft space',
+          icon: 'layer-group',
+          features: ['Open space', 'High ceilings', 'Modern style'],
+          avgPrice: '25000-50000',
+          popular: false,
+        },
+      ],
+    };
+  }
 }

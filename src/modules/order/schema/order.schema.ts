@@ -6,10 +6,31 @@ import { MenuItem } from '../../food_service/schema/menu-item.schema';
 
 export enum OrderStatus {
   PLACED = 'placed',
+  CONFIRMED = 'confirmed',
   PREPARING = 'preparing',
+  READY_FOR_PICKUP = 'ready_for_pickup',
   OUT_FOR_DELIVERY = 'out_for_delivery',
   DELIVERED = 'delivered',
   CANCELLED = 'cancelled',
+  REFUNDED = 'refunded',
+}
+
+export enum PaymentMethod {
+  CASH_ON_DELIVERY = 'cash_on_delivery',
+  CARD = 'card',
+  MOBILE_WALLET = 'mobile_wallet',
+  BANK_TRANSFER = 'bank_transfer',
+  JAZZCASH = 'jazzcash',
+  EASYPAISA = 'easypaisa',
+  CREDIT_CARD = 'credit_card',
+  DEBIT_CARD = 'debit_card',
+}
+
+export enum PaymentStatus {
+  PENDING = 'pending',
+  PAID = 'paid',
+  FAILED = 'failed',
+  REFUNDED = 'refunded',
 }
 
 export class OrderItem {
@@ -91,6 +112,33 @@ export class Order {
 
   @Prop({ required: true })
   total_amount: number;
+
+  @Prop({ type: String, enum: PaymentMethod, default: PaymentMethod.CASH_ON_DELIVERY })
+  payment_method: PaymentMethod;
+
+  @Prop({ type: String, enum: PaymentStatus, default: PaymentStatus.PENDING })
+  payment_status: PaymentStatus;
+
+  @Prop()
+  payment_transaction_id?: string;
+
+  @Prop()
+  special_instructions?: string;
+
+  @Prop()
+  contact_phone?: string;
+
+  @Prop({ default: false })
+  is_pre_paid: boolean;
+
+  @Prop()
+  delivery_fee?: number;
+
+  @Prop()
+  discount_amount?: number;
+
+  @Prop()
+  tax_amount?: number;
 }
 
 export const OrderSchema = SchemaFactory.createForClass(Order);

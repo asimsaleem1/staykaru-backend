@@ -11,9 +11,9 @@ The StayKaru backend is fully deployed and operational with a massive dataset re
 https://staykaru-backend-60ed08adb2a7.herokuapp.com
 ```
 
-### API Documentation
+### API Documentation (Swagger)
 ```
-https://staykaru-backend-60ed08adb2a7.herokuapp.com/api/docs
+https://staykaru-backend-60ed08adb2a7.herokuapp.com/api
 ```
 
 ## 📊 Available Data

@@ -33,8 +33,33 @@ export class Accommodation extends Document {
   @Prop({ required: true, min: 0 })
   price: number;
 
+  @Prop({ 
+    type: String, 
+    enum: ['room', 'shared_room', 'apartment', 'hostel', 'pg', 'studio', 'house', 'flat', 'villa', 'townhouse', 'penthouse', 'loft'], 
+    default: 'room' 
+  })
+  accommodationType: string;
+
   @Prop({ type: [String], default: [] })
   amenities: string[];
+
+  @Prop({ min: 0, default: 1 })
+  bedrooms: number;
+
+  @Prop({ min: 0, default: 1 })
+  bathrooms: number;
+
+  @Prop({ min: 0 })
+  area: number; // in square feet
+
+  @Prop({ min: 0, default: 1 })
+  maxOccupancy: number;
+
+  @Prop({ default: false })
+  furnished: boolean;
+
+  @Prop()
+  address: string;
 
   @Prop({ type: [Date], default: [] })
   availability: Date[];
