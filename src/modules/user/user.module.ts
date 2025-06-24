@@ -2,12 +2,12 @@ import { Module } from '@nestjs/common';
 import { MongooseModule } from '@nestjs/mongoose';
 import { CacheModule } from '@nestjs/cache-manager';
 import { UserController } from './controller/user.controller';
-import { UserPreferencesController } from './controller/user-preferences.controller';
+// import { UserPreferencesController } from './controller/user-preferences.controller';
 import { UserService } from './services/user.service';
-import { UserPreferencesService } from './services/user-preferences.service';
-import { RecommendationService } from './services/recommendation.service';
+// import { UserPreferencesService } from './services/user-preferences.service';
+// import { RecommendationService } from './services/recommendation.service';
 import { User, UserSchema } from './schema/user.schema';
-import { UserPreferences, UserPreferencesSchema } from './schema/user-preferences.schema';
+// import { UserPreferences, UserPreferencesSchema } from './schema/user-preferences.schema';
 import { Booking, BookingSchema } from '../booking/schema/booking.schema';
 import { Order, OrderSchema } from '../order/schema/order.schema';
 import { Accommodation, AccommodationSchema } from '../accommodation/schema/accommodation.schema';
@@ -18,7 +18,7 @@ import { MenuItem, MenuItemSchema } from '../food_service/schema/menu-item.schem
   imports: [
     MongooseModule.forFeature([
       { name: User.name, schema: UserSchema },
-      { name: UserPreferences.name, schema: UserPreferencesSchema },
+      // { name: UserPreferences.name, schema: UserPreferencesSchema },
       { name: Booking.name, schema: BookingSchema },
       { name: Order.name, schema: OrderSchema },
       { name: Accommodation.name, schema: AccommodationSchema },
@@ -27,8 +27,8 @@ import { MenuItem, MenuItemSchema } from '../food_service/schema/menu-item.schem
     ]),
     CacheModule.register(),
   ],
-  controllers: [UserController, UserPreferencesController],
-  providers: [UserService, UserPreferencesService, RecommendationService],
-  exports: [UserService, UserPreferencesService, RecommendationService],
+  controllers: [UserController], // UserPreferencesController
+  providers: [UserService], // UserPreferencesService, RecommendationService
+  exports: [UserService], // UserPreferencesService, RecommendationService
 })
 export class UserModule {}
