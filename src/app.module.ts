@@ -19,6 +19,7 @@ import { AnalyticsModule } from './modules/analytics/analytics.module';
 import { FileUploadModule } from './modules/file-upload/file-upload.module';
 import { DashboardModule } from './modules/dashboard/dashboard.module';
 import { AdminModule } from './modules/admin/admin.module';
+import { ChatModule } from './modules/chat/chat.module';
 import databaseConfig from './config/database.config';
 import jwtConfig from './config/jwt.config';
 import cacheConfig from './config/cache.config';
@@ -61,6 +62,7 @@ import cacheConfig from './config/cache.config';
     AnalyticsModule,
     DashboardModule,
     AdminModule,
+    ChatModule,
   ],
   controllers: [AppController],
   providers: [AppService],

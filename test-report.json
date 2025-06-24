@@ -1,0 +1,2322 @@
+{
+  "timestamp": "2025-06-24T16:52:41.960Z",
+  "summary": {
+    "totalTests": 22,
+    "totalPassed": 5,
+    "totalFailed": 17
+  },
+  "results": {
+    "admin": [
+      {
+        "name": "Get Admin Dashboard Stats",
+        "method": "GET",
+        "path": "/api/admin/dashboard/stats",
+        "status": 404,
+        "success": false,
+        "response": {
+          "message": "Cannot GET /api/admin/dashboard/stats",
+          "error": "Not Found",
+          "statusCode": 404
+        },
+        "error": {
+          "message": "Cannot GET /api/admin/dashboard/stats",
+          "error": "Not Found",
+          "statusCode": 404
+        }
+      },
+      {
+        "name": "Get All Users",
+        "method": "GET",
+        "path": "/api/admin/users",
+        "status": 200,
+        "success": true,
+        "response": {
+          "data": [
+            {
+              "registrationComplete": false,
+              "propertyTypes": [],
+              "cuisineTypes": [],
+              "fcmTokens": [],
+              "_id": "685acdb01b6566f41faa0bdc",
+              "name": "Super Admin",
+              "email": "assaleemofficial@gmail.com",
+              "role": "admin",
+              "phone": "+92123456789",
+              "countryCode": "+92",
+              "gender": "male",
+              "isActive": true,
+              "emailVerified": true,
+              "isEmailVerified": true,
+              "createdAt": "2025-06-24T16:09:20.706Z",
+              "updatedAt": "2025-06-24T16:52:30.433Z",
+              "__v": 0,
+              "failedLoginAttempts": 0,
+              "lastLoginAt": "2025-06-24T16:52:30.432Z",
+              "notifications": []
+            },
+            {
+              "_id": "6859b988bd2f9709a22065f5",
+              "name": "Food provider",
+              "email": "food@gmail.com",
+              "role": "food_provider",
+              "phone": "U2FsdGVkX1+2dGjDav9S0mB8ENFW1YMRvek9OlAhhMI=",
+              "countryCode": "+92",
+              "gender": "male",
+              "profileImage": null,
+              "identificationType": "cnic",
+              "identificationNumber": "",
+              "registrationComplete": false,
+              "propertyTypes": [],
+              "cuisineTypes": [],
+              "isEmailVerified": true,
+              "isActive": true,
+              "failedLoginAttempts": 0,
+              "fcmTokens": [],
+              "notifications": [],
+              "createdAt": "2025-06-23T20:31:04.467Z",
+              "updatedAt": "2025-06-24T00:19:39.599Z",
+              "__v": 0,
+              "lastLoginAt": "2025-06-24T00:19:39.598Z"
+            },
+            {
+              "_id": "6859b8d8bd2f9709a22065f1",
+              "name": "Landlord",
+              "email": "landlord123@gmail.com",
+              "role": "landlord",
+              "phone": "U2FsdGVkX1801TUNjpYcabqyEDpGPzATxEKoEeQS3tU=",
+              "countryCode": "+92",
+              "gender": "male",
+              "profileImage": null,
+              "identificationType": "cnic",
+              "identificationNumber": "",
+              "registrationComplete": false,
+              "propertyTypes": [],
+              "cuisineTypes": [],
+              "isEmailVerified": true,
+              "isActive": true,
+              "failedLoginAttempts": 0,
+              "fcmTokens": [],
+              "notifications": [],
+              "createdAt": "2025-06-23T20:28:08.555Z",
+              "updatedAt": "2025-06-24T16:18:15.077Z",
+              "__v": 0,
+              "lastLoginAt": "2025-06-24T16:18:15.077Z"
+            },
+            {
+              "_id": "68598c05bd2f9709a22065cf",
+              "name": "Muhammad Asim Saleem",
+              "email": "q@gmail.com",
+              "role": "student",
+              "phone": "U2FsdGVkX197l3f8eAeuzGQjGPSySKpEpHLrLWWKmHg=",
+              "countryCode": "+92",
+              "gender": "male",
+              "profileImage": null,
+              "identificationType": "cnic",
+              "identificationNumber": "",
+              "registrationComplete": false,
+              "propertyTypes": [],
+              "cuisineTypes": [],
+              "isEmailVerified": true,
+              "isActive": true,
+              "failedLoginAttempts": 0,
+              "fcmTokens": [],
+              "notifications": [],
+              "createdAt": "2025-06-23T17:16:53.680Z",
+              "updatedAt": "2025-06-23T17:18:14.066Z",
+              "__v": 0,
+              "lastLoginAt": "2025-06-23T17:18:14.066Z"
+            },
+            {
+              "_id": "685980aa9366b54d51780f3a",
+              "name": "Admin User",
+              "email": "admin2@staykaru.com",
+              "role": "admin",
+              "phone": "U2FsdGVkX183WIWSLVzV7QZLVvUOJVeN3gRSh59ovoU=",
+              "countryCode": "+1",
+              "gender": "male",
+              "registrationComplete": false,
+              "propertyTypes": [],
+              "cuisineTypes": [],
+              "isEmailVerified": true,
+              "isActive": true,
+              "failedLoginAttempts": 0,
+              "fcmTokens": [],
+              "notifications": [],
+              "createdAt": "2025-06-23T16:28:26.506Z",
+              "updatedAt": "2025-06-23T17:21:10.556Z",
+              "__v": 0,
+              "lastLoginAt": "2025-06-23T17:21:10.556Z"
+            },
+            {
+              "_id": "68597c929366b54d51780f10",
+              "name": "Admin Test User",
+              "email": "admintest@staykaru.com",
+              "role": "admin",
+              "phone": "U2FsdGVkX18mO8KVD/vdqPpYp/3hAO6VqFfEbVN21mU=",
+              "countryCode": "+1",
+              "gender": "male",
+              "registrationComplete": false,
+              "propertyTypes": [],
+              "cuisineTypes": [],
+              "isEmailVerified": true,
+              "isActive": true,
+              "failedLoginAttempts": 0,
+              "fcmTokens": [],
+              "notifications": [],
+              "createdAt": "2025-06-23T16:10:58.721Z",
+              "updatedAt": "2025-06-23T16:10:58.721Z",
+              "__v": 0
+            },
+            {
+              "_id": "68597ac99366b54d51780efa",
+              "name": "Test Admin",
+              "email": "testadmin2@staykaru.com",
+              "role": "admin",
+              "phone": "U2FsdGVkX19usFbloattoxNA3TmA+AdsO6VRsHbMFSo=",
+              "countryCode": "+1",
+              "gender": "male",
+              "registrationComplete": false,
+              "propertyTypes": [],
+              "cuisineTypes": [],
+              "isEmailVerified": true,
+              "isActive": true,
+              "failedLoginAttempts": 0,
+              "fcmTokens": [],
+              "notifications": [],
+              "createdAt": "2025-06-23T16:03:21.988Z",
+              "updatedAt": "2025-06-23T16:04:33.233Z",
+              "__v": 0,
+              "lastLoginAt": "2025-06-23T16:04:33.233Z"
+            },
+            {
+              "_id": "68597a139366b54d51780ef3",
+              "name": "Test Admin",
+              "email": "testadmin@staykaru.com",
+              "role": "admin",
+              "phone": "U2FsdGVkX1+4t7FE0UAsS+vt4LyhHw8R/YyDhXJsG/U=",
+              "countryCode": "+1",
+              "gender": "male",
+              "registrationComplete": false,
+              "propertyTypes": [],
+              "cuisineTypes": [],
+              "isEmailVerified": true,
+              "isActive": true,
+              "failedLoginAttempts": 0,
+              "fcmTokens": [],
+              "notifications": [],
+              "createdAt": "2025-06-23T16:00:19.321Z",
+              "updatedAt": "2025-06-23T16:18:09.427Z",
+              "__v": 0,
+              "lastLoginAt": "2025-06-23T16:18:09.427Z"
+            },
+            {
+              "_id": "68596da49366b54d51780ee1",
+              "name": "Test Student",
+              "email": "student.test.342627824@example.com",
+              "role": "student",
+              "phone": "U2FsdGVkX1/sf3qSmZ8YPi687SYWFid/F/mcHVB8n9I=",
+              "countryCode": "+1",
+              "gender": "male",
+              "registrationComplete": false,
+              "propertyTypes": [],
+              "cuisineTypes": [],
+              "isEmailVerified": true,
+              "isActive": true,
+              "failedLoginAttempts": 0,
+              "fcmTokens": [],
+              "notifications": [],
+              "createdAt": "2025-06-23T15:07:16.114Z",
+              "updatedAt": "2025-06-23T15:07:22.125Z",
+              "__v": 0,
+              "address": "U2FsdGVkX189+EL86kvyXCuho2LgSa4M7n42k5rariwd4zKev+JHm/BYIHnUz98/5AF5A38RSBN+T7hBYLjOAg=="
+            },
+            {
+              "_id": "68596d7d9366b54d51780edd",
+              "name": "Debug Test User",
+              "email": "debug.test.1814238378@example.com",
+              "role": "student",
+              "phone": "U2FsdGVkX1+1uCrRc9nC7cBkISXKlBYLXJzMCxbVxZs=",
+              "countryCode": "+1",
+              "gender": "male",
+              "registrationComplete": false,
+              "propertyTypes": [],
+              "cuisineTypes": [],
+              "isEmailVerified": true,
+              "isActive": true,
+              "failedLoginAttempts": 0,
+              "fcmTokens": [],
+              "notifications": [],
+              "createdAt": "2025-06-23T15:06:37.676Z",
+              "updatedAt": "2025-06-23T15:06:37.676Z",
+              "__v": 0
+            }
+          ],
+          "pagination": {
+            "current": 1,
+            "pages": 12,
+            "total": 115,
+            "limit": 10
+          }
+        },
+        "error": null
+      },
+      {
+        "name": "Get All Accommodations for Approval",
+        "method": "GET",
+        "path": "/api/admin/accommodations",
+        "status": 200,
+        "success": true,
+        "response": {
+          "data": [
+            {
+              "_id": "6856c401ff0bc4a467f5a305",
+              "title": "Luxury Apartment Final Test 2074285464",
+              "description": "A comfortable 2-bedroom apartment in the city center with amazing amenities",
+              "price": 1500,
+              "isActive": false,
+              "createdAt": "2025-06-21T14:38:57.279Z"
+            },
+            {
+              "_id": "6856a3c361cdc979089015e8",
+              "title": "Test Property",
+              "description": "Test description",
+              "price": 100,
+              "isActive": false,
+              "createdAt": "2025-06-21T12:21:23.259Z"
+            },
+            {
+              "_id": "68564de21a9b6d0594f2fd4e",
+              "title": "Test Accommodation 2077269615",
+              "description": "A test accommodation for comprehensive testing",
+              "price": 1000,
+              "isActive": false,
+              "createdAt": "2025-06-21T06:14:58.522Z"
+            },
+            {
+              "_id": "68564b903aeb90204bb32ec9",
+              "title": "Test Accommodation 673401516",
+              "description": "A test accommodation for comprehensive testing",
+              "price": 1000,
+              "isActive": false,
+              "createdAt": "2025-06-21T06:05:04.813Z"
+            },
+            {
+              "_id": "68564acf3aeb90204bb32e90",
+              "title": "Test Accommodation 1628392814",
+              "description": "A test accommodation for comprehensive testing",
+              "price": 1000,
+              "isActive": false,
+              "createdAt": "2025-06-21T06:01:51.207Z"
+            },
+            {
+              "_id": "68564a233aeb90204bb32e5b",
+              "title": "Luxury Apartment Final Test 1634674312",
+              "description": "A comfortable 2-bedroom apartment in the city center with amazing amenities",
+              "price": 1500,
+              "isActive": false,
+              "createdAt": "2025-06-21T05:58:59.598Z"
+            },
+            {
+              "_id": "68564a0f3aeb90204bb32e44",
+              "title": "Cozy Apartment Final Test",
+              "description": "A comfortable 2-bedroom apartment in the city center",
+              "price": 1500,
+              "isActive": false,
+              "createdAt": "2025-06-21T05:58:39.042Z"
+            },
+            {
+              "_id": "6856451e54f18469b604dcfd",
+              "title": "Cozy Apartment Final Test",
+              "description": "A comfortable 2-bedroom apartment in the city center",
+              "price": 1500,
+              "isActive": false,
+              "createdAt": "2025-06-21T05:37:34.354Z"
+            },
+            {
+              "_id": "685644d154f18469b604dce2",
+              "title": "Luxury Apartment Final Test 1092965139",
+              "description": "A comfortable 2-bedroom apartment in the city center with amazing amenities",
+              "price": 1500,
+              "isActive": false,
+              "createdAt": "2025-06-21T05:36:17.426Z"
+            },
+            {
+              "_id": "6856437154f18469b604dccb",
+              "title": "Cozy Apartment Final Test",
+              "description": "A comfortable 2-bedroom apartment in the city center",
+              "price": 1500,
+              "isActive": false,
+              "createdAt": "2025-06-21T05:30:25.724Z"
+            }
+          ],
+          "pagination": {
+            "current": 1,
+            "pages": 2,
+            "total": 16,
+            "limit": 10
+          }
+        },
+        "error": null
+      },
+      {
+        "name": "Get All Food Providers for Approval",
+        "method": "GET",
+        "path": "/api/admin/food-providers",
+        "status": 200,
+        "success": true,
+        "response": {
+          "data": [
+            {
+              "id": "food_1",
+              "name": "Food Service 1",
+              "providerId": "provider_1",
+              "status": "active",
+              "createdAt": "2025-06-24T16:52:35.178Z"
+            },
+            {
+              "id": "food_2",
+              "name": "Food Service 2",
+              "providerId": "provider_2",
+              "status": "inactive",
+              "createdAt": "2025-06-23T16:52:35.178Z"
+            },
+            {
+              "id": "food_3",
+              "name": "Food Service 3",
+              "providerId": "provider_3",
+              "status": "pending",
+              "createdAt": "2025-06-22T16:52:35.178Z"
+            },
+            {
+              "id": "food_4",
+              "name": "Food Service 4",
+              "providerId": "provider_4",
+              "status": "active",
+              "createdAt": "2025-06-21T16:52:35.178Z"
+            },
+            {
+              "id": "food_5",
+              "name": "Food Service 5",
+              "providerId": "provider_5",
+              "status": "inactive",
+              "createdAt": "2025-06-20T16:52:35.178Z"
+            },
+            {
+              "id": "food_6",
+              "name": "Food Service 6",
+              "providerId": "provider_6",
+              "status": "pending",
+              "createdAt": "2025-06-19T16:52:35.178Z"
+            },
+            {
+              "id": "food_7",
+              "name": "Food Service 7",
+              "providerId": "provider_7",
+              "status": "active",
+              "createdAt": "2025-06-18T16:52:35.178Z"
+            },
+            {
+              "id": "food_8",
+              "name": "Food Service 8",
+              "providerId": "provider_8",
+              "status": "inactive",
+              "createdAt": "2025-06-17T16:52:35.178Z"
+            },
+            {
+              "id": "food_9",
+              "name": "Food Service 9",
+              "providerId": "provider_9",
+              "status": "pending",
+              "createdAt": "2025-06-16T16:52:35.178Z"
+            },
+            {
+              "id": "food_10",
+              "name": "Food Service 10",
+              "providerId": "provider_10",
+              "status": "active",
+              "createdAt": "2025-06-15T16:52:35.178Z"
+            }
+          ],
+          "pagination": {
+            "current": 1,
+            "pages": 2,
+            "total": 20,
+            "limit": 10
+          }
+        },
+        "error": null
+      },
+      {
+        "name": "Get System Analytics",
+        "method": "GET",
+        "path": "/api/admin/analytics",
+        "status": 404,
+        "success": false,
+        "response": {
+          "message": "Cannot GET /api/admin/analytics",
+          "error": "Not Found",
+          "statusCode": 404
+        },
+        "error": {
+          "message": "Cannot GET /api/admin/analytics",
+          "error": "Not Found",
+          "statusCode": 404
+        }
+      }
+    ],
+    "student": [
+      {
+        "name": "Get Student Profile",
+        "method": "GET",
+        "path": "/api/users/profile",
+        "status": 401,
+        "success": false,
+        "response": {
+          "message": "Unauthorized",
+          "statusCode": 401
+        },
+        "error": {
+          "message": "Unauthorized",
+          "statusCode": 401
+        }
+      },
+      {
+        "name": "Search Accommodations",
+        "method": "GET",
+        "path": "/api/accommodations?city=Karachi&limit=10",
+        "status": 400,
+        "success": false,
+        "response": {
+          "message": [
+            "city must be a mongodb id"
+          ],
+          "error": "Bad Request",
+          "statusCode": 400
+        },
+        "error": {
+          "message": [
+            "city must be a mongodb id"
+          ],
+          "error": "Bad Request",
+          "statusCode": 400
+        }
+      },
+      {
+        "name": "Search Food Providers",
+        "method": "GET",
+        "path": "/api/food-providers?city=Karachi&limit=10",
+        "status": 200,
+        "success": true,
+        "response": [
+          {
+            "_id": "68371acd0529ec2181c4b728",
+            "name": "Test Restaurant",
+            "description": "A test restaurant for verification",
+            "location": {
+              "location": {
+                "type": "Point",
+                "coordinates": [
+                  72.8777,
+                  19.076
+                ]
+              },
+              "_id": "683700350f8a15197d2abf4f",
+              "name": "Lahore",
+              "country": "6836feb752bd4551a5688fc3",
+              "createdAt": "2025-05-28T12:23:17.301Z",
+              "updatedAt": "2025-05-28T12:23:17.301Z",
+              "__v": 0
+            },
+            "owner": null,
+            "cuisine_type": "Pakistani",
+            "operating_hours": {
+              "open": "09:00",
+              "close": "22:00",
+              "_id": "68371acd0529ec2181c4b729"
+            },
+            "contact_info": {
+              "phone": "+92300123456",
+              "email": "test@restaurant.com",
+              "_id": "68371acd0529ec2181c4b72a"
+            },
+            "menu_items": [],
+            "rating": 0,
+            "total_reviews": 0,
+            "is_active": false,
+            "createdAt": "2025-05-28T14:16:45.083Z",
+            "updatedAt": "2025-06-21T14:40:13.925Z",
+            "__v": 1,
+            "approvalStatus": "approved",
+            "approvedAt": "2025-06-21T14:40:13.353Z",
+            "approvedBy": "6850509bacb8e23f397f8aea",
+            "images": []
+          },
+          {
+            "images": [],
+            "_id": "68371b070529ec2181c4b731",
+            "name": "Tasty Bites",
+            "description": "Delicious home-cooked meals",
+            "location": {
+              "location": {
+                "type": "Point",
+                "coordinates": [
+                  72.8777,
+                  19.076
+                ]
+              },
+              "_id": "683700350f8a15197d2abf4f",
+              "name": "Lahore",
+              "country": "6836feb752bd4551a5688fc3",
+              "createdAt": "2025-05-28T12:23:17.301Z",
+              "updatedAt": "2025-05-28T12:23:17.301Z",
+              "__v": 0
+            },
+            "owner": null,
+            "menu_items": [],
+            "rating": 0,
+            "total_reviews": 0,
+            "is_active": true,
+            "createdAt": "2025-05-28T14:17:43.132Z",
+            "updatedAt": "2025-06-21T05:08:02.661Z",
+            "__v": 0,
+            "approvalStatus": "approved"
+          },
+          {
+            "images": [],
+            "_id": "6850512922a0cc53adf5f336",
+            "name": "Tasty Bites",
+            "description": "Delicious home-cooked meals",
+            "location": null,
+            "owner": null,
+            "cuisine_type": "Italian",
+            "operating_hours": {
+              "open": "09:00",
+              "close": "22:00",
+              "_id": "6850512922a0cc53adf5f337"
+            },
+            "contact_info": {
+              "phone": "+1234567890",
+              "email": "info@restaurant.com",
+              "_id": "6850512922a0cc53adf5f338"
+            },
+            "menu_items": [],
+            "rating": 0,
+            "total_reviews": 0,
+            "is_active": true,
+            "createdAt": "2025-06-16T17:15:21.218Z",
+            "updatedAt": "2025-06-21T05:57:48.637Z",
+            "__v": 0,
+            "approvalStatus": "approved",
+            "approvedAt": "2025-06-21T05:57:48.635Z",
+            "approvedBy": "6850509bacb8e23f397f8aea"
+          },
+          {
+            "images": [],
+            "_id": "685654604aa078614e3e48b4",
+            "name": "Test Restaurant Format 2 573047230",
+            "description": "A great test restaurant with amazing food",
+            "location": {
+              "location": {
+                "type": "Point",
+                "coordinates": [
+                  72.8777,
+                  19.076
+                ]
+              },
+              "_id": "683700350f8a15197d2abf4f",
+              "name": "Lahore",
+              "country": "6836feb752bd4551a5688fc3",
+              "createdAt": "2025-05-28T12:23:17.301Z",
+              "updatedAt": "2025-05-28T12:23:17.301Z",
+              "__v": 0
+            },
+            "owner": null,
+            "cuisine_type": "International",
+            "operating_hours": {
+              "open": "09:00",
+              "close": "22:00",
+              "_id": "685654604aa078614e3e48b5"
+            },
+            "contact_info": {
+              "phone": "+1234567890",
+              "email": "test.restaurant.573047230@test.com",
+              "_id": "685654604aa078614e3e48b6"
+            },
+            "menu_items": [],
+            "rating": 0,
+            "total_reviews": 0,
+            "is_active": true,
+            "approvalStatus": "pending",
+            "createdAt": "2025-06-21T06:42:40.479Z",
+            "updatedAt": "2025-06-21T06:42:40.479Z",
+            "__v": 0
+          },
+          {
+            "images": [],
+            "_id": "685654614aa078614e3e48ba",
+            "name": "Test Restaurant Format 3 573047230",
+            "description": "A great test restaurant with amazing food",
+            "location": {
+              "location": {
+                "type": "Point",
+                "coordinates": [
+                  72.8777,
+                  19.076
+                ]
+              },
+              "_id": "683700350f8a15197d2abf4f",
+              "name": "Lahore",
+              "country": "6836feb752bd4551a5688fc3",
+              "createdAt": "2025-05-28T12:23:17.301Z",
+              "updatedAt": "2025-05-28T12:23:17.301Z",
+              "__v": 0
+            },
+            "owner": null,
+            "menu_items": [],
+            "rating": 0,
+            "total_reviews": 0,
+            "is_active": true,
+            "approvalStatus": "pending",
+            "createdAt": "2025-06-21T06:42:41.292Z",
+            "updatedAt": "2025-06-21T06:42:41.292Z",
+            "__v": 0
+          },
+          {
+            "images": [],
+            "_id": "685654e3b5d6e0c616464fd9",
+            "name": "Test Restaurant 2123563434",
+            "description": "A great test restaurant with amazing food",
+            "location": {
+              "location": {
+                "type": "Point",
+                "coordinates": [
+                  72.8777,
+                  19.076
+                ]
+              },
+              "_id": "683700350f8a15197d2abf4f",
+              "name": "Lahore",
+              "country": "6836feb752bd4551a5688fc3",
+              "createdAt": "2025-05-28T12:23:17.301Z",
+              "updatedAt": "2025-05-28T12:23:17.301Z",
+              "__v": 0
+            },
+            "owner": null,
+            "cuisine_type": "International",
+            "operating_hours": {
+              "open": "09:00",
+              "close": "22:00",
+              "_id": "685654e3b5d6e0c616464fda"
+            },
+            "contact_info": {
+              "phone": "+1234567890",
+              "email": "test.restaurant.2123563434@test.com",
+              "_id": "685654e3b5d6e0c616464fdb"
+            },
+            "menu_items": [],
+            "rating": 0,
+            "total_reviews": 0,
+            "is_active": true,
+            "approvalStatus": "pending",
+            "createdAt": "2025-06-21T06:44:51.798Z",
+            "updatedAt": "2025-06-21T06:44:51.798Z",
+            "__v": 0
+          },
+          {
+            "images": [],
+            "_id": "685657a8b5d6e0c616465016",
+            "name": "Test Restaurant 1258494797",
+            "description": "A great test restaurant with amazing food for extensive testing",
+            "location": {
+              "location": {
+                "type": "Point",
+                "coordinates": [
+                  72.8777,
+                  19.076
+                ]
+              },
+              "_id": "683700350f8a15197d2abf4f",
+              "name": "Lahore",
+              "country": "6836feb752bd4551a5688fc3",
+              "createdAt": "2025-05-28T12:23:17.301Z",
+              "updatedAt": "2025-05-28T12:23:17.301Z",
+              "__v": 0
+            },
+            "owner": null,
+            "cuisine_type": "International",
+            "operating_hours": {
+              "open": "09:00",
+              "close": "22:00",
+              "_id": "685657a8b5d6e0c616465017"
+            },
+            "contact_info": {
+              "phone": "+1234567890",
+              "email": "test.restaurant.1258494797@test.com",
+              "_id": "685657a8b5d6e0c616465018"
+            },
+            "menu_items": [],
+            "rating": 0,
+            "total_reviews": 0,
+            "is_active": true,
+            "approvalStatus": "pending",
+            "createdAt": "2025-06-21T06:56:40.522Z",
+            "updatedAt": "2025-06-21T06:56:40.522Z",
+            "__v": 0
+          },
+          {
+            "images": [],
+            "_id": "685657a9b5d6e0c61646501c",
+            "name": "Test Restaurant Invalid Location 1258494797",
+            "description": "A restaurant with invalid location ID",
+            "location": null,
+            "owner": null,
+            "cuisine_type": "International",
+            "menu_items": [],
+            "rating": 0,
+            "total_reviews": 0,
+            "is_active": true,
+            "approvalStatus": "pending",
+            "createdAt": "2025-06-21T06:56:41.959Z",
+            "updatedAt": "2025-06-21T06:56:41.959Z",
+            "__v": 0
+          },
+          {
+            "images": [],
+            "_id": "68565abeb5d6e0c616465065",
+            "name": "Test Restaurant 1438903111",
+            "description": "A great test restaurant with amazing food for extensive testing",
+            "location": {
+              "location": {
+                "type": "Point",
+                "coordinates": [
+                  72.8777,
+                  19.076
+                ]
+              },
+              "_id": "683700350f8a15197d2abf4f",
+              "name": "Lahore",
+              "country": "6836feb752bd4551a5688fc3",
+              "createdAt": "2025-05-28T12:23:17.301Z",
+              "updatedAt": "2025-05-28T12:23:17.301Z",
+              "__v": 0
+            },
+            "owner": null,
+            "cuisine_type": "International",
+            "operating_hours": {
+              "open": "09:00",
+              "close": "22:00",
+              "_id": "68565abeb5d6e0c616465066"
+            },
+            "contact_info": {
+              "phone": "+1234567890",
+              "email": "test.restaurant.1438903111@test.com",
+              "_id": "68565abeb5d6e0c616465067"
+            },
+            "menu_items": [],
+            "rating": 0,
+            "total_reviews": 0,
+            "is_active": true,
+            "approvalStatus": "pending",
+            "createdAt": "2025-06-21T07:09:50.943Z",
+            "updatedAt": "2025-06-21T07:09:50.943Z",
+            "__v": 0
+          },
+          {
+            "images": [],
+            "_id": "68565ac0b5d6e0c61646506b",
+            "name": "Test Restaurant Invalid Location 1438903111",
+            "description": "A restaurant with invalid location ID",
+            "location": null,
+            "owner": null,
+            "cuisine_type": "International",
+            "menu_items": [],
+            "rating": 0,
+            "total_reviews": 0,
+            "is_active": true,
+            "approvalStatus": "pending",
+            "createdAt": "2025-06-21T07:09:52.189Z",
+            "updatedAt": "2025-06-21T07:09:52.189Z",
+            "__v": 0
+          },
+          {
+            "images": [],
+            "_id": "68565c6fb5d6e0c6164650a9",
+            "name": "Test Restaurant for Deletion 2111535449",
+            "description": "Restaurant created for deletion testing",
+            "location": null,
+            "owner": null,
+            "cuisine_type": "Test Cuisine",
+            "operating_hours": {
+              "open": "09:00",
+              "close": "22:00",
+              "_id": "68565c6fb5d6e0c6164650aa"
+            },
+            "contact_info": {
+              "phone": "+1234567890",
+              "email": "deletion.test.2111535449@restaurant.com",
+              "_id": "68565c6fb5d6e0c6164650ab"
+            },
+            "menu_items": [],
+            "rating": 0,
+            "total_reviews": 0,
+            "is_active": true,
+            "approvalStatus": "pending",
+            "createdAt": "2025-06-21T07:17:03.291Z",
+            "updatedAt": "2025-06-21T07:17:03.291Z",
+            "__v": 0
+          },
+          {
+            "images": [],
+            "_id": "68565c73b5d6e0c6164650b4",
+            "name": "Second Restaurant for Auth Test 2111535449",
+            "description": "Restaurant created for authorization testing",
+            "location": null,
+            "owner": null,
+            "cuisine_type": "Test Cuisine",
+            "operating_hours": {
+              "open": "09:00",
+              "close": "22:00",
+              "_id": "68565c73b5d6e0c6164650b5"
+            },
+            "contact_info": {
+              "phone": "+1234567890",
+              "email": "second.deletion.test.2111535449@restaurant.com",
+              "_id": "68565c73b5d6e0c6164650b6"
+            },
+            "menu_items": [],
+            "rating": 0,
+            "total_reviews": 0,
+            "is_active": true,
+            "approvalStatus": "pending",
+            "createdAt": "2025-06-21T07:17:07.146Z",
+            "updatedAt": "2025-06-21T07:17:07.146Z",
+            "__v": 0
+          },
+          {
+            "images": [],
+            "_id": "68565c94b5d6e0c6164650c5",
+            "name": "Test Restaurant for Deletion 647618834",
+            "description": "Restaurant created for deletion testing",
+            "location": null,
+            "owner": null,
+            "cuisine_type": "Test Cuisine",
+            "operating_hours": {
+              "open": "09:00",
+              "close": "22:00",
+              "_id": "68565c94b5d6e0c6164650c6"
+            },
+            "contact_info": {
+              "phone": "+1234567890",
+              "email": "deletion.test.647618834@restaurant.com",
+              "_id": "68565c94b5d6e0c6164650c7"
+            },
+            "menu_items": [],
+            "rating": 0,
+            "total_reviews": 0,
+            "is_active": true,
+            "approvalStatus": "pending",
+            "createdAt": "2025-06-21T07:17:40.236Z",
+            "updatedAt": "2025-06-21T07:17:40.236Z",
+            "__v": 0
+          },
+          {
+            "images": [],
+            "_id": "68565c98b5d6e0c6164650d0",
+            "name": "Second Restaurant for Auth Test 647618834",
+            "description": "Restaurant created for authorization testing",
+            "location": null,
+            "owner": null,
+            "cuisine_type": "Test Cuisine",
+            "operating_hours": {
+              "open": "09:00",
+              "close": "22:00",
+              "_id": "68565c98b5d6e0c6164650d1"
+            },
+            "contact_info": {
+              "phone": "+1234567890",
+              "email": "second.deletion.test.647618834@restaurant.com",
+              "_id": "68565c98b5d6e0c6164650d2"
+            },
+            "menu_items": [],
+            "rating": 0,
+            "total_reviews": 0,
+            "is_active": true,
+            "approvalStatus": "pending",
+            "createdAt": "2025-06-21T07:17:44.568Z",
+            "updatedAt": "2025-06-21T07:17:44.568Z",
+            "__v": 0
+          },
+          {
+            "images": [],
+            "_id": "685686d4b5d6e0c6164650e6",
+            "name": "Test Restaurant 1233991603",
+            "description": "A great test restaurant with amazing food for extensive testing",
+            "location": {
+              "location": {
+                "type": "Point",
+                "coordinates": [
+                  72.8777,
+                  19.076
+                ]
+              },
+              "_id": "683700350f8a15197d2abf4f",
+              "name": "Lahore",
+              "country": "6836feb752bd4551a5688fc3",
+              "createdAt": "2025-05-28T12:23:17.301Z",
+              "updatedAt": "2025-05-28T12:23:17.301Z",
+              "__v": 0
+            },
+            "owner": null,
+            "cuisine_type": "International",
+            "operating_hours": {
+              "open": "09:00",
+              "close": "22:00",
+              "_id": "685686d4b5d6e0c6164650e7"
+            },
+            "contact_info": {
+              "phone": "+1234567890",
+              "email": "test.restaurant.1233991603@test.com",
+              "_id": "685686d4b5d6e0c6164650e8"
+            },
+            "menu_items": [],
+            "rating": 0,
+            "total_reviews": 0,
+            "is_active": true,
+            "approvalStatus": "pending",
+            "createdAt": "2025-06-21T10:17:56.474Z",
+            "updatedAt": "2025-06-21T10:17:56.474Z",
+            "__v": 0
+          },
+          {
+            "images": [],
+            "_id": "685686d7b5d6e0c6164650ec",
+            "name": "Test Restaurant Invalid Location 1233991603",
+            "description": "A restaurant with invalid location ID",
+            "location": null,
+            "owner": null,
+            "cuisine_type": "International",
+            "menu_items": [],
+            "rating": 0,
+            "total_reviews": 0,
+            "is_active": true,
+            "approvalStatus": "pending",
+            "createdAt": "2025-06-21T10:17:59.198Z",
+            "updatedAt": "2025-06-21T10:17:59.198Z",
+            "__v": 0
+          },
+          {
+            "images": [],
+            "_id": "68568a87b5d6e0c61646512f",
+            "name": "Test Restaurant 982675257",
+            "description": "A great test restaurant with amazing food for extensive testing",
+            "location": {
+              "location": {
+                "type": "Point",
+                "coordinates": [
+                  72.8777,
+                  19.076
+                ]
+              },
+              "_id": "683700350f8a15197d2abf4f",
+              "name": "Lahore",
+              "country": "6836feb752bd4551a5688fc3",
+              "createdAt": "2025-05-28T12:23:17.301Z",
+              "updatedAt": "2025-05-28T12:23:17.301Z",
+              "__v": 0
+            },
+            "owner": null,
+            "cuisine_type": "International",
+            "operating_hours": {
+              "open": "09:00",
+              "close": "22:00",
+              "_id": "68568a87b5d6e0c616465130"
+            },
+            "contact_info": {
+              "phone": "+1234567890",
+              "email": "test.restaurant.982675257@test.com",
+              "_id": "68568a87b5d6e0c616465131"
+            },
+            "menu_items": [],
+            "rating": 0,
+            "total_reviews": 0,
+            "is_active": true,
+            "approvalStatus": "pending",
+            "createdAt": "2025-06-21T10:33:43.819Z",
+            "updatedAt": "2025-06-21T10:33:43.819Z",
+            "__v": 0
+          },
+          {
+            "images": [],
+            "_id": "68568a89b5d6e0c616465135",
+            "name": "Test Restaurant Invalid Location 982675257",
+            "description": "A restaurant with invalid location ID",
+            "location": null,
+            "owner": null,
+            "cuisine_type": "International",
+            "menu_items": [],
+            "rating": 0,
+            "total_reviews": 0,
+            "is_active": true,
+            "approvalStatus": "pending",
+            "createdAt": "2025-06-21T10:33:45.134Z",
+            "updatedAt": "2025-06-21T10:33:45.134Z",
+            "__v": 0
+          },
+          {
+            "images": [],
+            "_id": "68568ba7b5d6e0c616465179",
+            "name": "Test Restaurant 1438607994",
+            "description": "A great test restaurant with amazing food for extensive testing",
+            "location": {
+              "location": {
+                "type": "Point",
+                "coordinates": [
+                  72.8777,
+                  19.076
+                ]
+              },
+              "_id": "683700350f8a15197d2abf4f",
+              "name": "Lahore",
+              "country": "6836feb752bd4551a5688fc3",
+              "createdAt": "2025-05-28T12:23:17.301Z",
+              "updatedAt": "2025-05-28T12:23:17.301Z",
+              "__v": 0
+            },
+            "owner": null,
+            "cuisine_type": "International",
+            "operating_hours": {
+              "open": "09:00",
+              "close": "22:00",
+              "_id": "68568ba7b5d6e0c61646517a"
+            },
+            "contact_info": {
+              "phone": "+1234567890",
+              "email": "test.restaurant.1438607994@test.com",
+              "_id": "68568ba7b5d6e0c61646517b"
+            },
+            "menu_items": [],
+            "rating": 0,
+            "total_reviews": 0,
+            "is_active": true,
+            "approvalStatus": "pending",
+            "createdAt": "2025-06-21T10:38:31.778Z",
+            "updatedAt": "2025-06-21T10:38:31.778Z",
+            "__v": 0
+          },
+          {
+            "images": [],
+            "_id": "68568ba9b5d6e0c61646517f",
+            "name": "Test Restaurant Invalid Location 1438607994",
+            "description": "A restaurant with invalid location ID",
+            "location": null,
+            "owner": null,
+            "cuisine_type": "International",
+            "menu_items": [],
+            "rating": 0,
+            "total_reviews": 0,
+            "is_active": true,
+            "approvalStatus": "pending",
+            "createdAt": "2025-06-21T10:38:33.101Z",
+            "updatedAt": "2025-06-21T10:38:33.101Z",
+            "__v": 0
+          },
+          {
+            "images": [],
+            "_id": "685692792cb059009740913e",
+            "name": "Debug Restaurant 176406",
+            "description": "A test restaurant for debugging",
+            "location": {
+              "location": {
+                "type": "Point",
+                "coordinates": [
+                  72.8777,
+                  19.076
+                ]
+              },
+              "_id": "683700350f8a15197d2abf4f",
+              "name": "Lahore",
+              "country": "6836feb752bd4551a5688fc3",
+              "createdAt": "2025-05-28T12:23:17.301Z",
+              "updatedAt": "2025-05-28T12:23:17.301Z",
+              "__v": 0
+            },
+            "owner": null,
+            "cuisine_type": "International",
+            "operating_hours": {
+              "open": "09:00",
+              "close": "22:00",
+              "_id": "685692792cb059009740913f"
+            },
+            "contact_info": {
+              "phone": "+1234567890",
+              "email": "restaurant.176406@test.com",
+              "_id": "685692792cb0590097409140"
+            },
+            "menu_items": [],
+            "rating": 0,
+            "total_reviews": 0,
+            "is_active": true,
+            "approvalStatus": "pending",
+            "createdAt": "2025-06-21T11:07:37.780Z",
+            "updatedAt": "2025-06-21T11:07:37.780Z",
+            "__v": 0
+          },
+          {
+            "images": [],
+            "_id": "68569383b5d6e0c6164651cb",
+            "name": "Test Restaurant 371928632",
+            "description": "A great test restaurant with amazing food for extensive testing",
+            "location": {
+              "location": {
+                "type": "Point",
+                "coordinates": [
+                  72.8777,
+                  19.076
+                ]
+              },
+              "_id": "683700350f8a15197d2abf4f",
+              "name": "Lahore",
+              "country": "6836feb752bd4551a5688fc3",
+              "createdAt": "2025-05-28T12:23:17.301Z",
+              "updatedAt": "2025-05-28T12:23:17.301Z",
+              "__v": 0
+            },
+            "owner": null,
+            "cuisine_type": "International",
+            "operating_hours": {
+              "open": "09:00",
+              "close": "22:00",
+              "_id": "68569383b5d6e0c6164651cc"
+            },
+            "contact_info": {
+              "phone": "+1234567890",
+              "email": "test.restaurant.371928632@test.com",
+              "_id": "68569383b5d6e0c6164651cd"
+            },
+            "menu_items": [],
+            "rating": 0,
+            "total_reviews": 0,
+            "is_active": true,
+            "approvalStatus": "pending",
+            "createdAt": "2025-06-21T11:12:03.836Z",
+            "updatedAt": "2025-06-21T11:12:03.836Z",
+            "__v": 0
+          },
+          {
+            "images": [],
+            "_id": "68569385b5d6e0c6164651d1",
+            "name": "Test Restaurant Invalid Location 371928632",
+            "description": "A restaurant with invalid location ID",
+            "location": null,
+            "owner": null,
+            "cuisine_type": "International",
+            "menu_items": [],
+            "rating": 0,
+            "total_reviews": 0,
+            "is_active": true,
+            "approvalStatus": "pending",
+            "createdAt": "2025-06-21T11:12:05.293Z",
+            "updatedAt": "2025-06-21T11:12:05.293Z",
+            "__v": 0
+          },
+          {
+            "images": [],
+            "_id": "68569573cd50289483729a3e",
+            "name": "Test Food Provider",
+            "description": "Test food provider for menu validation",
+            "location": {
+              "location": {
+                "type": "Point",
+                "coordinates": [
+                  72.8777,
+                  19.076
+                ]
+              },
+              "_id": "683700350f8a15197d2abf4f",
+              "name": "Lahore",
+              "country": "6836feb752bd4551a5688fc3",
+              "createdAt": "2025-05-28T12:23:17.301Z",
+              "updatedAt": "2025-05-28T12:23:17.301Z",
+              "__v": 0
+            },
+            "owner": {
+              "registrationComplete": false,
+              "propertyTypes": [],
+              "cuisineTypes": [],
+              "isEmailVerified": false,
+              "_id": "68569548cd50289483729a32",
+              "name": "Test User Menu 587293",
+              "email": "test.menu.587293@test.com",
+              "password": "$2b$10$7VbLdiDbJycUT0R31IqYGuKAqJtcNH5A.b0hQPONetrJutygGemfC",
+              "role": "food_provider",
+              "phone": "U2FsdGVkX18GfX9HfZ7zdp3TU3xBx/Sx9dInb4k37ns=",
+              "gender": "male",
+              "fcmTokens": [],
+              "isActive": true,
+              "failedLoginAttempts": 0,
+              "createdAt": "2025-06-21T11:19:36.414Z",
+              "updatedAt": "2025-06-21T11:19:36.414Z",
+              "__v": 0,
+              "notifications": []
+            },
+            "menu_items": [],
+            "rating": 0,
+            "total_reviews": 0,
+            "is_active": true,
+            "approvalStatus": "pending",
+            "createdAt": "2025-06-21T11:20:19.827Z",
+            "updatedAt": "2025-06-21T11:20:19.827Z",
+            "__v": 0
+          },
+          {
+            "images": [],
+            "_id": "68569c975095308ac0b1f310",
+            "name": "Debug Restaurant 791798783",
+            "description": "A debug restaurant for testing ownership",
+            "location": {
+              "location": {
+                "type": "Point",
+                "coordinates": [
+                  72.8777,
+                  19.076
+                ]
+              },
+              "_id": "683700350f8a15197d2abf4f",
+              "name": "Lahore",
+              "country": "6836feb752bd4551a5688fc3",
+              "createdAt": "2025-05-28T12:23:17.301Z",
+              "updatedAt": "2025-05-28T12:23:17.301Z",
+              "__v": 0
+            },
+            "owner": {
+              "registrationComplete": false,
+              "propertyTypes": [],
+              "cuisineTypes": [],
+              "isEmailVerified": false,
+              "_id": "68569c965095308ac0b1f309",
+              "name": "Debug Food Provider 791798783",
+              "email": "debug.foodprovider.791798783@test.com",
+              "password": "$2b$10$uAmD6HzBoJnPVrpD0lSOiuZtiHSMgUCy1CXawDm1wBBd8zd853f/y",
+              "role": "food_provider",
+              "phone": "U2FsdGVkX1/lxQ0VbL5fZOKog1Z6i5p0g1KKcP7Yk3U=",
+              "gender": "male",
+              "fcmTokens": [],
+              "isActive": true,
+              "failedLoginAttempts": 0,
+              "createdAt": "2025-06-21T11:50:46.065Z",
+              "updatedAt": "2025-06-21T11:50:46.065Z",
+              "__v": 0,
+              "notifications": []
+            },
+            "cuisine_type": "International",
+            "operating_hours": {
+              "open": "09:00",
+              "close": "22:00",
+              "_id": "68569c975095308ac0b1f311"
+            },
+            "contact_info": {
+              "phone": "+1234567890",
+              "email": "debug.restaurant.791798783@test.com",
+              "_id": "68569c975095308ac0b1f312"
+            },
+            "menu_items": [],
+            "rating": 0,
+            "total_reviews": 0,
+            "is_active": true,
+            "approvalStatus": "pending",
+            "createdAt": "2025-06-21T11:50:47.439Z",
+            "updatedAt": "2025-06-21T11:50:47.439Z",
+            "__v": 0
+          },
+          {
+            "images": [],
+            "_id": "68569cd05095308ac0b1f321",
+            "name": "Debug Menu Restaurant 1951568373",
+            "description": "A debug restaurant for testing menu items",
+            "location": {
+              "location": {
+                "type": "Point",
+                "coordinates": [
+                  72.8777,
+                  19.076
+                ]
+              },
+              "_id": "683700350f8a15197d2abf4f",
+              "name": "Lahore",
+              "country": "6836feb752bd4551a5688fc3",
+              "createdAt": "2025-05-28T12:23:17.301Z",
+              "updatedAt": "2025-05-28T12:23:17.301Z",
+              "__v": 0
+            },
+            "owner": {
+              "registrationComplete": false,
+              "propertyTypes": [],
+              "cuisineTypes": [],
+              "isEmailVerified": false,
+              "_id": "68569cce5095308ac0b1f31a",
+              "name": "Debug Menu Provider 1951568373",
+              "email": "debug.menu.1951568373@test.com",
+              "password": "$2b$10$Dk9NVmL58wnZSQFO9.MtmeEHHciaY4LoiX3bm3d4jsFMk7hER/e4i",
+              "role": "food_provider",
+              "phone": "U2FsdGVkX1/NHyjqB+TCtvnNP90KaakTjPqCPWVAO/s=",
+              "gender": "male",
+              "fcmTokens": [],
+              "isActive": true,
+              "failedLoginAttempts": 0,
+              "createdAt": "2025-06-21T11:51:42.757Z",
+              "updatedAt": "2025-06-21T11:51:42.757Z",
+              "__v": 0,
+              "notifications": []
+            },
+            "cuisine_type": "International",
+            "operating_hours": {
+              "open": "09:00",
+              "close": "22:00",
+              "_id": "68569cd05095308ac0b1f322"
+            },
+            "contact_info": {
+              "phone": "+1234567890",
+              "email": "debug.menu.restaurant.1951568373@test.com",
+              "_id": "68569cd05095308ac0b1f323"
+            },
+            "menu_items": [],
+            "rating": 0,
+            "total_reviews": 0,
+            "is_active": true,
+            "approvalStatus": "pending",
+            "createdAt": "2025-06-21T11:51:44.192Z",
+            "updatedAt": "2025-06-21T11:51:44.192Z",
+            "__v": 0
+          },
+          {
+            "images": [],
+            "_id": "68569d525095308ac0b1f388",
+            "name": "Test Restaurant 487489473",
+            "description": "A great test restaurant with amazing food for extensive testing",
+            "location": {
+              "location": {
+                "type": "Point",
+                "coordinates": [
+                  72.8777,
+                  19.076
+                ]
+              },
+              "_id": "683700350f8a15197d2abf4f",
+              "name": "Lahore",
+              "country": "6836feb752bd4551a5688fc3",
+              "createdAt": "2025-05-28T12:23:17.301Z",
+              "updatedAt": "2025-05-28T12:23:17.301Z",
+              "__v": 0
+            },
+            "owner": {
+              "registrationComplete": false,
+              "propertyTypes": [],
+              "cuisineTypes": [],
+              "isEmailVerified": false,
+              "_id": "68569d505095308ac0b1f381",
+              "name": "Test Food Provider 487489473",
+              "email": "foodprovider.minimal.487489473@test.com",
+              "password": "$2b$10$nc1pj4BJgXcVmhH.7PUfXOS3cX0jSlkFlNuSvBWa9D9NjYnZqribi",
+              "role": "food_provider",
+              "phone": "U2FsdGVkX19PYavTzYnzSjCSsHYus4KdjTpNKqwcGkw=",
+              "gender": "male",
+              "fcmTokens": [],
+              "isActive": true,
+              "failedLoginAttempts": 0,
+              "createdAt": "2025-06-21T11:53:52.871Z",
+              "updatedAt": "2025-06-21T11:53:52.871Z",
+              "__v": 0,
+              "notifications": []
+            },
+            "cuisine_type": "International",
+            "operating_hours": {
+              "open": "09:00",
+              "close": "22:00",
+              "_id": "68569d525095308ac0b1f389"
+            },
+            "contact_info": {
+              "phone": "+1234567890",
+              "email": "test.restaurant.487489473@test.com",
+              "_id": "68569d525095308ac0b1f38a"
+            },
+            "menu_items": [],
+            "rating": 0,
+            "total_reviews": 0,
+            "is_active": true,
+            "approvalStatus": "pending",
+            "createdAt": "2025-06-21T11:53:54.899Z",
+            "updatedAt": "2025-06-21T11:53:54.899Z",
+            "__v": 0
+          },
+          {
+            "images": [],
+            "_id": "68569e535095308ac0b1f39e",
+            "name": "Test Restaurant 1679528826",
+            "description": "A great test restaurant with amazing food for extensive testing",
+            "location": {
+              "location": {
+                "type": "Point",
+                "coordinates": [
+                  72.8777,
+                  19.076
+                ]
+              },
+              "_id": "683700350f8a15197d2abf4f",
+              "name": "Lahore",
+              "country": "6836feb752bd4551a5688fc3",
+              "createdAt": "2025-05-28T12:23:17.301Z",
+              "updatedAt": "2025-05-28T12:23:17.301Z",
+              "__v": 0
+            },
+            "owner": {
+              "registrationComplete": false,
+              "propertyTypes": [],
+              "cuisineTypes": [],
+              "isEmailVerified": false,
+              "_id": "68569e515095308ac0b1f397",
+              "name": "Test Food Provider 1679528826",
+              "email": "foodprovider.minimal.1679528826@test.com",
+              "password": "$2b$10$F.JD1v5AQKfA4jOq36pxie41gzlyrjhj/f0tL55Hxh/u3Vz.KZCI2",
+              "role": "food_provider",
+              "phone": "U2FsdGVkX18UrqD+08V5qTnLmRtHRCkHGp+una0nn/o=",
+              "gender": "male",
+              "fcmTokens": [],
+              "isActive": true,
+              "failedLoginAttempts": 0,
+              "createdAt": "2025-06-21T11:58:09.998Z",
+              "updatedAt": "2025-06-21T11:58:09.998Z",
+              "__v": 0,
+              "notifications": []
+            },
+            "cuisine_type": "International",
+            "operating_hours": {
+              "open": "09:00",
+              "close": "22:00",
+              "_id": "68569e535095308ac0b1f39f"
+            },
+            "contact_info": {
+              "phone": "+1234567890",
+              "email": "test.restaurant.1679528826@test.com",
+              "_id": "68569e535095308ac0b1f3a0"
+            },
+            "menu_items": [],
+            "rating": 0,
+            "total_reviews": 0,
+            "is_active": true,
+            "approvalStatus": "pending",
+            "createdAt": "2025-06-21T11:58:11.894Z",
+            "updatedAt": "2025-06-21T11:58:11.894Z",
+            "__v": 0
+          },
+          {
+            "images": [],
+            "_id": "68569e875095308ac0b1f3b4",
+            "name": "Test Restaurant 1611753475",
+            "description": "A great test restaurant with amazing food for extensive testing",
+            "location": {
+              "location": {
+                "type": "Point",
+                "coordinates": [
+                  72.8777,
+                  19.076
+                ]
+              },
+              "_id": "683700350f8a15197d2abf4f",
+              "name": "Lahore",
+              "country": "6836feb752bd4551a5688fc3",
+              "createdAt": "2025-05-28T12:23:17.301Z",
+              "updatedAt": "2025-05-28T12:23:17.301Z",
+              "__v": 0
+            },
+            "owner": {
+              "registrationComplete": false,
+              "propertyTypes": [],
+              "cuisineTypes": [],
+              "isEmailVerified": false,
+              "_id": "68569e855095308ac0b1f3ad",
+              "name": "Test Food Provider 1611753475",
+              "email": "foodprovider.minimal.1611753475@test.com",
+              "password": "$2b$10$KcsLkkNiC7mWPxj/kyHsL.JsSScMdoMxpa.Pa9W9r28EbnfzvQnkW",
+              "role": "food_provider",
+              "phone": "U2FsdGVkX1/k6mKGktnujdtvcouGLaLJm2KhM1EqjEU=",
+              "gender": "male",
+              "fcmTokens": [],
+              "isActive": true,
+              "failedLoginAttempts": 0,
+              "createdAt": "2025-06-21T11:59:01.680Z",
+              "updatedAt": "2025-06-21T11:59:01.680Z",
+              "__v": 0,
+              "notifications": []
+            },
+            "cuisine_type": "International",
+            "operating_hours": {
+              "open": "09:00",
+              "close": "22:00",
+              "_id": "68569e875095308ac0b1f3b5"
+            },
+            "contact_info": {
+              "phone": "+1234567890",
+              "email": "test.restaurant.1611753475@test.com",
+              "_id": "68569e875095308ac0b1f3b6"
+            },
+            "menu_items": [],
+            "rating": 0,
+            "total_reviews": 0,
+            "is_active": true,
+            "approvalStatus": "pending",
+            "createdAt": "2025-06-21T11:59:03.085Z",
+            "updatedAt": "2025-06-21T11:59:03.085Z",
+            "__v": 0
+          },
+          {
+            "images": [],
+            "_id": "68569eb05095308ac0b1f3ca",
+            "name": "Test Restaurant 1635351021",
+            "description": "A great test restaurant with amazing food for extensive testing",
+            "location": {
+              "location": {
+                "type": "Point",
+                "coordinates": [
+                  72.8777,
+                  19.076
+                ]
+              },
+              "_id": "683700350f8a15197d2abf4f",
+              "name": "Lahore",
+              "country": "6836feb752bd4551a5688fc3",
+              "createdAt": "2025-05-28T12:23:17.301Z",
+              "updatedAt": "2025-05-28T12:23:17.301Z",
+              "__v": 0
+            },
+            "owner": {
+              "registrationComplete": false,
+              "propertyTypes": [],
+              "cuisineTypes": [],
+              "isEmailVerified": false,
+              "_id": "68569eae5095308ac0b1f3c3",
+              "name": "Test Food Provider 1635351021",
+              "email": "foodprovider.minimal.1635351021@test.com",
+              "password": "$2b$10$HpSVFomF0nROiYJJNKxIxOPNHNtOl1eFnpEEhrpzjwGuusidVewsO",
+              "role": "food_provider",
+              "phone": "U2FsdGVkX18ciZKnu1reIFQ9ac86h1j5Sk50IAIkgZk=",
+              "gender": "male",
+              "fcmTokens": [],
+              "isActive": true,
+              "failedLoginAttempts": 0,
+              "createdAt": "2025-06-21T11:59:42.451Z",
+              "updatedAt": "2025-06-21T11:59:42.451Z",
+              "__v": 0,
+              "notifications": []
+            },
+            "cuisine_type": "International",
+            "operating_hours": {
+              "open": "09:00",
+              "close": "22:00",
+              "_id": "68569eb05095308ac0b1f3cb"
+            },
+            "contact_info": {
+              "phone": "+1234567890",
+              "email": "test.restaurant.1635351021@test.com",
+              "_id": "68569eb05095308ac0b1f3cc"
+            },
+            "menu_items": [],
+            "rating": 0,
+            "total_reviews": 0,
+            "is_active": true,
+            "approvalStatus": "pending",
+            "createdAt": "2025-06-21T11:59:44.038Z",
+            "updatedAt": "2025-06-21T11:59:44.038Z",
+            "__v": 0
+          },
+          {
+            "images": [],
+            "_id": "68569edb5095308ac0b1f3e0",
+            "name": "Test Restaurant 577683256",
+            "description": "A great test restaurant with amazing food for extensive testing",
+            "location": {
+              "location": {
+                "type": "Point",
+                "coordinates": [
+                  72.8777,
+                  19.076
+                ]
+              },
+              "_id": "683700350f8a15197d2abf4f",
+              "name": "Lahore",
+              "country": "6836feb752bd4551a5688fc3",
+              "createdAt": "2025-05-28T12:23:17.301Z",
+              "updatedAt": "2025-05-28T12:23:17.301Z",
+              "__v": 0
+            },
+            "owner": {
+              "registrationComplete": false,
+              "propertyTypes": [],
+              "cuisineTypes": [],
+              "isEmailVerified": false,
+              "_id": "68569ed95095308ac0b1f3d9",
+              "name": "Test Food Provider 577683256",
+              "email": "foodprovider.minimal.577683256@test.com",
+              "password": "$2b$10$9W533ll7CetMHS1ynf.IluNTmMmQl00TivgLOVK8AHKzMEaqFrWZS",
+              "role": "food_provider",
+              "phone": "U2FsdGVkX1/AFrrhs/T11v9ctP9MS4xE3KnAmq80PYU=",
+              "gender": "male",
+              "fcmTokens": [],
+              "isActive": true,
+              "failedLoginAttempts": 0,
+              "createdAt": "2025-06-21T12:00:25.588Z",
+              "updatedAt": "2025-06-21T12:00:25.588Z",
+              "__v": 0,
+              "notifications": []
+            },
+            "cuisine_type": "International",
+            "operating_hours": {
+              "open": "09:00",
+              "close": "22:00",
+              "_id": "68569edb5095308ac0b1f3e1"
+            },
+            "contact_info": {
+              "phone": "+1234567890",
+              "email": "test.restaurant.577683256@test.com",
+              "_id": "68569edb5095308ac0b1f3e2"
+            },
+            "menu_items": [],
+            "rating": 0,
+            "total_reviews": 0,
+            "is_active": true,
+            "approvalStatus": "pending",
+            "createdAt": "2025-06-21T12:00:27.150Z",
+            "updatedAt": "2025-06-21T12:00:27.150Z",
+            "__v": 0
+          },
+          {
+            "_id": "6856c416ff0bc4a467f5a321",
+            "name": "Test Restaurant 948762269",
+            "description": "A great test restaurant with amazing food",
+            "location": {
+              "location": {
+                "type": "Point",
+                "coordinates": [
+                  72.8777,
+                  19.076
+                ]
+              },
+              "_id": "683700350f8a15197d2abf4f",
+              "name": "Lahore",
+              "country": "6836feb752bd4551a5688fc3",
+              "createdAt": "2025-05-28T12:23:17.301Z",
+              "updatedAt": "2025-05-28T12:23:17.301Z",
+              "__v": 0
+            },
+            "owner": {
+              "registrationComplete": false,
+              "propertyTypes": [],
+              "cuisineTypes": [],
+              "isEmailVerified": false,
+              "_id": "6856c414ff0bc4a467f5a31a",
+              "name": "Updated Food Provider Name",
+              "email": "foodprovider.test.948762269@test.com",
+              "password": "$2b$10$dOPdA4FJoAa8/4KJnHf73e9aYn4tLs2yOdcZkKjHRdJS1bFkaDvam",
+              "role": "food_provider",
+              "phone": "U2FsdGVkX18km2qAvfue7Bz/uCO0n0m5b86celsrwyI=",
+              "gender": "male",
+              "fcmTokens": [
+                "test_fcm_token_948762269"
+              ],
+              "failedLoginAttempts": 0,
+              "createdAt": "2025-06-21T14:39:16.729Z",
+              "updatedAt": "2025-06-21T14:40:18.034Z",
+              "__v": 0,
+              "isActive": true,
+              "notifications": []
+            },
+            "cuisine_type": "International",
+            "operating_hours": {
+              "open": "09:00",
+              "close": "22:00",
+              "_id": "6856c416ff0bc4a467f5a322"
+            },
+            "contact_info": {
+              "phone": "+1234567890",
+              "email": "test.restaurant.948762269@test.com",
+              "_id": "6856c416ff0bc4a467f5a323"
+            },
+            "menu_items": [],
+            "rating": 0,
+            "total_reviews": 0,
+            "is_active": true,
+            "approvalStatus": "pending",
+            "images": [],
+            "createdAt": "2025-06-21T14:39:18.058Z",
+            "updatedAt": "2025-06-21T14:39:18.058Z",
+            "__v": 0
+          }
+        ],
+        "error": null
+      },
+      {
+        "name": "Get Menu Items",
+        "method": "GET",
+        "path": "/api/menu-items?limit=10",
+        "status": 200,
+        "success": true,
+        "response": [
+          {
+            "_id": "68371dfe492f35a187f47446",
+            "name": "Butter Chicken",
+            "price": 250,
+            "description": "Creamy, rich butter chicken curry",
+            "provider": {
+              "images": [],
+              "_id": "68371b070529ec2181c4b731",
+              "name": "Tasty Bites",
+              "description": "Delicious home-cooked meals",
+              "location": "683700350f8a15197d2abf4f",
+              "owner": "683700350f8a15197d2abf50",
+              "menu_items": [],
+              "rating": 0,
+              "total_reviews": 0,
+              "is_active": true,
+              "createdAt": "2025-05-28T14:17:43.132Z",
+              "updatedAt": "2025-06-21T05:08:02.661Z",
+              "__v": 0,
+              "approvalStatus": "approved"
+            },
+            "createdAt": "2025-05-28T14:30:22.627Z",
+            "updatedAt": "2025-06-21T14:40:16.203Z",
+            "__v": 0,
+            "approvalStatus": "approved",
+            "approvedAt": "2025-06-21T14:40:15.426Z",
+            "approvedBy": "6850509bacb8e23f397f8aea",
+            "isActive": false
+          },
+          {
+            "isActive": true,
+            "approvalStatus": "pending",
+            "_id": "68371e1b492f35a187f4744c",
+            "name": "Butter Chicken",
+            "price": 250,
+            "description": "Creamy, rich butter chicken curry",
+            "provider": {
+              "images": [],
+              "_id": "68371b070529ec2181c4b731",
+              "name": "Tasty Bites",
+              "description": "Delicious home-cooked meals",
+              "location": "683700350f8a15197d2abf4f",
+              "owner": "683700350f8a15197d2abf50",
+              "menu_items": [],
+              "rating": 0,
+              "total_reviews": 0,
+              "is_active": true,
+              "createdAt": "2025-05-28T14:17:43.132Z",
+              "updatedAt": "2025-06-21T05:08:02.661Z",
+              "__v": 0,
+              "approvalStatus": "approved"
+            },
+            "createdAt": "2025-05-28T14:30:51.444Z",
+            "updatedAt": "2025-05-28T14:30:51.444Z",
+            "__v": 0
+          },
+          {
+            "isActive": true,
+            "approvalStatus": "pending",
+            "_id": "68373296cb81cb035b17e9ce",
+            "name": "Margherita Pizza",
+            "price": 350,
+            "description": "Classic Italian pizza with fresh tomatoes, mozzarella, and basil",
+            "provider": null,
+            "createdAt": "2025-05-28T15:58:14.585Z",
+            "updatedAt": "2025-05-28T15:58:14.585Z",
+            "__v": 0
+          },
+          {
+            "_id": "68569574cd50289483729a43",
+            "name": "Test Menu Item",
+            "price": 15.99,
+            "description": "Test description",
+            "provider": {
+              "images": [],
+              "_id": "68569573cd50289483729a3e",
+              "name": "Test Food Provider",
+              "description": "Test food provider for menu validation",
+              "location": "683700350f8a15197d2abf4f",
+              "owner": "68569548cd50289483729a32",
+              "menu_items": [],
+              "rating": 0,
+              "total_reviews": 0,
+              "is_active": true,
+              "approvalStatus": "pending",
+              "createdAt": "2025-06-21T11:20:19.827Z",
+              "updatedAt": "2025-06-21T11:20:19.827Z",
+              "__v": 0
+            },
+            "isActive": true,
+            "approvalStatus": "pending",
+            "createdAt": "2025-06-21T11:20:20.513Z",
+            "updatedAt": "2025-06-21T11:20:20.513Z",
+            "__v": 0
+          },
+          {
+            "_id": "68569cd05095308ac0b1f328",
+            "name": "Debug Menu Item 1951568373",
+            "price": 12.99,
+            "description": "A debug menu item",
+            "provider": {
+              "images": [],
+              "_id": "68569cd05095308ac0b1f321",
+              "name": "Debug Menu Restaurant 1951568373",
+              "description": "A debug restaurant for testing menu items",
+              "location": "683700350f8a15197d2abf4f",
+              "owner": "68569cce5095308ac0b1f31a",
+              "cuisine_type": "International",
+              "operating_hours": {
+                "open": "09:00",
+                "close": "22:00",
+                "_id": "68569cd05095308ac0b1f322"
+              },
+              "contact_info": {
+                "phone": "+1234567890",
+                "email": "debug.menu.restaurant.1951568373@test.com",
+                "_id": "68569cd05095308ac0b1f323"
+              },
+              "menu_items": [],
+              "rating": 0,
+              "total_reviews": 0,
+              "is_active": true,
+              "approvalStatus": "pending",
+              "createdAt": "2025-06-21T11:51:44.192Z",
+              "updatedAt": "2025-06-21T11:51:44.192Z",
+              "__v": 0
+            },
+            "isActive": true,
+            "approvalStatus": "pending",
+            "createdAt": "2025-06-21T11:51:44.926Z",
+            "updatedAt": "2025-06-21T11:51:44.926Z",
+            "__v": 0
+          },
+          {
+            "_id": "68569d535095308ac0b1f38f",
+            "name": "Test Menu Item 487489473",
+            "price": 12.99,
+            "description": "A delicious test food item",
+            "provider": {
+              "images": [],
+              "_id": "68569d525095308ac0b1f388",
+              "name": "Test Restaurant 487489473",
+              "description": "A great test restaurant with amazing food for extensive testing",
+              "location": "683700350f8a15197d2abf4f",
+              "owner": "68569d505095308ac0b1f381",
+              "cuisine_type": "International",
+              "operating_hours": {
+                "open": "09:00",
+                "close": "22:00",
+                "_id": "68569d525095308ac0b1f389"
+              },
+              "contact_info": {
+                "phone": "+1234567890",
+                "email": "test.restaurant.487489473@test.com",
+                "_id": "68569d525095308ac0b1f38a"
+              },
+              "menu_items": [],
+              "rating": 0,
+              "total_reviews": 0,
+              "is_active": true,
+              "approvalStatus": "pending",
+              "createdAt": "2025-06-21T11:53:54.899Z",
+              "updatedAt": "2025-06-21T11:53:54.899Z",
+              "__v": 0
+            },
+            "isActive": true,
+            "approvalStatus": "pending",
+            "createdAt": "2025-06-21T11:53:55.578Z",
+            "updatedAt": "2025-06-21T11:53:55.578Z",
+            "__v": 0
+          },
+          {
+            "_id": "68569e565095308ac0b1f3a5",
+            "name": "Test Menu Item 1679528826",
+            "price": 12.99,
+            "description": "A delicious test food item",
+            "provider": {
+              "images": [],
+              "_id": "68569e535095308ac0b1f39e",
+              "name": "Test Restaurant 1679528826",
+              "description": "A great test restaurant with amazing food for extensive testing",
+              "location": "683700350f8a15197d2abf4f",
+              "owner": "68569e515095308ac0b1f397",
+              "cuisine_type": "International",
+              "operating_hours": {
+                "open": "09:00",
+                "close": "22:00",
+                "_id": "68569e535095308ac0b1f39f"
+              },
+              "contact_info": {
+                "phone": "+1234567890",
+                "email": "test.restaurant.1679528826@test.com",
+                "_id": "68569e535095308ac0b1f3a0"
+              },
+              "menu_items": [],
+              "rating": 0,
+              "total_reviews": 0,
+              "is_active": true,
+              "approvalStatus": "pending",
+              "createdAt": "2025-06-21T11:58:11.894Z",
+              "updatedAt": "2025-06-21T11:58:11.894Z",
+              "__v": 0
+            },
+            "isActive": true,
+            "approvalStatus": "pending",
+            "createdAt": "2025-06-21T11:58:14.239Z",
+            "updatedAt": "2025-06-21T11:58:14.239Z",
+            "__v": 0
+          },
+          {
+            "_id": "68569e875095308ac0b1f3bb",
+            "name": "Test Menu Item 1611753475",
+            "price": 12.99,
+            "description": "A delicious test food item",
+            "provider": {
+              "images": [],
+              "_id": "68569e875095308ac0b1f3b4",
+              "name": "Test Restaurant 1611753475",
+              "description": "A great test restaurant with amazing food for extensive testing",
+              "location": "683700350f8a15197d2abf4f",
+              "owner": "68569e855095308ac0b1f3ad",
+              "cuisine_type": "International",
+              "operating_hours": {
+                "open": "09:00",
+                "close": "22:00",
+                "_id": "68569e875095308ac0b1f3b5"
+              },
+              "contact_info": {
+                "phone": "+1234567890",
+                "email": "test.restaurant.1611753475@test.com",
+                "_id": "68569e875095308ac0b1f3b6"
+              },
+              "menu_items": [],
+              "rating": 0,
+              "total_reviews": 0,
+              "is_active": true,
+              "approvalStatus": "pending",
+              "createdAt": "2025-06-21T11:59:03.085Z",
+              "updatedAt": "2025-06-21T11:59:03.085Z",
+              "__v": 0
+            },
+            "isActive": true,
+            "approvalStatus": "pending",
+            "createdAt": "2025-06-21T11:59:03.691Z",
+            "updatedAt": "2025-06-21T11:59:03.691Z",
+            "__v": 0
+          },
+          {
+            "_id": "68569eb05095308ac0b1f3d1",
+            "name": "Test Menu Item 1635351021",
+            "price": 12.99,
+            "description": "A delicious test food item",
+            "provider": {
+              "images": [],
+              "_id": "68569eb05095308ac0b1f3ca",
+              "name": "Test Restaurant 1635351021",
+              "description": "A great test restaurant with amazing food for extensive testing",
+              "location": "683700350f8a15197d2abf4f",
+              "owner": "68569eae5095308ac0b1f3c3",
+              "cuisine_type": "International",
+              "operating_hours": {
+                "open": "09:00",
+                "close": "22:00",
+                "_id": "68569eb05095308ac0b1f3cb"
+              },
+              "contact_info": {
+                "phone": "+1234567890",
+                "email": "test.restaurant.1635351021@test.com",
+                "_id": "68569eb05095308ac0b1f3cc"
+              },
+              "menu_items": [],
+              "rating": 0,
+              "total_reviews": 0,
+              "is_active": true,
+              "approvalStatus": "pending",
+              "createdAt": "2025-06-21T11:59:44.038Z",
+              "updatedAt": "2025-06-21T11:59:44.038Z",
+              "__v": 0
+            },
+            "isActive": true,
+            "approvalStatus": "pending",
+            "createdAt": "2025-06-21T11:59:44.866Z",
+            "updatedAt": "2025-06-21T11:59:44.866Z",
+            "__v": 0
+          },
+          {
+            "_id": "68569edb5095308ac0b1f3e7",
+            "name": "Test Menu Item 577683256",
+            "price": 12.99,
+            "description": "A delicious test food item",
+            "provider": {
+              "images": [],
+              "_id": "68569edb5095308ac0b1f3e0",
+              "name": "Test Restaurant 577683256",
+              "description": "A great test restaurant with amazing food for extensive testing",
+              "location": "683700350f8a15197d2abf4f",
+              "owner": "68569ed95095308ac0b1f3d9",
+              "cuisine_type": "International",
+              "operating_hours": {
+                "open": "09:00",
+                "close": "22:00",
+                "_id": "68569edb5095308ac0b1f3e1"
+              },
+              "contact_info": {
+                "phone": "+1234567890",
+                "email": "test.restaurant.577683256@test.com",
+                "_id": "68569edb5095308ac0b1f3e2"
+              },
+              "menu_items": [],
+              "rating": 0,
+              "total_reviews": 0,
+              "is_active": true,
+              "approvalStatus": "pending",
+              "createdAt": "2025-06-21T12:00:27.150Z",
+              "updatedAt": "2025-06-21T12:00:27.150Z",
+              "__v": 0
+            },
+            "isActive": true,
+            "approvalStatus": "pending",
+            "createdAt": "2025-06-21T12:00:27.733Z",
+            "updatedAt": "2025-06-21T12:00:27.733Z",
+            "__v": 0
+          }
+        ],
+        "error": null
+      },
+      {
+        "name": "Create Booking",
+        "method": "POST",
+        "path": "/api/bookings",
+        "status": 401,
+        "success": false,
+        "response": {
+          "message": "Unauthorized",
+          "statusCode": 401
+        },
+        "error": {
+          "message": "Unauthorized",
+          "statusCode": 401
+        }
+      },
+      {
+        "name": "Get Student Bookings",
+        "method": "GET",
+        "path": "/api/bookings/my-bookings",
+        "status": 401,
+        "success": false,
+        "response": {
+          "message": "Unauthorized",
+          "statusCode": 401
+        },
+        "error": {
+          "message": "Unauthorized",
+          "statusCode": 401
+        }
+      },
+      {
+        "name": "Create Food Order",
+        "method": "POST",
+        "path": "/api/orders",
+        "status": 401,
+        "success": false,
+        "response": {
+          "message": "Unauthorized",
+          "statusCode": 401
+        },
+        "error": {
+          "message": "Unauthorized",
+          "statusCode": 401
+        }
+      },
+      {
+        "name": "Get Student Orders",
+        "method": "GET",
+        "path": "/api/orders/my-orders",
+        "status": 401,
+        "success": false,
+        "response": {
+          "message": "Unauthorized",
+          "statusCode": 401
+        },
+        "error": {
+          "message": "Unauthorized",
+          "statusCode": 401
+        }
+      }
+    ],
+    "landlord": [
+      {
+        "name": "Register as Landlord",
+        "method": "POST",
+        "path": "/api/auth/register",
+        "status": 400,
+        "success": false,
+        "response": {
+          "message": [
+            "Country code must start with + and contain 1-4 digits",
+            "countryCode must be a string",
+            "countryCode should not be empty"
+          ],
+          "error": "Bad Request",
+          "statusCode": 400
+        },
+        "error": {
+          "message": [
+            "Country code must start with + and contain 1-4 digits",
+            "countryCode must be a string",
+            "countryCode should not be empty"
+          ],
+          "error": "Bad Request",
+          "statusCode": 400
+        }
+      },
+      {
+        "name": "Landlord Login",
+        "method": "POST",
+        "path": "/api/auth/login",
+        "status": 401,
+        "success": false,
+        "response": {
+          "message": "Invalid credentials",
+          "error": "Unauthorized",
+          "statusCode": 401
+        },
+        "error": {
+          "message": "Invalid credentials",
+          "error": "Unauthorized",
+          "statusCode": 401
+        }
+      }
+    ],
+    "foodProvider": [
+      {
+        "name": "Register as Food Provider",
+        "method": "POST",
+        "path": "/api/auth/register",
+        "status": 400,
+        "success": false,
+        "response": {
+          "message": [
+            "Country code must start with + and contain 1-4 digits",
+            "countryCode must be a string",
+            "countryCode should not be empty"
+          ],
+          "error": "Bad Request",
+          "statusCode": 400
+        },
+        "error": {
+          "message": [
+            "Country code must start with + and contain 1-4 digits",
+            "countryCode must be a string",
+            "countryCode should not be empty"
+          ],
+          "error": "Bad Request",
+          "statusCode": 400
+        }
+      },
+      {
+        "name": "Food Provider Login",
+        "method": "POST",
+        "path": "/api/auth/login",
+        "status": 401,
+        "success": false,
+        "response": {
+          "message": "Invalid credentials",
+          "error": "Unauthorized",
+          "statusCode": 401
+        },
+        "error": {
+          "message": "Invalid credentials",
+          "error": "Unauthorized",
+          "statusCode": 401
+        }
+      }
+    ],
+    "general": [
+      {
+        "name": "Health Check",
+        "method": "GET",
+        "path": "/api/health",
+        "status": 404,
+        "success": false,
+        "response": {
+          "message": "Cannot GET /api/health",
+          "error": "Not Found",
+          "statusCode": 404
+        },
+        "error": {
+          "message": "Cannot GET /api/health",
+          "error": "Not Found",
+          "statusCode": 404
+        }
+      },
+      {
+        "name": "Get Cities",
+        "method": "GET",
+        "path": "/api/locations/cities",
+        "status": 404,
+        "success": false,
+        "response": {
+          "message": "Cannot GET /api/locations/cities",
+          "error": "Not Found",
+          "statusCode": 404
+        },
+        "error": {
+          "message": "Cannot GET /api/locations/cities",
+          "error": "Not Found",
+          "statusCode": 404
+        }
+      },
+      {
+        "name": "Search Public Accommodations",
+        "method": "GET",
+        "path": "/api/accommodations/search?city=Karachi",
+        "status": 500,
+        "success": false,
+        "response": {
+          "statusCode": 500,
+          "message": "Internal server error"
+        },
+        "error": {
+          "statusCode": 500,
+          "message": "Internal server error"
+        }
+      },
+      {
+        "name": "Get Popular Food Providers",
+        "method": "GET",
+        "path": "/api/food-providers/popular",
+        "status": 500,
+        "success": false,
+        "response": {
+          "statusCode": 500,
+          "message": "Internal server error"
+        },
+        "error": {
+          "statusCode": 500,
+          "message": "Internal server error"
+        }
+      },
+      {
+        "name": "Get App Statistics",
+        "method": "GET",
+        "path": "/api/analytics/public-stats",
+        "status": 404,
+        "success": false,
+        "response": {
+          "message": "Cannot GET /api/analytics/public-stats",
+          "error": "Not Found",
+          "statusCode": 404
+        },
+        "error": {
+          "message": "Cannot GET /api/analytics/public-stats",
+          "error": "Not Found",
+          "statusCode": 404
+        }
+      }
+    ]
+  }
+}
