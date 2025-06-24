@@ -1,7 +1,7 @@
 const axios = require('axios');
 
 // Base URL for API
-const BASE_URL = 'https://staykaru-backend-8b2a0d5d86e4.herokuapp.com';
+const BASE_URL = 'https://staykaru-backend-60ed08adb2a7.herokuapp.com';
 
 // Test credentials
 const STUDENT_CREDENTIALS = {
@@ -68,29 +68,23 @@ async function testAccommodations(token, userType) {
     console.log(`❌ All accommodations failed: ${JSON.stringify(allAccommodations.error)}`);
   }
   
-  // Test 2: Get accommodations by city
-  const cities = ['Islamabad', 'Lahore', 'Karachi'];
-  for (const city of cities) {
-    const cityAccommodations = await makeAuthenticatedRequest(`/api/accommodations?city=${city}`, 'GET', null, token);
-    if (cityAccommodations.success) {
-      console.log(`✅ ${city} accommodations: ${cityAccommodations.data.length || 0} found`);
-    } else {
-      console.log(`❌ ${city} accommodations failed: ${JSON.stringify(cityAccommodations.error)}`);
-    }
+  // Test 2: Get accommodations with price filter (skip city filter since it needs ObjectId)
+  const priceFilterAccommodations = await makeAuthenticatedRequest('/api/accommodations?minPrice=5000&maxPrice=10000', 'GET', null, token);
+  if (priceFilterAccommodations.success) {
+    console.log(`✅ Price filtered accommodations: ${priceFilterAccommodations.data.length || 0} found`);
+  } else {
+    console.log(`❌ Price filtered accommodations failed: ${JSON.stringify(priceFilterAccommodations.error)}`);
   }
   
-  // Test 3: Search accommodations with filters
-  const searchFilters = {
-    maxPrice: 10000,
-    minPrice: 5000,
-    accommodationType: 'Hotel'
-  };
-  
-  const searchResult = await makeAuthenticatedRequest('/api/accommodations/search', 'POST', searchFilters, token);
-  if (searchResult.success) {
-    console.log(`✅ Search with filters: ${searchResult.data.length || 0} found`);
-  } else {
-    console.log(`❌ Search with filters failed: ${JSON.stringify(searchResult.error)}`);
+  // Test 3: Get a specific accommodation by ID
+  if (allAccommodations.success && allAccommodations.data.length > 0) {
+    const accommodationId = allAccommodations.data[0]._id;
+    const singleAccommodation = await makeAuthenticatedRequest(`/api/accommodations/${accommodationId}`, 'GET', null, token);
+    if (singleAccommodation.success) {
+      console.log(`✅ Single accommodation: ${singleAccommodation.data.title}`);
+    } else {
+      console.log(`❌ Single accommodation failed: ${JSON.stringify(singleAccommodation.error)}`);
+    }
   }
   
   return allAccommodations.success && allAccommodations.data.length > 0;
@@ -98,39 +92,42 @@ async function testAccommodations(token, userType) {
 
 // Test function for restaurants
 async function testRestaurants(token, userType) {
-  console.log(`\n🍽️ Testing Restaurants for ${userType}...`);
+  console.log(`\n🍽️ Testing Food Providers for ${userType}...`);
   
-  // Test 1: Get all restaurants
-  const allRestaurants = await makeAuthenticatedRequest('/api/food-service/restaurants', 'GET', null, token);
-  if (allRestaurants.success) {
-    console.log(`✅ All restaurants: ${allRestaurants.data.length || 0} found`);
-    if (allRestaurants.data.length > 0) {
-      console.log(`   🍽️ Sample restaurant: ${allRestaurants.data[0].name}`);
+  // Test 1: Get all food providers
+  const allProviders = await makeAuthenticatedRequest('/api/food-providers', 'GET', null, token);
+  if (allProviders.success) {
+    console.log(`✅ All food providers: ${allProviders.data.length || 0} found`);
+    if (allProviders.data.length > 0) {
+      console.log(`   🍽️ Sample provider: ${allProviders.data[0].name}`);
     }
   } else {
-    console.log(`❌ All restaurants failed: ${JSON.stringify(allRestaurants.error)}`);
+    console.log(`❌ All food providers failed: ${JSON.stringify(allProviders.error)}`);
   }
   
-  // Test 2: Get restaurant by ID and menu items
-  if (allRestaurants.success && allRestaurants.data.length > 0) {
-    const restaurantId = allRestaurants.data[0]._id;
-    const restaurant = await makeAuthenticatedRequest(`/api/food-service/restaurants/${restaurantId}`, 'GET', null, token);
-    if (restaurant.success) {
-      console.log(`✅ Restaurant details: ${restaurant.data.name}`);
-    } else {
-      console.log(`❌ Restaurant details failed: ${JSON.stringify(restaurant.error)}`);
+  // Test 2: Get menu items
+  const menuItems = await makeAuthenticatedRequest('/api/menu-items', 'GET', null, token);
+  if (menuItems.success) {
+    console.log(`✅ Menu items: ${menuItems.data.length || 0} found`);
+    if (menuItems.data.length > 0) {
+      console.log(`   🍱 Sample item: ${menuItems.data[0].name}`);
     }
-    
-    // Get menu items
-    const menuItems = await makeAuthenticatedRequest(`/api/food-service/restaurants/${restaurantId}/menu-items`, 'GET', null, token);
-    if (menuItems.success) {
-      console.log(`✅ Menu items: ${menuItems.data.length || 0} found`);
+  } else {
+    console.log(`❌ Menu items failed: ${JSON.stringify(menuItems.error)}`);
+  }
+  
+  // Test 3: Get food provider by ID
+  if (allProviders.success && allProviders.data.length > 0) {
+    const providerId = allProviders.data[0]._id;
+    const provider = await makeAuthenticatedRequest(`/api/food-providers/${providerId}`, 'GET', null, token);
+    if (provider.success) {
+      console.log(`✅ Provider details: ${provider.data.name}`);
     } else {
-      console.log(`❌ Menu items failed: ${JSON.stringify(menuItems.error)}`);
+      console.log(`❌ Provider details failed: ${JSON.stringify(provider.error)}`);
     }
   }
   
-  return allRestaurants.success && allRestaurants.data.length > 0;
+  return allProviders.success && allProviders.data.length > 0;
 }
 
 // Test function for chatbot
@@ -146,7 +143,9 @@ async function testChatbot(token, userType) {
   const chatResponse = await makeAuthenticatedRequest('/api/chatbot/message', 'POST', chatMessage, token);
   if (chatResponse.success) {
     console.log(`✅ Chatbot message: Response received`);
-    console.log(`   🤖 Response: ${chatResponse.data.response.substring(0, 100)}...`);
+    if (chatResponse.data.response) {
+      console.log(`   🤖 Response: ${chatResponse.data.response.substring(0, 100)}...`);
+    }
   } else {
     console.log(`❌ Chatbot message failed: ${JSON.stringify(chatResponse.error)}`);
   }
