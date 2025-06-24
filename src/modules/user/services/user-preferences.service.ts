@@ -192,5 +192,3 @@ export class UserPreferencesService {
     }
   }
 }
-
-export { UserPreferencesService };

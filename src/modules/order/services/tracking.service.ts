@@ -39,14 +39,14 @@ export class TrackingService {
           paymentStatus: this.getPaymentStatus(order),
           items: order.items,
           totalAmount: order.total_amount,
-          createdAt: order.createdAt,
+          createdAt: (order as any).createdAt || new Date(),
           estimatedDelivery,
           trackingHistory,
           currentLocation: this.getCurrentDeliveryLocation(order),
           provider: {
             name: order.food_provider?.name,
-            phone: order.food_provider?.phone,
-            address: order.food_provider?.address
+            phone: (order.food_provider as any)?.phone || 'N/A',
+            address: (order.food_provider as any)?.address || 'N/A'
           }
         }
       };
@@ -83,8 +83,8 @@ export class TrackingService {
           paymentStatus: this.getPaymentStatus(booking),
           checkInDate: booking.checkInDate,
           checkOutDate: booking.checkOutDate,
-          guests: booking.guests,
-          totalPrice: booking.totalPrice,
+          guests: (booking as any).guests || 1,
+          totalPrice: (booking as any).totalPrice || 0,
           createdAt: booking.createdAt,
           trackingHistory,
           accommodation: {
@@ -176,7 +176,7 @@ export class TrackingService {
           title: `Food Order from ${order.food_provider?.name || 'Restaurant'}`,
           status: order.status || 'placed',
           amount: order.total_amount,
-          date: order.createdAt,
+          date: (order as any).createdAt || new Date(),
           description: `Order of PKR ${order.total_amount} from ${order.food_provider?.name || 'Restaurant'}`
         });
       });
@@ -188,9 +188,9 @@ export class TrackingService {
           type: 'booking',
           title: `Accommodation Booking: ${booking.accommodation?.title || 'Property'}`,
           status: booking.status || 'pending',
-          amount: booking.totalPrice,
+          amount: (booking as any).totalPrice || 0,
           date: booking.createdAt,
-          description: `Booking for ${booking.guests} guests from ${booking.checkInDate} to ${booking.checkOutDate}`
+          description: `Booking for ${(booking as any).guests || 1} guests from ${booking.checkInDate} to ${booking.checkOutDate}`
         });
       });
 
@@ -327,5 +327,3 @@ export class TrackingService {
     return descriptions[status] || 'Status update';
   }
 }
-
-export { TrackingService };

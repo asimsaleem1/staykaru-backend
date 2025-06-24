@@ -296,5 +296,3 @@ export class RecommendationService {
     }
   }
 }
-
-export { RecommendationService };

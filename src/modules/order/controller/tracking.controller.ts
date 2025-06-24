@@ -1,6 +1,6 @@
 import { Controller, Get, Post, Put, Body, Param, UseGuards, Request, Query } from '@nestjs/common';
 import { JwtAuthGuard } from '../../auth/guards/jwt-auth.guard';
-import { RolesGuard } from '../../auth/guards/roles.guard';
+import { RolesGuard } from '../../user/guards/roles.guard';
 import { Roles } from '../../auth/decorators/roles.decorator';
 import { TrackingService } from '../services/tracking.service';
 import { ApiTags, ApiOperation, ApiResponse, ApiBearerAuth } from '@nestjs/swagger';
@@ -187,5 +187,3 @@ export class TrackingController {
     return await this.trackingService.getUserActivity(req.user.id, parseInt(limit));
   }
 }
-
-export { TrackingController };
