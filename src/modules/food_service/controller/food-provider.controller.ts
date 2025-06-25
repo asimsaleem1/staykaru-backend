@@ -97,7 +97,9 @@ export class FoodProviderController {
   }
 
   @Get()
-  @ApiOperation({ summary: 'Get all food providers' })
+  @ApiOperation({ summary: 'Get all food providers with pagination' })
+  @ApiQuery({ name: 'page', required: false, type: Number, description: 'Page number (default: 1)' })
+  @ApiQuery({ name: 'limit', required: false, type: Number, description: 'Items per page (default: 50, max: 100)' })
   @ApiResponse({
     status: 200,
     description: 'Return all food providers',
@@ -117,8 +119,13 @@ export class FoodProviderController {
       ],
     },
   })
-  async findAll() {
-    return this.foodProviderService.findAll();
+  async findAll(
+    @Query('page') page: string = '1',
+    @Query('limit') limit: string = '50'
+  ) {
+    const pageNum = parseInt(page) || 1;
+    const limitNum = parseInt(limit) || 50;
+    return this.foodProviderService.findAll(pageNum, limitNum);
   }
 
   @Get(':id')

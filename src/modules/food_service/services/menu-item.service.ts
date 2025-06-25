@@ -74,8 +74,15 @@ export class MenuItemService {
     }
   }
 
-  async findAll(): Promise<MenuItem[]> {
-    return this.menuItemModel.find().populate('provider').exec();
+  async findAll(page: number = 1, limit: number = 50): Promise<MenuItem[]> {
+    const safeLimit = Math.min(limit, 100);
+    const skip = (page - 1) * safeLimit;
+    return this.menuItemModel
+      .find()
+      .limit(safeLimit)
+      .skip(skip)
+      .populate('provider')
+      .exec();
   }
 
   async findOne(id: string): Promise<MenuItem> {

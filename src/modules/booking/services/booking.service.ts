@@ -115,8 +115,15 @@ export class BookingService {
     }
   }
 
-  async findAll(): Promise<Booking[]> {
-    return this.bookingModel.find().populate(['user', 'accommodation']).exec();
+  async findAll(page: number = 1, limit: number = 50): Promise<Booking[]> {
+    const safeLimit = Math.min(limit, 100);
+    const skip = (page - 1) * safeLimit;
+    return this.bookingModel
+      .find()
+      .limit(safeLimit)
+      .skip(skip)
+      .populate(['user', 'accommodation'])
+      .exec();
   }
 
   async findOne(id: string): Promise<Booking> {

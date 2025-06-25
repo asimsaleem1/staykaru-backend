@@ -1,4 +1,5 @@
 import { IsNumber, IsOptional, IsMongoId, Min, Max } from 'class-validator';
+import { Type } from 'class-transformer';
 import { ApiProperty } from '@nestjs/swagger';
 
 export class SearchAccommodationDto {
@@ -22,4 +23,29 @@ export class SearchAccommodationDto {
   @Max(1000000)
   @IsOptional()
   maxPrice?: number;
+
+  @ApiProperty({ 
+    example: 1, 
+    description: 'Page number for pagination',
+    required: false,
+    default: 1
+  })
+  @Type(() => Number)
+  @IsNumber()
+  @Min(1)
+  @IsOptional()
+  page?: number = 1;
+
+  @ApiProperty({ 
+    example: 50, 
+    description: 'Number of items per page (max 100)',
+    required: false,
+    default: 50
+  })
+  @Type(() => Number)
+  @IsNumber()
+  @Min(1)
+  @Max(100)
+  @IsOptional()
+  limit?: number = 50;
 }

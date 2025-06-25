@@ -92,19 +92,26 @@ export class FoodProviderService {
     return savedProvider;
   }
 
-  async findAll(): Promise<FoodProvider[]> {
-    const cached =
-      await this.cacheManager.get<FoodProvider[]>('food-providers:all');
+  async findAll(page: number = 1, limit: number = 50): Promise<FoodProvider[]> {
+    // Implement pagination to prevent memory issues
+    const safeLimit = Math.min(limit, 100); // Never return more than 100 at once
+    const skip = (page - 1) * safeLimit;
+    
+    const cacheKey = `food-providers:page-${page}-limit-${safeLimit}`;
+    const cached = await this.cacheManager.get<FoodProvider[]>(cacheKey);
     if (cached) {
       return cached;
     }
 
     const providers = await this.foodProviderModel
       .find()
+      .limit(safeLimit)
+      .skip(skip)
       .populate(['location', 'owner'])
       .exec();
 
-    await this.cacheManager.set('food-providers:all', providers);
+    // Cache with TTL to prevent memory buildup
+    await this.cacheManager.set(cacheKey, providers, 300000); // 5 minutes TTL
     return providers;
   }
 

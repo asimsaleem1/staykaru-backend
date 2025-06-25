@@ -67,8 +67,15 @@ export class PaymentService {
     return savedPayment;
   }
 
-  async findAll(): Promise<Payment[]> {
-    return this.paymentModel.find().populate('user').exec();
+  async findAll(page: number = 1, limit: number = 50): Promise<Payment[]> {
+    const safeLimit = Math.min(limit, 100);
+    const skip = (page - 1) * safeLimit;
+    return this.paymentModel
+      .find()
+      .limit(safeLimit)
+      .skip(skip)
+      .populate('user')
+      .exec();
   }
 
   async findByUser(userId: string): Promise<Payment[]> {

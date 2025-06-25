@@ -76,7 +76,11 @@ export class AccommodationService {
   }
 
   async findAll(searchDto: SearchAccommodationDto): Promise<Accommodation[]> {
-    const cacheKey = 'accommodations:all';
+    // Implement pagination to prevent memory issues
+    const limit = searchDto.limit || 50; // Default to 50 accommodations max
+    const skip = (searchDto.page - 1) * limit || 0;
+    
+    const cacheKey = `accommodations:${JSON.stringify(searchDto)}`;
     const cached = await this.cacheManager.get<Accommodation[]>(cacheKey);
 
     if (cached) {
@@ -90,7 +94,7 @@ export class AccommodationService {
 
     interface AccommodationQuery {
       city?: string;
-      price?: PriceQuery;
+      pricePerNight?: PriceQuery;
     }
 
     const query: AccommodationQuery = {};
@@ -107,15 +111,18 @@ export class AccommodationService {
       if (searchDto.maxPrice !== undefined) {
         priceQuery.$lte = searchDto.maxPrice;
       }
-      query.price = priceQuery;
+      query.pricePerNight = priceQuery;
     }
 
     const accommodations = await this.accommodationModel
       .find(query)
+      .limit(Math.min(limit, 100)) // Never return more than 100 at once
+      .skip(skip)
       .populate(['city', 'landlord'])
       .exec();
 
-    await this.cacheManager.set(cacheKey, accommodations);
+    // Cache with TTL to prevent memory buildup
+    await this.cacheManager.set(cacheKey, accommodations, 300000); // 5 minutes TTL
     return accommodations;
   }
 

@@ -49,8 +49,15 @@ export class ReviewService {
     return savedReview;
   }
 
-  async findAll(): Promise<Review[]> {
-    return this.reviewModel.find().populate('user').exec();
+  async findAll(page: number = 1, limit: number = 50): Promise<Review[]> {
+    const safeLimit = Math.min(limit, 100);
+    const skip = (page - 1) * safeLimit;
+    return this.reviewModel
+      .find()
+      .limit(safeLimit)
+      .skip(skip)
+      .populate('user')
+      .exec();
   }
 
   async findOne(id: string): Promise<Review> {
