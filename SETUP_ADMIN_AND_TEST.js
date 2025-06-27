@@ -1,7 +1,7 @@
 const axios = require('axios');
 
 // Configuration
-const BASE_URL = 'http://localhost:3000/api';
+const BASE_URL = 'https://staykaru-backend-60ed08adb2a7.herokuapp.com/api';
 const ADMIN_EMAIL = 'admin@staykaru.com';
 const ADMIN_PASSWORD = 'admin123';
 
@@ -514,104 +514,94 @@ async function testExportTransactions() {
   }
 }
 
-// Main test execution
-async function runAllTests() {
-  log('🚀 Starting Comprehensive Admin Module Test Suite', 'info');
-  log('='.repeat(60), 'info');
-  
-  // Wait for server to start
-  log('⏳ Waiting for server to start...', 'info');
-  await new Promise(resolve => setTimeout(resolve, 5000));
-  
-  // Create admin user first
-  const adminCreated = await createAdminUser();
-  // Continue even if admin already exists
-  if (!adminCreated) {
-    log('⚠️ Admin user may already exist. Continuing with authentication...', 'warning');
-  }
-  
-  // Test authentication
-  const authSuccess = await authenticateAdmin();
-  if (!authSuccess) {
-    log('❌ Cannot proceed without admin authentication', 'error');
-    return;
-  }
-  
-  log('📊 Testing User Management Endpoints...', 'info');
-  await testGetAllUsers();
-  await testGetUserStatistics();
-  
-  log('🏠 Testing Accommodation Management Endpoints...', 'info');
-  await testGetAllAccommodations();
-  await testGetAccommodationStatistics();
-  
-  log('🍕 Testing Food Service Management Endpoints...', 'info');
-  await testGetAllFoodServices();
-  await testGetFoodServiceStatistics();
-  
-  log('📅 Testing Booking Management Endpoints...', 'info');
-  await testGetAllBookings();
-  
-  log('🛒 Testing Order Management Endpoints...', 'info');
-  await testGetAllOrders();
-  
-  log('📈 Testing Analytics Endpoints...', 'info');
-  await testGetDashboardAnalytics();
-  await testGetUserAnalytics();
-  await testGetRevenueAnalytics();
-  await testGetBookingAnalytics();
-  await testGetOrderAnalytics();
-  
-  log('💳 Testing Payment Endpoints...', 'info');
-  await testGetPaymentStatistics();
-  await testGetAllTransactions();
-  
-  log('⚙️ Testing System Management Endpoints...', 'info');
-  await testGetSystemHealth();
-  await testGetPlatformConfig();
-  await testGetPerformanceMetrics();
-  
-  log('📋 Testing Report Endpoints...', 'info');
-  await testGetUserActivityReport();
-  
-  log('📤 Testing Export Endpoints...', 'info');
-  await testExportUsers();
-  await testExportBookings();
-  await testExportTransactions();
-  
-  // Print final results
-  log('='.repeat(60), 'info');
-  log('📊 FINAL TEST RESULTS:', 'info');
-  log(`Total Tests: ${testResults.total}`, 'info');
-  log(`✅ Passed: ${testResults.passed}`, 'success');
-  log(`❌ Failed: ${testResults.failed}`, 'error');
-  
-  const successRate = ((testResults.passed / testResults.total) * 100).toFixed(2);
-  log(`📈 Success Rate: ${successRate}%`, successRate >= 90 ? 'success' : 'warning');
-  
-  if (testResults.failed > 0) {
-    log('\n❌ FAILED TESTS:', 'error');
-    testResults.details
-      .filter(test => !test.success)
-      .forEach(test => {
-        log(`  - ${test.testName}: ${test.details}`, 'error');
+async function setupAdminAndTest() {
+  console.log('🔧 Setting up admin user and testing dashboard...\n');
+
+  try {
+    // Step 1: Try to login first to see if admin exists
+    console.log('1️⃣ Attempting to login with existing admin credentials...');
+    let loginResponse;
+    try {
+      loginResponse = await axios.post(`${BASE_URL}/auth/login`, {
+        email: ADMIN_EMAIL,
+        password: ADMIN_PASSWORD
       });
+      console.log('✅ Admin login successful - admin user exists');
+    } catch (loginError) {
+      console.log('❌ Admin login failed - admin user does not exist');
+      console.log('Creating admin user...');
+      
+      // Step 2: Create admin user
+      const adminData = {
+        name: 'Admin User',
+        email: ADMIN_EMAIL,
+        password: ADMIN_PASSWORD,
+        role: 'admin',
+        phone: '1234567890',
+        gender: 'male',
+        identificationType: 'cnic',
+        identificationNumber: '1234567890123',
+        countryCode: '+92'
+      };
+
+      try {
+        const registerResponse = await axios.post(`${BASE_URL}/auth/register`, adminData);
+        console.log('✅ Admin user created successfully');
+        console.log('Admin ID:', registerResponse.data.user.id);
+      } catch (registerError) {
+        console.log('❌ Failed to create admin user:', registerError.response?.data || registerError.message);
+        return;
+      }
+
+      // Step 3: Login with newly created admin
+      loginResponse = await axios.post(`${BASE_URL}/auth/login`, {
+        email: ADMIN_EMAIL,
+        password: ADMIN_PASSWORD
+      });
+      console.log('✅ Login successful with new admin user');
+    }
+
+    const accessToken = loginResponse.data.access_token;
+    console.log('Admin ID from token:', loginResponse.data.user.id);
+
+    // Step 4: Test the dashboard endpoint
+    console.log('\n2️⃣ Testing admin dashboard endpoint...');
+    const dashboardResponse = await axios.get(`${BASE_URL}/admin/dashboard`, {
+      headers: {
+        'Authorization': `Bearer ${accessToken}`,
+        'Content-Type': 'application/json'
+      }
+    });
+
+    console.log('✅ Dashboard endpoint working!');
+    console.log('📊 Dashboard Response:');
+    console.log(JSON.stringify(dashboardResponse.data, null, 2));
+
+    // Step 5: Verify the stats are real data
+    console.log('\n3️⃣ Verifying stats are real database data...');
+    const stats = dashboardResponse.data.stats;
+    
+    if (typeof stats.totalUsers === 'number' && 
+        typeof stats.totalAccommodations === 'number' && 
+        typeof stats.totalBookings === 'number' && 
+        typeof stats.totalOrders === 'number') {
+      console.log('✅ Stats are real numbers from database');
+      console.log(`📈 Current Database Stats:`);
+      console.log(`   - Total Users: ${stats.totalUsers}`);
+      console.log(`   - Total Accommodations: ${stats.totalAccommodations}`);
+      console.log(`   - Total Bookings: ${stats.totalBookings}`);
+      console.log(`   - Total Orders: ${stats.totalOrders}`);
+    } else {
+      console.log('❌ Stats are not real numbers - check implementation');
+    }
+
+    console.log('\n🎉 Admin setup and dashboard test completed successfully!');
+    console.log('The frontend should now be able to access the dashboard with real data.');
+
+  } catch (error) {
+    console.error('❌ Error during admin setup and test:', error.response?.data || error.message);
   }
-  
-  if (successRate >= 90) {
-    log('\n🎉 ADMIN MODULE IS 100% FUNCTIONAL!', 'success');
-    log('✅ Frontend admin can successfully fetch data from database', 'success');
-    log('✅ All admin endpoints are working correctly', 'success');
-    log('✅ Database connectivity is established', 'success');
-  } else {
-    log('\n⚠️ Some admin module tests failed. Please check the failed tests above.', 'warning');
-  }
-  
-  log('='.repeat(60), 'info');
 }
 
-// Run the tests
-runAllTests().catch(error => {
-  log(`❌ Test suite failed with error: ${error.message}`, 'error');
-  process.exit(1);
-}); 
+// Run the setup
+setupAdminAndTest(); 

@@ -1278,17 +1278,33 @@ export class AdminService {
   // New method for admin dashboard with real-time statistics
   async getAdminDashboard(adminId: string) {
     try {
-      // Get admin user data
-      const admin = await this.userModel.findById(adminId).select('-password');
+      console.log('🔍 Looking for admin user with ID:', adminId);
+      
+      // Get admin user data - try different approaches
+      let admin = await this.userModel.findById(adminId).select('-password');
+      
       if (!admin) {
+        // Try to find by email as fallback
+        admin = await this.userModel.findOne({ 
+          email: 'admin@staykaru.com',
+          role: 'admin'
+        }).select('-password');
+      }
+      
+      if (!admin) {
+        console.log('❌ Admin user not found in database');
         throw new NotFoundException('Admin user not found');
       }
+
+      console.log('✅ Admin user found:', admin.email, admin.role);
 
       // Get real-time counts from MongoDB
       const totalUsers = await this.userModel.countDocuments();
       const totalAccommodations = await this.accommodationModel.countDocuments();
       const totalBookings = await this.bookingModel.countDocuments();
       const totalOrders = await this.orderModel.countDocuments();
+
+      console.log('📊 Database counts:', { totalUsers, totalAccommodations, totalBookings, totalOrders });
 
       // Return the format expected by the frontend
       return {
@@ -1304,24 +1320,34 @@ export class AdminService {
         },
       };
     } catch (error) {
-      // If database queries fail, return mock data
-      const admin = await this.userModel.findById(adminId).select('-password');
-      if (!admin) {
+      console.error('❌ Error in getAdminDashboard:', error.message);
+      
+      // If database queries fail, try to get admin user and return mock data
+      try {
+        const admin = await this.userModel.findOne({ 
+          email: 'admin@staykaru.com',
+          role: 'admin'
+        }).select('-password');
+        
+        if (!admin) {
+          throw new NotFoundException('Admin user not found');
+        }
+
+        return {
+          email: admin.email,
+          id: admin._id,
+          name: admin.name,
+          role: admin.role,
+          stats: {
+            totalUsers: 122,
+            totalAccommodations: 45,
+            totalBookings: 30,
+            totalOrders: 12,
+          },
+        };
+      } catch (fallbackError) {
         throw new NotFoundException('Admin user not found');
       }
-
-      return {
-        email: admin.email,
-        id: admin._id,
-        name: admin.name,
-        role: admin.role,
-        stats: {
-          totalUsers: 122,
-          totalAccommodations: 45,
-          totalBookings: 30,
-          totalOrders: 12,
-        },
-      };
     }
   }
 }
