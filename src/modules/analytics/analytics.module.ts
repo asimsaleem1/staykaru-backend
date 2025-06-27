@@ -12,6 +12,7 @@ import { Booking, BookingSchema } from '../booking/schema/booking.schema';
 import { Review, ReviewSchema } from '../review/schema/review.schema';
 import { Order, OrderSchema } from '../order/schema/order.schema';
 import { Payment, PaymentSchema } from '../payment/schema/payment.schema';
+import { FoodProviderAnalyticsController } from './controller/food-provider-analytics.controller';
 
 @Module({
   imports: [
@@ -47,7 +48,10 @@ import { Payment, PaymentSchema } from '../payment/schema/payment.schema';
       { name: Payment.name, schema: PaymentSchema },
     ]),
   ],
-  controllers: [AnalyticsController],
+  controllers: [
+    AnalyticsController,
+    FoodProviderAnalyticsController,
+  ],
   providers: [AnalyticsService, AnalyticsReportFactory],
   exports: [AnalyticsService],
 })

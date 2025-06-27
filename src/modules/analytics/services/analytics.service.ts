@@ -400,4 +400,16 @@ export class AnalyticsService {
       })),
     };
   }
+
+  async getFoodProviderAnalytics(providerId: string, timeRange?: string) {
+    // TODO: Implement real analytics logic for food provider
+    return {
+      providerId,
+      timeRange: timeRange || 'all',
+      orders: 0,
+      revenue: 0,
+      topMenuItems: [],
+      // Add more analytics fields as needed
+    };
+  }
 }
