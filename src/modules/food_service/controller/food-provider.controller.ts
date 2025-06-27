@@ -128,99 +128,6 @@ export class FoodProviderController {
     return this.foodProviderService.findAll(pageNum, limitNum);
   }
 
-  @Get(':id')
-  @ApiOperation({ summary: 'Get a food provider by ID' })
-  @ApiParam({ name: 'id', description: 'Food Provider ID' })
-  @ApiResponse({
-    status: 200,
-    description: 'Return a food provider',
-    schema: {
-      example: {
-        id: '507f1f77bcf86cd799439011',
-        name: 'Delicious Eats',
-        description: 'Authentic local cuisine',
-        cuisine_type: 'Italian',
-        location: {
-          address: '456 Food Street',
-          city: 'Food City',
-          country: 'CountryName',
-        },
-        operating_hours: {
-          open: '09:00',
-          close: '22:00',
-        },
-        contact_info: {
-          phone: '+1234567890',
-          email: 'info@deliciouseats.com',
-        },
-        menu_items: [],
-        rating: 4.5,
-        total_reviews: 25,
-      },
-    },
-  })
-  @ApiResponse({ status: 404, description: 'Food provider not found' })
-  async findOne(@Param('id') id: string) {
-    return this.foodProviderService.findOne(id);
-  }
-
-  @Put(':id')
-  @UseGuards(JwtAuthGuard)
-  @ApiBearerAuth('JWT-auth')
-  @ApiOperation({ summary: 'Update a food provider (Owners only)' })
-  @ApiParam({ name: 'id', description: 'Food Provider ID' })
-  @ApiResponse({
-    status: 200,
-    description: 'Food provider successfully updated',
-    schema: {
-      example: {
-        id: '507f1f77bcf86cd799439011',
-        name: 'Updated Restaurant Name',
-        message: 'Food provider updated successfully',
-      },
-    },
-  })
-  @ApiResponse({
-    status: 403,
-    description: 'Forbidden - Can only update own food provider',
-  })
-  @ApiResponse({ status: 404, description: 'Food provider not found' })
-  async update(
-    @Param('id') id: string,
-    @Body() updateFoodProviderDto: UpdateFoodProviderDto,
-    @Request() req,
-  ) {
-    const userId = this.getUserId(req);
-    return this.foodProviderService.update(id, updateFoodProviderDto, userId);
-  }
-
-  @Delete(':id')
-  @UseGuards(JwtAuthGuard)
-  @ApiBearerAuth('JWT-auth')
-  @ApiOperation({ summary: 'Delete a food provider (Owners only)' })
-  @ApiParam({ name: 'id', description: 'Food Provider ID' })
-  @ApiResponse({
-    status: 200,
-    description: 'Food provider successfully deleted',
-    schema: {
-      example: {
-        message: 'Food provider deleted successfully',
-      },
-    },
-  })
-  @ApiResponse({
-    status: 403,
-    description: 'Forbidden - Can only delete own food provider',
-  })
-  @ApiResponse({ status: 404, description: 'Food provider not found' })
-  async remove(@Param('id') id: string, @Request() req) {
-    const userId = this.getUserId(req);
-    await this.foodProviderService.remove(id, userId);
-    return { message: 'Food provider deleted successfully' };
-  }
-
-  // Food Provider Dashboard Endpoints
-
   @Get('owner/my-providers')
   @UseGuards(JwtAuthGuard, FoodProviderGuard)
   @ApiBearerAuth('JWT-auth')
@@ -375,7 +282,6 @@ export class FoodProviderController {
     return this.foodProviderService.getProviderAnalytics(ownerId, days);
   }
 
-  // Admin endpoints for food provider management
   @Get('admin/pending')
   @UseGuards(JwtAuthGuard, RolesGuard)
   @Roles(UserRole.ADMIN)
@@ -473,7 +379,6 @@ export class FoodProviderController {
     return this.foodProviderService.getFoodProviderForAdmin(id);
   }
 
-  // Admin endpoints for menu item management
   @Get('admin/menu-items/pending')
   @UseGuards(JwtAuthGuard, RolesGuard)
   @Roles(UserRole.ADMIN)
@@ -538,5 +443,96 @@ export class FoodProviderController {
   })
   async toggleMenuItemStatus(@Param('id') id: string) {
     return this.foodProviderService.toggleMenuItemStatus(id);
+  }
+
+  @Get(':id')
+  @ApiOperation({ summary: 'Get a food provider by ID' })
+  @ApiParam({ name: 'id', description: 'Food Provider ID' })
+  @ApiResponse({
+    status: 200,
+    description: 'Return a food provider',
+    schema: {
+      example: {
+        id: '507f1f77bcf86cd799439011',
+        name: 'Delicious Eats',
+        description: 'Authentic local cuisine',
+        cuisine_type: 'Italian',
+        location: {
+          address: '456 Food Street',
+          city: 'Food City',
+          country: 'CountryName',
+        },
+        operating_hours: {
+          open: '09:00',
+          close: '22:00',
+        },
+        contact_info: {
+          phone: '+1234567890',
+          email: 'info@deliciouseats.com',
+        },
+        menu_items: [],
+        rating: 4.5,
+        total_reviews: 25,
+      },
+    },
+  })
+  @ApiResponse({ status: 404, description: 'Food provider not found' })
+  async findOne(@Param('id') id: string) {
+    return this.foodProviderService.findOne(id);
+  }
+
+  @Put(':id')
+  @UseGuards(JwtAuthGuard)
+  @ApiBearerAuth('JWT-auth')
+  @ApiOperation({ summary: 'Update a food provider (Owners only)' })
+  @ApiParam({ name: 'id', description: 'Food Provider ID' })
+  @ApiResponse({
+    status: 200,
+    description: 'Food provider successfully updated',
+    schema: {
+      example: {
+        id: '507f1f77bcf86cd799439011',
+        name: 'Updated Restaurant Name',
+        message: 'Food provider updated successfully',
+      },
+    },
+  })
+  @ApiResponse({
+    status: 403,
+    description: 'Forbidden - Can only update own food provider',
+  })
+  @ApiResponse({ status: 404, description: 'Food provider not found' })
+  async update(
+    @Param('id') id: string,
+    @Body() updateFoodProviderDto: UpdateFoodProviderDto,
+    @Request() req,
+  ) {
+    const userId = this.getUserId(req);
+    return this.foodProviderService.update(id, updateFoodProviderDto, userId);
+  }
+
+  @Delete(':id')
+  @UseGuards(JwtAuthGuard)
+  @ApiBearerAuth('JWT-auth')
+  @ApiOperation({ summary: 'Delete a food provider (Owners only)' })
+  @ApiParam({ name: 'id', description: 'Food Provider ID' })
+  @ApiResponse({
+    status: 200,
+    description: 'Food provider successfully deleted',
+    schema: {
+      example: {
+        message: 'Food provider deleted successfully',
+      },
+    },
+  })
+  @ApiResponse({
+    status: 403,
+    description: 'Forbidden - Can only delete own food provider',
+  })
+  @ApiResponse({ status: 404, description: 'Food provider not found' })
+  async remove(@Param('id') id: string, @Request() req) {
+    const userId = this.getUserId(req);
+    await this.foodProviderService.remove(id, userId);
+    return { message: 'Food provider deleted successfully' };
   }
 }
