@@ -159,6 +159,7 @@ export class FoodProviderController {
   @UseGuards(JwtAuthGuard, FoodProviderGuard)
   @ApiBearerAuth('JWT-auth')
   @ApiOperation({ summary: 'Get food provider analytics' })
+  @ApiQuery({ name: 'days', required: false, description: 'Number of days for analytics' })
   @ApiResponse({
     status: 200,
     description: 'Returns food provider analytics',
@@ -172,14 +173,18 @@ export class FoodProviderController {
   @UseGuards(JwtAuthGuard, FoodProviderGuard)
   @ApiBearerAuth('JWT-auth')
   @ApiOperation({ summary: 'Get food provider orders' })
-  @ApiQuery({ name: 'status', required: false, description: 'Filter by order status' })
   @ApiResponse({
     status: 200,
     description: 'Returns food provider orders',
   })
-  async getOrders(@Request() req, @Query('status') status?: string) {
+  async getOrders(@Request() req) {
     const ownerId = this.getUserId(req);
-    return this.foodProviderService.getProviderOrders(ownerId, status);
+    // Get the first provider for this owner
+    const providers = await this.foodProviderService.findByOwner(ownerId);
+    if (providers.length === 0) {
+      return [];
+    }
+    return this.foodProviderService.getProviderOrders(providers[0]._id.toString());
   }
 
   @Get('owner/menu-items/:providerId')
