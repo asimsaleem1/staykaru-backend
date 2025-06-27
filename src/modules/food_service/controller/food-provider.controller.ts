@@ -155,6 +155,33 @@ export class FoodProviderController {
     return this.foodProviderService.getProviderDashboard(ownerId);
   }
 
+  @Get('analytics')
+  @UseGuards(JwtAuthGuard, FoodProviderGuard)
+  @ApiBearerAuth('JWT-auth')
+  @ApiOperation({ summary: 'Get food provider analytics' })
+  @ApiResponse({
+    status: 200,
+    description: 'Returns food provider analytics',
+  })
+  async getAnalytics(@Request() req, @Query('days') days?: number) {
+    const ownerId = this.getUserId(req);
+    return this.foodProviderService.getProviderAnalytics(ownerId, days);
+  }
+
+  @Get('orders')
+  @UseGuards(JwtAuthGuard, FoodProviderGuard)
+  @ApiBearerAuth('JWT-auth')
+  @ApiOperation({ summary: 'Get food provider orders' })
+  @ApiQuery({ name: 'status', required: false, description: 'Filter by order status' })
+  @ApiResponse({
+    status: 200,
+    description: 'Returns food provider orders',
+  })
+  async getOrders(@Request() req, @Query('status') status?: string) {
+    const ownerId = this.getUserId(req);
+    return this.foodProviderService.getProviderOrders(ownerId, status);
+  }
+
   @Get('owner/menu-items/:providerId')
   @UseGuards(JwtAuthGuard, FoodProviderGuard)
   @ApiBearerAuth('JWT-auth')
@@ -247,39 +274,6 @@ export class FoodProviderController {
   ) {
     await this.foodProviderService.deleteMenuItem(itemId, providerId);
     return { message: 'Menu item deleted successfully' };
-  }
-
-  @Get('owner/orders/:providerId')
-  @UseGuards(JwtAuthGuard, FoodProviderGuard)
-  @ApiBearerAuth('JWT-auth')
-  @ApiOperation({ summary: 'Get all orders for a specific food provider' })
-  @ApiParam({ name: 'providerId', description: 'Food Provider ID' })
-  @ApiResponse({
-    status: 200,
-    description: 'Returns all orders for the specified food provider',
-  })
-  async getProviderOrders(
-    @Param('providerId') providerId: string,
-    @Request() req,
-  ) {
-    return this.foodProviderService.getProviderOrders(providerId);
-  }
-
-  @Get('owner/analytics')
-  @UseGuards(JwtAuthGuard, FoodProviderGuard)
-  @ApiBearerAuth('JWT-auth')
-  @ApiOperation({
-    summary: 'Get analytics for food providers owned by the user',
-  })
-  @ApiResponse({
-    status: 200,
-    description: 'Returns analytics for food providers owned by the user',
-  })
-  @ApiQuery({ name: 'days', required: false, type: Number })
-  async getProviderAnalytics(@Request() req, @Query('days') days?: number) {
-    const ownerId =
-      typeof req.user._id === 'string' ? req.user._id : req.user._id.toString();
-    return this.foodProviderService.getProviderAnalytics(ownerId, days);
   }
 
   @Get('admin/pending')
