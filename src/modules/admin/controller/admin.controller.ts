@@ -30,6 +30,14 @@ export class AdminController {
     return this.adminService.getAllUsers({ page, limit, role, search });
   }
 
+  @Get('users/statistics')
+  @Roles('admin')
+  @ApiOperation({ summary: 'Get user statistics' })
+  @ApiResponse({ status: 200, description: 'User statistics retrieved successfully' })
+  async getUserStatistics() {
+    return this.adminService.getUserStatistics();
+  }
+
   @Get('users/:id')
   @Roles('admin')
   @ApiOperation({ summary: 'Get user by ID' })
@@ -274,15 +282,6 @@ export class AdminController {
     return this.adminService.getOrderAnalytics(period || 'month');
   }
 
-  // Missing User Statistics
-  @Get('users/statistics')
-  @Roles('admin')
-  @ApiOperation({ summary: 'Get user statistics' })
-  @ApiResponse({ status: 200, description: 'User statistics retrieved successfully' })
-  async getUserStatistics() {
-    return this.adminService.getUserStatistics();
-  }
-
   // Missing Accommodation Statistics
   @Get('accommodations/statistics')
   @Roles('admin')
@@ -484,5 +483,14 @@ export class AdminController {
   @ApiResponse({ status: 200, description: 'User activity report retrieved successfully' })
   async getUserActivityReport() {
     return this.adminService.getUserActivityReport();
+  }
+
+  @Get('dashboard')
+  @Roles('admin')
+  @ApiOperation({ summary: 'Get admin dashboard with real-time statistics' })
+  @ApiResponse({ status: 200, description: 'Admin dashboard data retrieved successfully' })
+  async getAdminDashboard(@Request() req: any) {
+    const userId = req.user.sub; // Get user ID from JWT token
+    return this.adminService.getAdminDashboard(userId);
   }
 }
