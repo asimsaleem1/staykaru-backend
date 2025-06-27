@@ -241,26 +241,60 @@ export class UserController {
     return this.userService.getUserProfile(this.getUserId(req));
   }
 
-  @Get(':id')
-  @ApiOperation({ summary: 'Get a user by ID' })
-  @ApiParam({ name: 'id', description: 'User ID' })
+  @Get('dashboard')
+  @UseGuards(JwtAuthGuard)
+  @ApiBearerAuth()
+  @ApiOperation({ summary: 'Get student dashboard summary' })
   @ApiResponse({
     status: 200,
-    description: 'Return a user',
+    description: 'Returns the student dashboard summary',
     schema: {
       example: {
-        id: '507f1f77bcf86cd799439011',
-        name: 'John Doe',
-        email: 'john@example.com',
-        role: 'student',
-        phone: '+1234567890',
-        address: '123 Main St',
-        created_at: '2025-05-28T10:00:00.000Z',
-        updated_at: '2025-05-28T10:00:00.000Z',
+        totalBookings: 10,
+        totalOrders: 5,
+        activeBookings: 2,
+        pendingOrders: 1,
+        recentTransactions: [],
       },
     },
   })
-  @ApiResponse({ status: 404, description: 'User not found' })
+  async getDashboard(@Request() req: AuthenticatedRequest): Promise<any> {
+    const userId = this.getUserId(req);
+    return this.userService.getDashboardSummary(userId);
+  }
+
+  @Get('analytics')
+  @UseGuards(JwtAuthGuard)
+  @ApiBearerAuth()
+  @ApiOperation({ summary: 'Get student analytics data' })
+  @ApiResponse({
+    status: 200,
+    description: 'Returns the student analytics data',
+    schema: {
+      example: {
+        monthlySpending: {
+          accommodation: 1000,
+          food: 500,
+        },
+        accommodationSpending: [
+          { month: 'January', amount: 500 },
+          { month: 'February', amount: 500 },
+        ],
+        foodSpending: [
+          { month: 'January', amount: 250 },
+          { month: 'February', amount: 250 },
+        ],
+      },
+    },
+  })
+  async getAnalytics(@Request() req: AuthenticatedRequest): Promise<any> {
+    const userId = this.getUserId(req);
+    return this.userService.getAnalytics(userId);
+  }
+
+  @Get(':id')
+  @ApiOperation({ summary: 'Get user by ID' })
+  @ApiResponse({ status: 200, description: 'Returns user by ID' })
   async findOne(@Param('id') id: string): Promise<any> {
     return this.userService.findOne(id);
   }
@@ -409,57 +443,6 @@ export class UserController {
   ): Promise<any> {
     const landlordId = req.user._id;
     return this.userService.updateFcmToken(landlordId, body.fcmToken);
-  }
-
-  @Get('dashboard')
-  @UseGuards(JwtAuthGuard)
-  @ApiBearerAuth()
-  @ApiOperation({ summary: 'Get student dashboard summary' })
-  @ApiResponse({
-    status: 200,
-    description: 'Returns the student dashboard summary',
-    schema: {
-      example: {
-        totalBookings: 10,
-        totalOrders: 5,
-        activeBookings: 2,
-        pendingOrders: 1,
-        recentTransactions: [],
-      },
-    },
-  })
-  async getDashboard(@Request() req: AuthenticatedRequest): Promise<any> {
-    const userId = this.getUserId(req);
-    return this.userService.getDashboardSummary(userId);
-  }
-
-  @Get('analytics')
-  @UseGuards(JwtAuthGuard)
-  @ApiBearerAuth()
-  @ApiOperation({ summary: 'Get student analytics data' })
-  @ApiResponse({
-    status: 200,
-    description: 'Returns the student analytics data',
-    schema: {
-      example: {
-        monthlySpending: {
-          accommodation: 1000,
-          food: 500,
-        },
-        accommodationSpending: [
-          { month: 'January', amount: 500 },
-          { month: 'February', amount: 500 },
-        ],
-        foodSpending: [
-          { month: 'January', amount: 250 },
-          { month: 'February', amount: 250 },
-        ],
-      },
-    },
-  })
-  async getAnalytics(@Request() req: AuthenticatedRequest): Promise<any> {
-    const userId = this.getUserId(req);
-    return this.userService.getAnalytics(userId);
   }
 
   @Post('notifications/clear')

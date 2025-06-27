@@ -22,8 +22,14 @@ export class TrackingService {
         throw new Error('Order not found');
       }
 
-      // Check if user has access to this order
-      if (order.user.toString() !== userId && order.food_provider?.owner?.toString() !== userId) {
+      // Robust ownership check
+      let orderUserId = '';
+      if (order.user) {
+        orderUserId = order.user._id ? order.user._id.toString() : order.user.toString();
+      }
+      const userIdStr = userId?.toString() || '';
+      console.log('[TRACK_ORDER] orderUserId:', orderUserId, 'userId:', userIdStr);
+      if (orderUserId !== userIdStr) {
         throw new Error('Unauthorized access to order');
       }
 
@@ -67,35 +73,28 @@ export class TrackingService {
         throw new Error('Booking not found');
       }
 
-      // Check if user has access to this booking
-      if (booking.user.toString() !== userId && booking.accommodation?.landlord?.toString() !== userId) {
+      // Robust ownership check
+      let bookingUserId = '';
+      if (booking.user) {
+        bookingUserId = booking.user._id ? booking.user._id.toString() : booking.user.toString();
+      }
+      const userIdStr = userId?.toString() || '';
+      console.log('[TRACK_BOOKING] bookingUserId:', bookingUserId, 'userId:', userIdStr);
+      if (bookingUserId !== userIdStr) {
         throw new Error('Unauthorized access to booking');
       }
 
-      // Generate realistic tracking timeline
-      const trackingHistory = this.generateBookingTrackingHistory(booking);
-
+      // Return tracking information
       return {
-        success: true,
-        booking: {
-          id: booking._id,
-          status: booking.status || 'pending',
-          paymentStatus: this.getPaymentStatus(booking),
-          checkInDate: booking.checkInDate,
-          checkOutDate: booking.checkOutDate,
-          guests: (booking as any).guests || 1,
-          totalPrice: (booking as any).totalPrice || 0,
-          createdAt: booking.createdAt,
-          trackingHistory,
-          accommodation: {
-            title: booking.accommodation?.title,
-            address: booking.accommodation?.address,
-            landlord: {
-              name: booking.accommodation?.landlord?.name,
-              phone: booking.accommodation?.landlord?.phone
-            }
-          }
-        }
+        bookingId: booking._id,
+        status: booking.status,
+        checkInDate: booking.checkInDate,
+        checkOutDate: booking.checkOutDate,
+        accommodation: booking.accommodation,
+        user: booking.user,
+        totalAmount: booking.total_amount,
+        createdAt: booking.createdAt,
+        updatedAt: booking.updatedAt,
       };
     } catch (error) {
       console.error('Error tracking booking:', error);

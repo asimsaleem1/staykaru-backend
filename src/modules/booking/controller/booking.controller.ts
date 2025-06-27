@@ -8,6 +8,8 @@ import {
   UseGuards,
   Request,
   Query,
+  ForbiddenException,
+  NotFoundException,
 } from '@nestjs/common';
 import {
   ApiTags,
@@ -195,6 +197,11 @@ export class BookingController {
       ],
     },
   })
+  async findLandlordBookingsForTesting(@Request() req) {
+    const landlordId = req.user?._id || '683700350f8a15197d2abf50';
+    return this.bookingService.findByLandlord(landlordId);
+  }
+
   @Get(':id')
   @ApiOperation({ summary: 'Get a booking by ID' })
   @ApiParam({ name: 'id', description: 'Booking ID' })
@@ -219,18 +226,41 @@ export class BookingController {
         },
         check_in_date: '2025-06-01',
         check_out_date: '2025-06-05',
-        total_guests: 2,
-        total_amount: 400,
-        currency: 'USD',
-        status: 'confirmed',
-        special_requests: 'Late check-in requested',
-        created_at: '2025-05-28T10:00:00.000Z',
+        status: 'pending',
       },
     },
   })
-  @ApiResponse({ status: 404, description: 'Booking not found' })
-  async findOne(@Param('id') id: string) {
-    return this.bookingService.findOne(id);
+  async findOne(@Param('id') id: string, @Request() req) {
+    console.error('🔍 [BOOKING_FINDONE] Requested booking ID:', id);
+    console.error('🔍 [BOOKING_FINDONE] Request user:', JSON.stringify(req.user, null, 2));
+    console.error('🔍 [BOOKING_FINDONE] Request user role:', req.user?.role);
+    console.error('🔍 [BOOKING_FINDONE] Request user ID:', req.user?._id);
+    
+    const booking = await this.bookingService.findOne(id);
+    if (!booking) {
+      throw new NotFoundException('Booking not found');
+    }
+    
+    console.error('🔍 [BOOKING_FINDONE] Found booking:', JSON.stringify(booking, null, 2));
+    console.error('🔍 [BOOKING_FINDONE] Booking user:', booking.user);
+    console.error('🔍 [BOOKING_FINDONE] Booking user type:', typeof booking.user);
+    
+    // Allow students to access only their own bookings
+    if (req.user?.role === 'student') {
+      const bookingUserId = booking.user?._id ? booking.user._id.toString() : booking.user.toString();
+      const reqUserId = req.user._id?.toString() || req.user.id?.toString() || '';
+      
+      console.error('🔍 [BOOKING_FINDONE] bookingUserId:', bookingUserId);
+      console.error('🔍 [BOOKING_FINDONE] reqUserId:', reqUserId);
+      console.error('🔍 [BOOKING_FINDONE] IDs match?', bookingUserId === reqUserId);
+      
+      if (bookingUserId !== reqUserId) {
+        console.error('🔍 [BOOKING_FINDONE] Access denied - IDs do not match');
+        throw new ForbiddenException('Forbidden resource');
+      }
+      console.error('🔍 [BOOKING_FINDONE] Access granted - IDs match');
+    }
+    return booking;
   }
 
   @Put(':id/status')

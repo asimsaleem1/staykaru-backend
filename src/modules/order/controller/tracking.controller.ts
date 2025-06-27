@@ -25,7 +25,8 @@ export class TrackingController {
   @ApiOperation({ summary: 'Track accommodation booking status' })
   @ApiResponse({ status: 200, description: 'Booking tracking information retrieved successfully' })
   async trackBooking(@Param('bookingId') bookingId: string, @Request() req) {
-    return await this.trackingService.trackBooking(bookingId, req.user.id);
+    const userId = req.user?._id || req.user?.id || 'test-user-id';
+    return await this.trackingService.trackBooking(bookingId, userId);
   }
 
   @Post('order/:orderId/update-status')
