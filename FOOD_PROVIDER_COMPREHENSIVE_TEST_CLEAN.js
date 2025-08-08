@@ -368,7 +368,7 @@ const testCreateMenuItem = async () => {
       if (menuItemsResult.success && menuItemsResult.data.length > 0) {
         menuItemId = menuItemsResult.data[0]._id || menuItemsResult.data[0].id;
         log('Found menuItemId from get menu items:', menuItemId);
-        return true;
+    return true;
       }
       return false;
     }
@@ -663,7 +663,7 @@ const testMarkNotificationAsRead = async () => {
       if (createNotificationResult.status === 404) {
         log('⚠️ Notification creation endpoint does not exist. Skipping mark notification as read test.');
         return true;
-      }
+  }
       log('❌ Failed to create test notification:', createNotificationResult.error);
       return false;
     }
@@ -760,8 +760,8 @@ const testLogout = async () => {
     authToken = '';
     return true;
   } else {
-    log('⚠️ Logout endpoint not found - clearing token manually');
-    authToken = '';
+  log('⚠️ Logout endpoint not found - clearing token manually');
+  authToken = '';
     return true; // Consider this a pass since we handled it gracefully
   }
 };
